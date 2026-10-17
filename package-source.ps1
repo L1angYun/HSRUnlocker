@@ -14,11 +14,13 @@ if ([string]::IsNullOrWhiteSpace($OutDir)) { $OutDir = Join-Path $repo 'artifact
 
 $include = @(
     'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CONTRIBUTING.md', 'SECURITY.md',
-    'global.json', 'build.ps1', 'package-source.ps1', '.gitignore', '.gitattributes', '.editorconfig',
+    'global.json', 'build.ps1', 'build-installer.ps1', 'installer\HSRUnlocker.iss',
+    'package-source.ps1', '.gitignore', '.gitattributes', '.editorconfig',
     'docs\VALIDATION.md', '.github\workflows\build.yml',
     'scripts\Copy-ThirdPartyNotices.ps1', 'tests\Packaging.Tests.ps1',
     'gui\App.xaml', 'gui\App.xaml.cs', 'gui\MainWindow.xaml', 'gui\MainWindow.xaml.cs',
-    'gui\MainWindow.Presentation.cs', 'gui\MainWindow.Localization.cs', 'gui\WindowLayout.cs', 'gui\Assets\AppIcon.png', 'gui\Assets\AppIcon.ico',
+    'gui\MainWindow.Presentation.cs', 'gui\MainWindow.Localization.cs', 'gui\MainWindow.Updates.cs',
+    'gui\WindowLayout.cs', 'gui\Assets\AppIcon.png', 'gui\Assets\AppIcon.ico',
     'gui\Assets\Fonts\MiSansVF.ttf', 'gui\Assets\Fonts\MiSans-LICENSE.pdf', 'gui\Assets\Fonts\NOTICE.md',
     'gui\TrayIcon.cs', 'gui\HSRUnlocker.csproj', 'gui\app.manifest'
 )

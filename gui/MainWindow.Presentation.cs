@@ -62,7 +62,8 @@ namespace StarRailUnlocker
             var session = _session;
             bool running = session?.IsRunning == true;
             bool blocked = _closePending || _switchingSession;
-            bool restoring = running && (_stoppingSession || session.State == SessionState.Failed);
+            bool restoring = running && (_stoppingSession ||
+                session.State is SessionState.Failed or SessionState.GameExited);
             if (!running) _stoppingSession = false;
             StartButton.IsEnabled = AttachButton.IsEnabled = !blocked && !running;
             StopButton.IsEnabled = !blocked && running && !restoring;
@@ -76,6 +77,8 @@ namespace StarRailUnlocker
             MobileUiToggle.IsEnabled = AutoStartToggle.IsEnabled = StartMinimizedToggle.IsEnabled =
                 !blocked && !preparing && !restoring;
             GraphicsSourceBox.IsEnabled = MobileUiToggle.IsEnabled && _config.UseMobileUI;
+            ExitWithGameToggle.IsEnabled = !blocked;
+            RefreshUpdatePresentation();
 
             if (_closePending || _switchingSession || restoring)
             {
@@ -105,7 +108,8 @@ namespace StarRailUnlocker
                     SessionState.Patching => L10n.T("Ui.StatusAttaching"),
                     SessionState.Active => L10n.T("Ui.StatusActive", session.AppliedValue, session.Pid),
                     SessionState.Failed => session.LastMessage,
-                    SessionState.GameExited => L10n.T("Ui.StatusGameExited"),
+                    SessionState.GameExited => L10n.T(_config.ExitWithGame
+                        ? "Ui.StatusGameExited" : "Updates.GameExitedStayingOpen"),
                     _ => _localErrorKey != null ? L10n.T(_localErrorKey) :
                         session == null ? L10n.T("Ui.StatusNotAttached") :
                         session.OriginalValue > 0 ? L10n.T("Ui.StatusRestoredFps", session.OriginalValue) :

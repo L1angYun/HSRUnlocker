@@ -37,6 +37,8 @@ namespace StarRailUnlocker.Core
         public bool DisableCameraFade { get; set; } = false;
         public bool AutoStart { get; set; } = false;
         public bool StartMinimized { get; set; } = false;
+        public bool ExitWithGame { get; set; } = true;
+        public bool CheckForUpdates { get; set; } = true;
         public bool UseMobileUI { get; set; } = false;
         public MobileGraphicsSource GraphicsSource { get; set; } = MobileGraphicsSource.Auto;
         public string Language { get; set; } = "auto";
@@ -117,6 +119,8 @@ namespace StarRailUnlocker.Core
             DisableCameraFade = DisableCameraFade,
             AutoStart = AutoStart,
             StartMinimized = StartMinimized,
+            ExitWithGame = ExitWithGame,
+            CheckForUpdates = CheckForUpdates,
             UseMobileUI = UseMobileUI,
             GraphicsSource = GraphicsSource,
             Language = Language,

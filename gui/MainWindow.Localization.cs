@@ -51,6 +51,9 @@ namespace StarRailUnlocker
                 MobileUiHint.Text = L10n.T("Ui.NextGameLaunch");
                 AutoStartLabel.Text = L10n.T("Ui.AutoStart");
                 StartMinimizedLabel.Text = L10n.T("Ui.StartMinimized");
+                ExitWithGameLabel.Text = L10n.T("Updates.ExitWithGame");
+                UpdatesSectionTitle.Text = L10n.T("Updates.Section");
+                CheckForUpdatesLabel.Text = L10n.T("Updates.CheckOnStartup");
                 StartButtonText.Text = L10n.T("Ui.LaunchGame");
                 AttachButtonText.Text = L10n.T("Ui.AttachGame");
                 // WinUI caches selection text; reselect while change handlers are guarded.
@@ -87,6 +90,13 @@ namespace StarRailUnlocker
                 LocalizeControl(GraphicsSourceBox, "Ui.GraphicsSourceName", "Ui.GraphicsSourceTip");
                 LocalizeControl(AutoStartToggle, "Ui.AutoStart", "Ui.AutoStartTip");
                 LocalizeControl(StartMinimizedToggle, "Ui.StartMinimized", "Ui.StartMinimizedTip");
+                LocalizeControl(ExitWithGameToggle, "Updates.ExitWithGame", "Updates.ExitWithGameTip");
+                LocalizeControl(CheckForUpdatesToggle, "Updates.CheckOnStartup", "Updates.CheckOnStartupTip");
+                LocalizeControl(CheckUpdatesButton, "Updates.CheckNow", "Updates.CheckNow");
+                LocalizeControl(OpenReleaseButton, "Updates.OpenRelease", "Updates.OpenRelease");
+                LocalizeControl(ApplyUpdateButton, "Updates.Install", "Updates.InstallTip");
+                LocalizeControl(CancelUpdateButton, "Updates.Cancel", "Updates.Cancel");
+                LocalizeControl(UpdateProgressBar, "Updates.Progress");
                 LocalizeControl(LanguageBox, "Ui.Language", "Ui.LanguageTip");
                 LocalizeControl(LogExpander, "Ui.RuntimeLog");
                 LocalizeControl(LogText, "Ui.RuntimeLogContent");
@@ -102,6 +112,7 @@ namespace StarRailUnlocker
                         AutomationProperties.SetName(button, text);
                         SetWrappedTooltip(button, text);
                     }
+                RefreshUpdatePresentation();
             }
             finally
             {

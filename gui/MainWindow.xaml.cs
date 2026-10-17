@@ -78,6 +78,8 @@ namespace StarRailUnlocker
                 GraphicsSourceBox.SelectedIndex = (int)_config.GraphicsSource;
                 GraphicsSourceBox.IsEnabled = _config.UseMobileUI;
                 StartMinimizedToggle.IsOn = _config.StartMinimized;
+                ExitWithGameToggle.IsOn = _config.ExitWithGame;
+                CheckForUpdatesToggle.IsOn = _config.CheckForUpdates;
 
                 Log(L10n.T("Ui.LogConfigPath", UnlockConfig.DefaultPath));
                 if (string.IsNullOrWhiteSpace(_config.ProcessPath))
@@ -111,6 +113,7 @@ namespace StarRailUnlocker
             {
                 _closed = true;
                 _saveTimer?.Stop(); _refreshTimer?.Stop(); _exitTimer?.Stop();
+                DisposeUpdateCheck();
                 SyncConfig(); _config.Save();
                 _tray?.Dispose();
                 _windowLayout?.Dispose();
@@ -140,6 +143,7 @@ namespace StarRailUnlocker
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
             _refreshTimer.Tick += (_, __) => RefreshPresentation();
             _refreshTimer.Start();
+            if (_config.CheckForUpdates) _ = CheckUpdatesAsync();
             var rootElement = (FrameworkElement)Content;
             if (rootElement.IsLoaded)
             {
@@ -243,6 +247,42 @@ namespace StarRailUnlocker
             if (_initializing || _closed || _closePending) return;
             if (GraphicsSourceBox.SelectedIndex is >= 0 and <= 2)
                 _config.GraphicsSource = (MobileGraphicsSource)GraphicsSourceBox.SelectedIndex;
+        }
+
+        private void OnExitWithGameToggled(object sender, RoutedEventArgs e)
+        {
+            if (_initializing || _closed || _closePending) return;
+            _config.ExitWithGame = ExitWithGameToggle.IsOn;
+            CancelGameExitClose();
+            if (_config.ExitWithGame && _session?.State == SessionState.GameExited)
+                ScheduleGameExitClose(_session);
+            if (!_config.Save()) Log(L10n.T("Ui.LogConfigSaveFailed", UnlockConfig.LogPath));
+            RefreshPresentation();
+        }
+
+        private void CancelGameExitClose()
+        {
+            _exitTimer?.Stop();
+            _exitTimer = null;
+        }
+
+        private void ScheduleGameExitClose(UnlockSession source)
+        {
+            CancelGameExitClose();
+            if (!_config.ExitWithGame || _closed || _closePending || _switchingSession || _downloadingUpdate ||
+                !ReferenceEquals(_session, source)) return;
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+            _exitTimer = timer;
+            timer.Tick += (_, __) =>
+            {
+                timer.Stop();
+                if (!ReferenceEquals(_exitTimer, timer)) return;
+                _exitTimer = null;
+                if (_config.ExitWithGame && !_closed && !_closePending && !_switchingSession &&
+                    ReferenceEquals(_session, source) && source.State == SessionState.GameExited)
+                    BeginCloseAsync();
+            };
+            timer.Start();
         }
 
         // ------------------------------------------------------------ game discovery
@@ -586,26 +626,47 @@ namespace StarRailUnlocker
         {
             if (_closed || _closePending) return;
             _closePending = true;
+            _updateCancellation.Cancel();
             RefreshPresentation();
-            _saveTimer?.Stop(); _refreshTimer?.Stop(); _exitTimer?.Stop();
+            _saveTimer?.Stop(); _refreshTimer?.Stop(); CancelGameExitClose();
             SyncConfig(); _config.Save();
             var session = _session;
             if (session != null && _sessionHandler != null) session.Changed -= _sessionHandler;
-            _session = null;
             try
             {
                 await _sessionDrain.ConfigureAwait(false);
                 if (session != null) await System.Threading.Tasks.Task.Run(session.Dispose).ConfigureAwait(false);
             }
-            catch (Exception ex) { App.WriteLog("Close teardown", ex); }
-            DispatcherQueue.TryEnqueue(() => { _closeCompleted = true; Close(); });
+            catch (Exception ex)
+            {
+                App.WriteLog("Close teardown", ex);
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    AbortPreparedUpdate();
+                    _closePending = false;
+                    _updateCancellation.Dispose();
+                    _updateCancellation = new System.Threading.CancellationTokenSource();
+                    if (session != null && _sessionHandler != null) session.Changed += _sessionHandler;
+                    _updateStatusKey = "Updates.RestoreFailed";
+                    _saveTimer?.Start();
+                    _refreshTimer?.Start();
+                    RefreshPresentation();
+                });
+                return;
+            }
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                _session = null;
+                CommitPreparedUpdate();
+                _closeCompleted = true;
+                Close();
+            });
         }
 
         private async void LaunchSession(uint pid, bool launchIfMissing = false)
         {
             if (_switchingSession || _closePending || _closed) return;
-            _exitTimer?.Stop();
-            _exitTimer = null;
+            CancelGameExitClose();
             _switchingSession = true;
             _stoppingSession = false;
             _localErrorKey = null;
@@ -636,19 +697,7 @@ namespace StarRailUnlocker
             {
                 if (_closed || _closePending || !ReferenceEquals(_session, source)) return;
                 if (state == SessionState.GameExited)
-                {
-                    _exitTimer?.Stop();
-                    var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
-                    _exitTimer = timer;
-                    timer.Tick += (_, __) =>
-                    {
-                        timer.Stop();
-                        if (ReferenceEquals(_exitTimer, timer)) BeginCloseAsync();
-                    };
-                    timer.Start();
-                    RefreshPresentation();
-                    return;
-                }
+                    ScheduleGameExitClose(source);
                 // A null message refreshes feature snapshots without repeating diagnostics.
                 if (line != null) Log(line, persist: false);
                 RefreshPresentation();
@@ -662,6 +711,8 @@ namespace StarRailUnlocker
                 _config.TargetFramerate = (int)Math.Round(Math.Clamp(FpsBox.Value, FpsMin, FpsMax));
             _config.AutoStart = AutoStartToggle.IsOn;
             _config.StartMinimized = StartMinimizedToggle.IsOn;
+            _config.ExitWithGame = ExitWithGameToggle.IsOn;
+            _config.CheckForUpdates = CheckForUpdatesToggle.IsOn;
             if (double.IsFinite(FovBox.Value))
                 _config.FovDelta = Math.Clamp(FovBox.Value, -60.0, 60.0);
             _config.DisableCameraFade = AntiFadeToggle.IsOn;

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Microsoft.UI.Xaml;
 using StarRailUnlocker.Core;
 
@@ -8,6 +9,7 @@ namespace StarRailUnlocker
     {
         private Window _window;
         private readonly System.Threading.Mutex _instanceGuard;
+        private InstallerRunningGuard _installerRunningGuard;
         private bool _ownsInstance;
 
         public App()
@@ -30,6 +32,15 @@ namespace StarRailUnlocker
             {
                 if (!_ownsInstance) { TrayIcon.RestoreExisting(); _instanceGuard.Dispose(); Exit(); return; }
                 if (_window != null) { _window.Activate(); return; }
+                try { _installerRunningGuard = new InstallerRunningGuard(); }
+                catch (Exception)
+                {
+                    MessageBoxW(IntPtr.Zero,
+                        L10n.T("Updates.InstallGuardFailed"),
+                        "HSRUnlocker", 0x10);
+                    throw;
+                }
+                AppDomain.CurrentDomain.ProcessExit += (_, __) => _installerRunningGuard.Dispose();
                 var window = new MainWindow();
                 window.Closed += (_, __) => { if (_ownsInstance) { _instanceGuard.ReleaseMutex(); _ownsInstance = false; _instanceGuard.Dispose(); } };
                 _window = window;
@@ -52,5 +63,8 @@ namespace StarRailUnlocker
         {
             UnlockConfig.AppendLog(stage, ex?.Message ?? "(none)", ex);
         }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
+        private static extern int MessageBoxW(IntPtr window, string text, string caption, uint type);
     }
 }

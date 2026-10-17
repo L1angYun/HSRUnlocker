@@ -1,0 +1,158 @@
+{
+  "Updates.ExitWithGame": {
+    "zh-CN": "游戏退出时关闭工具",
+    "en-US": "Close tool when the game exits",
+    "ja-JP": "ゲーム終了時にツールを閉じる",
+    "ko-KR": "게임 종료 시 도구 닫기"
+  },
+  "Updates.ExitWithGameTip": {
+    "zh-CN": "关闭后，游戏退出时工具会保持打开，可再次启动或附加游戏。",
+    "en-US": "When off, the tool stays open after the game exits so you can launch or attach again.",
+    "ja-JP": "オフの場合、ゲーム終了後もツールを開いたままにし、再起動や再接続ができます。",
+    "ko-KR": "끄면 게임이 종료되어도 도구가 열려 있어 게임을 다시 실행하거나 연결할 수 있습니다."
+  },
+  "Updates.GameExitedStayingOpen": {
+    "zh-CN": "游戏已退出，可再次启动或附加游戏。",
+    "en-US": "The game has exited. You can launch or attach again.",
+    "ja-JP": "ゲームが終了しました。再起動または再接続できます。",
+    "ko-KR": "게임이 종료되었습니다. 다시 실행하거나 연결할 수 있습니다."
+  },
+  "Updates.Section": {
+    "zh-CN": "版本更新",
+    "en-US": "Updates",
+    "ja-JP": "アップデート",
+    "ko-KR": "업데이트"
+  },
+  "Updates.CheckOnStartup": {
+    "zh-CN": "启动时检查更新",
+    "en-US": "Check for updates on startup",
+    "ja-JP": "起動時に更新を確認",
+    "ko-KR": "시작 시 업데이트 확인"
+  },
+  "Updates.CheckOnStartupTip": {
+    "zh-CN": "启动时连接 GitHub 检查正式发布版本，也可手动检查。",
+    "en-US": "Connect to GitHub at startup to check stable releases. You can also check manually.",
+    "ja-JP": "起動時に GitHub で安定版の更新を確認します。手動でも確認できます。",
+    "ko-KR": "시작 시 GitHub에 연결하여 정식 버전을 확인합니다. 수동으로 확인할 수도 있습니다."
+  },
+  "Updates.CheckNow": {
+    "zh-CN": "检查更新",
+    "en-US": "Check for updates",
+    "ja-JP": "更新を確認",
+    "ko-KR": "업데이트 확인"
+  },
+  "Updates.OpenRelease": {
+    "zh-CN": "打开发布说明",
+    "en-US": "Open release notes",
+    "ja-JP": "リリースノートを開く",
+    "ko-KR": "릴리스 노트 열기"
+  },
+  "Updates.Install": {
+    "zh-CN": "下载并更新",
+    "en-US": "Download and update",
+    "ja-JP": "ダウンロードして更新",
+    "ko-KR": "다운로드 및 업데이트"
+  },
+  "Updates.InstallTip": {
+    "zh-CN": "下载新版安装包，完成还原后升级并重启工具。",
+    "en-US": "Download the installer, finish restoration, then upgrade and restart the tool.",
+    "ja-JP": "インストーラーをダウンロードし、変更を元に戻してから更新してツールを再起動します。",
+    "ko-KR": "설치 프로그램을 다운로드하고 변경 사항을 복원한 후 업데이트하고 도구를 다시 시작합니다."
+  },
+  "Updates.Cancel": {
+    "zh-CN": "取消更新",
+    "en-US": "Cancel update",
+    "ja-JP": "更新をキャンセル",
+    "ko-KR": "업데이트 취소"
+  },
+  "Updates.Progress": {
+    "zh-CN": "更新下载进度",
+    "en-US": "Update download progress",
+    "ja-JP": "更新のダウンロード状況",
+    "ko-KR": "업데이트 다운로드 진행률"
+  },
+  "Updates.Downloading": {
+    "zh-CN": "正在下载安装包… {0:P0}",
+    "en-US": "Downloading installer… {0:P0}",
+    "ja-JP": "インストーラーをダウンロード中… {0:P0}",
+    "ko-KR": "설치 프로그램 다운로드 중… {0:P0}"
+  },
+  "Updates.Preparing": {
+    "zh-CN": "安装包已校验，正在准备更新…",
+    "en-US": "Installer verified. Preparing update…",
+    "ja-JP": "インストーラーを検証しました。更新を準備中…",
+    "ko-KR": "설치 프로그램 검증 완료. 업데이트 준비 중…"
+  },
+  "Updates.Cancelled": {
+    "zh-CN": "已取消更新。",
+    "en-US": "Update cancelled.",
+    "ja-JP": "更新をキャンセルしました。",
+    "ko-KR": "업데이트가 취소되었습니다."
+  },
+  "Updates.NoInstaller": {
+    "zh-CN": "发现新版 {0}，但没有兼容的安装包。可查看发布说明。",
+    "en-US": "Version {0} is available without a compatible installer. See the release notes.",
+    "ja-JP": "バージョン {0} に対応するインストーラーがありません。リリースノートを確認してください。",
+    "ko-KR": "새 버전 {0}에 호환되는 설치 프로그램이 없습니다. 릴리스 노트를 확인해 주세요."
+  },
+  "Updates.InstallFailed": {
+    "zh-CN": "更新未完成，当前版本仍可使用。请重试。",
+    "en-US": "The update could not be prepared. Your current version is still available. Please retry.",
+    "ja-JP": "更新を準備できませんでした。現在のバージョンは使用できます。再試行してください。",
+    "ko-KR": "업데이트를 준비하지 못했습니다. 현재 버전은 계속 사용할 수 있습니다. 다시 시도해 주세요."
+  },
+  "Updates.RestoreFailed": {
+    "zh-CN": "还原未完成，工具保持打开。请重试停止并还原。",
+    "en-US": "Restoration did not complete. The tool stays open. Try Stop and restore again.",
+    "ja-JP": "復元が完了していないため、ツールを開いたままにしています。停止して復元を再試行してください。",
+    "ko-KR": "복원이 완료되지 않아 도구가 열린 상태입니다. 중지 및 복원을 다시 시도해 주세요."
+  },
+  "Updates.HelperFailed": {
+    "zh-CN": "更新未完成。请重新打开 HSRUnlocker 后重试，或手动下载安装包。",
+    "en-US": "The update did not complete. Reopen HSRUnlocker to retry, or download the installer manually.",
+    "ja-JP": "更新を完了できませんでした。HSRUnlocker を開いて再試行するか、インストーラーを手動でダウンロードしてください。",
+    "ko-KR": "업데이트를 완료하지 못했습니다. HSRUnlocker를 다시 열어 재시도하거나 설치 프로그램을 수동으로 다운로드해 주세요."
+  },
+  "Updates.InstallGuardFailed": {
+    "zh-CN": "无法登记工具的运行状态。请重新启动 HSRUnlocker 后重试。",
+    "en-US": "Could not register the tool's running state. Restart HSRUnlocker and try again.",
+    "ja-JP": "ツールの実行状態を登録できませんでした。HSRUnlocker を再起動して再試行してください。",
+    "ko-KR": "도구의 실행 상태를 등록하지 못했습니다. HSRUnlocker를 다시 시작한 후 다시 시도해 주세요."
+  },
+  "Updates.NotChecked": {
+    "zh-CN": "尚未检查更新。",
+    "en-US": "Updates have not been checked.",
+    "ja-JP": "更新をまだ確認していません。",
+    "ko-KR": "아직 업데이트를 확인하지 않았습니다."
+  },
+  "Updates.Checking": {
+    "zh-CN": "正在检查更新…",
+    "en-US": "Checking for updates…",
+    "ja-JP": "更新を確認しています…",
+    "ko-KR": "업데이트 확인 중…"
+  },
+  "Updates.Available": {
+    "zh-CN": "发现新版本 {0}。",
+    "en-US": "Version {0} is available.",
+    "ja-JP": "新バージョン {0} が利用できます。",
+    "ko-KR": "새 버전 {0}을(를) 사용할 수 있습니다."
+  },
+  "Updates.Current": {
+    "zh-CN": "当前版本 {0} 已是最新。",
+    "en-US": "Your version {0} is up to date.",
+    "ja-JP": "現在のバージョン {0} は最新です。",
+    "ko-KR": "현재 버전 {0}이(가) 최신 버전입니다."
+  },
+  "Updates.Failed": {
+    "zh-CN": "检查失败，请检查网络后重试。",
+    "en-US": "Could not check for updates. Check your connection and try again.",
+    "ja-JP": "更新を確認できませんでした。接続を確認して再試行してください。",
+    "ko-KR": "업데이트를 확인하지 못했습니다. 네트워크 연결을 확인하고 다시 시도해 주세요."
+  },
+  "Updates.OpenFailed": {
+    "zh-CN": "无法打开下载页，请重试。",
+    "en-US": "Could not open the download page. Please try again.",
+    "ja-JP": "ダウンロードページを開けませんでした。再試行してください。",
+    "ko-KR": "다운로드 페이지를 열지 못했습니다. 다시 시도해 주세요."
+  }
+}

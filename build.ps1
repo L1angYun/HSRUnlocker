@@ -36,8 +36,13 @@ if (Test-Path -LiteralPath $OutDir) {
 
 Write-Host "--- publishing HSRUnlocker to $OutDir ---" -ForegroundColor Green
 $arguments = @('publish', $projectPath, '-c', $configuration, '-r', $rid, '-o', $OutDir)
-if ($SelfContained) { $arguments += @('--self-contained', 'true') }
-else { $arguments += '--no-self-contained' }
+$arguments += @('-p:PublishSingleFile=false', '-p:PublishTrimmed=false')
+if ($SelfContained) {
+    $arguments += @('--self-contained', 'true', '-p:WindowsAppSDKSelfContained=true')
+}
+else {
+    $arguments += @('--no-self-contained', '-p:WindowsAppSDKSelfContained=false')
+}
 & dotnet @arguments
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE." }
 
@@ -75,8 +80,25 @@ Write-Host ("  packages: {0}; copied texts: {1}; packages without embedded texts
 $required = @('HSRUnlocker.exe', 'HSRUnlocker.dll', 'HSRUnlocker.deps.json', 'HSRUnlocker.runtimeconfig.json',
               'LICENSE', 'THIRD_PARTY_NOTICES.md', 'ThirdPartyNotices\manifest.json',
               'Assets\Fonts\MiSansVF.ttf', 'Assets\Fonts\MiSans-LICENSE.pdf', 'Assets\Fonts\NOTICE.md') + $resources
-$missing = @($required | Where-Object { -not (Test-Path -LiteralPath (Join-Path $OutDir $_) -PathType Leaf) })
+if ($SelfContained) {
+    $required += @('coreclr.dll', 'hostfxr.dll', 'hostpolicy.dll', 'System.Private.CoreLib.dll',
+                   'Microsoft.ui.xaml.dll', 'Microsoft.UI.Xaml.Controls.dll', 'Microsoft.UI.Xaml.Controls.pri',
+                   'Microsoft.WindowsAppRuntime.dll', 'Microsoft.WindowsAppRuntime.pri',
+                   'Microsoft.Windows.ApplicationModel.Resources.dll', 'MRM.dll',
+                   'Microsoft.UI.dll', 'Microsoft.UI.pri', 'Microsoft.UI.Windowing.dll', 'Microsoft.UI.Input.dll')
+}
+$missing = @($required | Where-Object {
+    $path = Join-Path $OutDir $_
+    -not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -LiteralPath $path).Length -le 0
+})
 if ($missing.Count -gt 0) { throw "Deliverable incomplete; missing: $($missing -join ', ')" }
+if ($SelfContained) {
+    $runtime = Get-Content -LiteralPath (Join-Path $OutDir 'HSRUnlocker.runtimeconfig.json') -Raw | ConvertFrom-Json
+    if ($null -ne $runtime.runtimeOptions.framework -or $null -ne $runtime.runtimeOptions.frameworks -or
+        @($runtime.runtimeOptions.includedFrameworks | Where-Object { $_.name -eq 'Microsoft.NETCore.App' }).Count -ne 1) {
+        throw 'Self-contained publish still requires an installed .NET runtime.'
+    }
+}
 
 Write-Host "OK: published to $OutDir" -ForegroundColor Green
 Write-Host 'Binary redistribution of Microsoft runtime components needs a separate licence review; see THIRD_PARTY_NOTICES.md.' -ForegroundColor Yellow

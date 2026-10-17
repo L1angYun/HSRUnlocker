@@ -33,11 +33,25 @@ The native WinUI 3 interface was checked on Windows 11 at 150% display scaling, 
 - 发布构建及源码包解包构建通过，编译 XAML 资源、图标、MiSans 原字体、字体版权通知及完整许可包含在输出中。 / Publishing and building an extracted source package passed, with compiled XAML resources, icons, the unmodified MiSans font, its copyright notice, and the complete font license present in the output.
 - 最终字体样式通过构建与静态审查，未完成该次样式调整后的原生界面复查；不将资源存在或构建成功等同于运行时字形验证。 / The final font styles passed compilation and static review; the native interface was not rechecked after that style adjustment. Resource presence and build success do not establish runtime glyph rendering.
 
+## 安装与更新 / Installation and Updates
+
+1.1.0 自包含发布及 Inno Setup 安装程序编译通过。安装包解出 **551 个应用文件**，逐文件 SHA-256 与发布目录一致，无缺失、多余或 PDB 文件；四种安装语言、编译 XAML、.NET 与 Windows App SDK 运行组件、MiSans 和许可通知均已检查。
+
+The 1.1.0 self-contained publish and Inno Setup installer compiled successfully. All **551 application files** extracted from the installer matched the publish directory by SHA-256, with no missing, extra, or PDB files. Checks covered the four installer languages, compiled XAML, .NET and Windows App SDK runtime components, MiSans, and license notices.
+
+更新检查、下载、长度与 SHA-256 校验、取消、失败清理和交接命令边界使用自编 HTTP 响应与临时文件验证。安装保护使用本测试自建的随机全局互斥体，验证可见性、多个持有者及最后关闭后的释放；未使用真实应用的互斥体。
+
+Update checks, downloads, length and SHA-256 verification, cancellation, failure cleanup, and handoff command boundaries used authored HTTP responses and temporary files. Installer-guard checks used an owned, randomly named global mutex to verify visibility, multiple holders, and release after the final close; they did not use the application's actual mutex.
+
+本轮未运行安装包或更新助手，未触发 UAC，也未访问真实配置或启动游戏。生产环境的受保护下载目录、助手就绪握手、安装目录沿用、跨用户会话升级保护、卸载和升级后重启尚未进行完整运行验证。新增更新区、退出开关及调度器倒计时通过编译和代码审查，未完成原生界面操作复查。
+
+This run did not execute the installer or update helper, trigger UAC, read live settings, or launch a game. The production protected download directory, helper readiness handshake, reuse of an existing installation directory, upgrade protection across user sessions, uninstallation, and restart after upgrading have not been exercised end to end. The new update controls, exit switch, and dispatcher countdown passed compilation and code review, without a native UI interaction recheck.
+
 ## 合成测试 / Synthetic Tests
 
-2026-10-17 的测试运行通过 **339 项检查**。具体数量以对应源码版本的运行输出为准。
+2026-10-17 的 1.1.0 测试运行通过 **458 项检查**。具体数量以对应源码版本的运行输出为准。
 
-The October 17, 2026 run passed **339 checks**. The output for the corresponding source revision is authoritative.
+The October 17, 2026 run for 1.1.0 passed **458 checks**. The output for the corresponding source revision is authoritative.
 
 `tests/HSRUnlocker.Tests` 使用合成 PE、固定测试数据、临时目录和自有内存，不读取已安装游戏、真实设置或注册表，不联网，也不启动游戏。原生调用与展开测试会执行本项目自行编写的合成机器码，并使用一个有界的同程序集测试子进程。
 
@@ -46,6 +60,10 @@ The October 17, 2026 run passed **339 checks**. The output for the corresponding
 覆盖范围包括结构解析与扫描、动态定位、无效或歧义结构拒绝、调用约定、并发与还原、移动平台参数、配置归一化和权限检查；语言测试覆盖系统语言选择、手动选择与配置兼容、四语资源及格式参数、数字格式和并发切换。合成测试通过不替代真实环境中的功能观察。
 
 Coverage includes parsing and scanning, dynamic resolution, rejection of invalid or ambiguous structures, calling conventions, concurrency and restoration, mobile-platform arguments, settings normalization, and privilege checks. Localization checks cover system and manual selection, settings compatibility, four-language catalogs and format values, numeric formatting, and concurrent language changes. Synthetic tests do not replace observing behavior in the intended environment.
+
+1.1.0 另覆盖旧配置默认值、新开关的保存与克隆、正式版本比较、固定仓库与安装包选择、响应大小和超时边界、下载进度、损坏或截断数据拒绝、取消与占用文件清理，以及安装保护的原生句柄生命周期。
+
+Additional 1.1.0 coverage includes legacy preference defaults, persistence and cloning of the new switches, stable version ordering, fixed repository and installer selection, response size and timeout bounds, download progress, rejection of corrupt or truncated data, cancellation and locked-file cleanup, and native handle lifetime for the installer guard.
 
 `tests/Packaging.Tests.ps1` 的 **20 项打包检查**使用临时自编 NuGet 包，覆盖许可与通知原样复制、框架下载依赖、中文路径、隐私清单和越界路径拒绝，不读取真实游戏或配置。
 
@@ -57,6 +75,8 @@ The **20 packaging checks** in `tests/Packaging.Tests.ps1` use temporary authore
 dotnet run --project .\tests\HSRUnlocker.Tests\HSRUnlocker.Tests.csproj -c Release
 powershell -NoProfile -File .\tests\Packaging.Tests.ps1
 powershell -NoProfile -File .\build.ps1 -OutDir .\artifacts\win-x64
+# Inno Setup 7.1+
+powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 ```
 
 发布目录必须为空或不存在；构建脚本不启动应用或游戏。只向仓库提交有权公开的源码、合成测试和脱敏文字说明，不提交游戏文件、资源、截图、转储、原始日志或私人配置。

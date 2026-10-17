@@ -21,20 +21,22 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 | 移动端 UI | 启动游戏时启用触控界面，可沿用客户端已保存的画质设置。 |
 | 相机反虚化（实验性） | 关闭相机靠近或俯仰视角引起的角色淡出，支持运行时开关。 |
 | 启动与附加 | 从工具启动游戏，或附加到已运行的游戏进程。 |
-| 托盘与配置 | 最小化到托盘、单实例、自动保存设置，可选择随工具启动游戏。 |
+| 托盘与配置 | 最小化到托盘、单实例、自动保存设置，可选择随工具启动游戏、随游戏退出工具。 |
 | 多语言 | 简体中文、English、日本語、한국어；默认跟随系统，可手动切换并保存。 |
+| 版本更新 | 启动时或手动检查 GitHub 正式发布版本，支持下载安装包、校验、升级并重启。自动检查可关闭。 |
+| 安装与卸载 | 安装程序提供安装目录选择、快捷方式、升级及卸载。 |
 
 程序使用动态寻址，游戏更新后仍可能需要适配。已验证的客户端与功能范围见[验证记录](docs/VALIDATION.md)。
 
 ### 运行要求
 
 - Windows 11 22H2（22621）或更高版本，x64。
-- .NET 8 x64 运行时与 Windows App Runtime（对应 Windows App SDK 2.5）。
+- 官方安装包包含 .NET 8 x64 和 Windows App SDK 运行组件，无需另行安装。
 - 管理员权限。
 
 ### 使用方法
 
-1. 运行构建输出目录中的 `HSRUnlocker.exe`，保留同目录的依赖文件。
+1. 从 Releases 下载 `HSRUnlocker-版本号-win-x64-Setup.exe`，安装后使用快捷方式运行。
 2. 选择游戏客户端的 `StarRail.exe`。
 3. 设置目标帧率、FOV 和所需开关。
 4. 点击「启动游戏」，或用「附加游戏」连接已运行的客户端。
@@ -44,7 +46,11 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 
 FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双击托盘图标可恢复窗口。
 
-配置和日志保存在 `%LOCALAPPDATA%\HSRUnlocker\`。
+「游戏退出时关闭工具」默认开启；关闭后可在同一窗口再次启动或附加游戏。正常退出工具时仍会先完成还原。
+
+「版本更新」可手动检查新版，也可关闭启动时的自动检查。发现新版后点击「下载并更新」，工具会下载并校验安装包，完成还原、退出后安装新版并重启。下载可取消；下载或校验失败不会替换当前程序。
+
+配置和日志保存在 `%LOCALAPPDATA%\HSRUnlocker\`，升级与卸载保留这些文件。升级或卸载前请正常退出工具。
 
 「界面语言」位于启动设置中，切换后立即更新界面与托盘。已经产生的日志保留原语言，新的提示使用当前语言。
 
@@ -60,6 +66,16 @@ powershell -NoProfile -File .\build.ps1 -OutDir .\artifacts\win-x64
 ```
 
 输出位于 `artifacts\win-x64`。输出目录必须为空；再次构建时请指定新的空目录。更多开发约定见[参与开发](CONTRIBUTING.md)。
+
+上述普通构建需要已安装对应的 .NET 8 x64 和 Windows App Runtime；添加 `-SelfContained` 可生成包含运行组件的目录。
+
+生成安装程序需要 Inno Setup 7.1 或更高版本：
+
+```powershell
+powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
+```
+
+脚本会执行自包含发布，再生成安装程序；可用 `-CompilerPath` 指定 `ISCC.exe`。安装脚本位于 `installer\HSRUnlocker.iss`。
 
 ### 关于 Vibe Coding
 
@@ -84,20 +100,22 @@ powershell -NoProfile -File .\build.ps1 -OutDir .\artifacts\win-x64
 | Mobile UI | Enable the touch interface when launching the game and reuse saved graphics settings. |
 | Camera anti-fade (experimental) | Disable character fading caused by camera proximity or elevation; can be toggled while playing. |
 | Launch and attach | Launch the game through the tool or attach to an existing game process. |
-| Tray and settings | Minimize to tray, single-instance behavior, automatic settings persistence, and optional game launch when the tool opens. |
+| Tray and settings | Minimize to tray, single-instance behavior, saved preferences, optional game launch with the tool, and optional tool exit with the game. |
 | Languages | Simplified Chinese, English, Japanese, and Korean. Follows the system by default, with a saved manual choice. |
+| Updates | Check stable GitHub releases at startup or manually, download and verify the installer, then upgrade and restart. Startup checks can be disabled. |
+| Installation | An installer with a selectable directory, shortcuts, upgrades, and uninstallation. |
 
 Addresses are resolved dynamically, but game updates may still require compatibility changes. See the [validation record](docs/VALIDATION.md) for tested clients and feature coverage.
 
 ### Requirements
 
 - Windows 11 22H2 (build 22621) or later, x64.
-- .NET 8 x64 Runtime and Windows App Runtime for Windows App SDK 2.5.
+- The official installer includes the .NET 8 x64 and Windows App SDK runtime components.
 - Administrator privileges.
 
 ### Usage
 
-1. Run `HSRUnlocker.exe` from the build output directory, keeping its dependency files together.
+1. Download `HSRUnlocker-version-win-x64-Setup.exe` from Releases, install it, and use its shortcut.
 2. Select the game client's `StarRail.exe`.
 3. Set the target FPS, FOV offset, and desired options.
 4. Click Launch game, or Attach to game for a running client.
@@ -107,7 +125,11 @@ To use mobile UI, close any running game, enable the option, then launch through
 
 FOV changes apply on the next camera update. Minimizing moves the tool to the tray; double-click its tray icon to restore the window.
 
-Settings and logs are stored in `%LOCALAPPDATA%\HSRUnlocker\`.
+Close tool when the game exits is enabled by default. Turn it off to launch or attach again from the same window. Normal tool shutdown still completes restoration before closing.
+
+The Updates section offers a manual check and an optional startup check. Click Download and update when a newer release is available. The tool downloads and verifies the installer, finishes restoration, exits, installs the update, and restarts. Downloads can be cancelled; download or verification failures leave the current application in place.
+
+Settings and logs are stored in `%LOCALAPPDATA%\HSRUnlocker\` and retained during upgrades and uninstallation. Close the tool normally before upgrading or uninstalling.
 
 The language selector is in the startup settings. Changes immediately update the interface and tray. Existing log entries retain their original language; new messages use the current selection.
 
@@ -123,6 +145,16 @@ powershell -NoProfile -File .\build.ps1 -OutDir .\artifacts\win-x64
 ```
 
 The output is in `artifacts\win-x64`. The output directory must be empty; choose a new empty directory for subsequent builds. See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+
+This ordinary build needs the matching .NET 8 x64 and Windows App Runtime installed. Add `-SelfContained` to bundle runtime components.
+
+To build the installer, install Inno Setup 7.1 or later and run:
+
+```powershell
+powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
+```
+
+The script performs a self-contained publish and compiles the installer. Use `-CompilerPath` to select `ISCC.exe`. The installer definition is in `installer\HSRUnlocker.iss`.
 
 ### About Vibe Coding
 

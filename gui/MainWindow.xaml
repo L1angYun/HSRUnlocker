@@ -223,6 +223,17 @@
                             <ToggleSwitch Grid.Column="1" x:Name="StartMinimizedToggle"
                                           Style="{StaticResource CompactSwitchStyle}" />
                         </Grid>
+                        <Grid ColumnSpacing="16" MinHeight="40">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="ExitWithGameLabel" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" x:Name="ExitWithGameToggle"
+                                          AutomationProperties.AutomationId="ExitWithGameToggle"
+                                          Toggled="OnExitWithGameToggled"
+                                          Style="{StaticResource CompactSwitchStyle}" />
+                        </Grid>
                         <ComboBox x:Name="LanguageBox" AutomationProperties.AutomationId="LanguageBox"
                                   HorizontalAlignment="Stretch"
                                   SelectionChanged="OnLanguageChanged">
@@ -235,6 +246,52 @@
                         <TextBlock x:Name="FontCreditText" Style="{StaticResource SecondaryTextStyle}" />
                     </StackPanel>
                 </Grid>
+                <StackPanel Spacing="12">
+                    <TextBlock x:Name="UpdatesSectionTitle" Style="{StaticResource SectionTitleStyle}" />
+                    <Grid ColumnSpacing="16" MinHeight="40">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="CheckForUpdatesLabel" TextWrapping="Wrap" VerticalAlignment="Center" />
+                        <ToggleSwitch Grid.Column="1" x:Name="CheckForUpdatesToggle"
+                                      AutomationProperties.AutomationId="CheckForUpdatesToggle"
+                                      Toggled="OnCheckForUpdatesToggled"
+                                      Style="{StaticResource CompactSwitchStyle}" />
+                    </Grid>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="UpdateStatusText" Style="{StaticResource SecondaryTextStyle}"
+                                   VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="CheckUpdatesButton" Click="OnCheckUpdatesClick"
+                                    AutomationProperties.AutomationId="CheckUpdatesButton"
+                                    Style="{StaticResource ToolButtonStyle}">
+                                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Refresh" /></Viewbox>
+                            </Button>
+                            <Button x:Name="ApplyUpdateButton" Click="OnApplyUpdateClick"
+                                    AutomationProperties.AutomationId="ApplyUpdateButton"
+                                    Visibility="Collapsed" Style="{StaticResource ToolButtonStyle}">
+                                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Download" /></Viewbox>
+                            </Button>
+                            <Button x:Name="CancelUpdateButton" Click="OnCancelUpdateClick"
+                                    AutomationProperties.AutomationId="CancelUpdateButton"
+                                    Visibility="Collapsed" Style="{StaticResource ToolButtonStyle}">
+                                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Cancel" /></Viewbox>
+                            </Button>
+                            <Button x:Name="OpenReleaseButton" Click="OnOpenReleaseClick"
+                                    AutomationProperties.AutomationId="OpenReleaseButton"
+                                    Visibility="Collapsed" Style="{StaticResource ToolButtonStyle}">
+                                <FontIcon Glyph="&#xE71B;" FontSize="16" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <ProgressBar x:Name="UpdateProgressBar" Minimum="0" Maximum="100"
+                                 Visibility="Collapsed" AutomationProperties.AutomationId="UpdateProgressBar" />
+                </StackPanel>
                 <Expander x:Name="LogExpander" HorizontalAlignment="Stretch"
                           HorizontalContentAlignment="Stretch" IsExpanded="False" Expanding="OnLogExpanding">
                     <Grid RowSpacing="8">
