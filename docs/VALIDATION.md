@@ -26,24 +26,26 @@ The following checks used a publicly released client on Windows 11.
 The native WinUI 3 interface was checked on Windows 11 at 150% display scaling, without launching or attaching to a game.
 
 - 已检查宽窗口双栏、窄窗口单栏滚动、底部操作栏与图标显示；其他 DPI、主题和显示器组合未逐一验证。 / Wide two-column and narrow scrollable layouts, the action bar, and icon rendering were checked. Other DPI, theme, and monitor combinations were not exhaustively checked.
+- 简体中文、English、日本語、한국어 的即时切换、跟随系统、选择保存及重启恢复通过；切换过程中其余配置、FPS/FOV 数值与六个预设保持不变。 / Switching among Simplified Chinese, English, Japanese, and Korean, following the system language, saving the choice, and restoring it on restart passed. Other settings, FPS/FOV values, and the six presets remained unchanged while switching.
 - 数值框、滑块、预设、重置、开关和画质来源的状态同步通过。 / Numeric inputs, sliders, presets, reset actions, switches, and graphics-source state synchronization passed.
 - 日志展开、清空和按钮状态通过；复制按钮的剪贴板写入未在该组检查中执行。 / Log expansion, clearing, and button availability passed; clipboard writing was not exercised in these checks.
 - 托盘最小化、重复启动恢复已有窗口、正常退出及验证前配置恢复通过。 / Tray minimization, restoring the existing window on duplicate launch, normal shutdown, and restoration of the original settings passed.
-- 发布构建及源码包解包构建通过，编译 XAML 资源与图标包含在输出中。 / Publishing and building an extracted source package passed, with compiled XAML resources and icons present in the output.
+- 发布构建及源码包解包构建通过，编译 XAML 资源、图标、MiSans 原字体、字体版权通知及完整许可包含在输出中。 / Publishing and building an extracted source package passed, with compiled XAML resources, icons, the unmodified MiSans font, its copyright notice, and the complete font license present in the output.
+- 最终字体样式通过构建与静态审查，未完成该次样式调整后的原生界面复查；不将资源存在或构建成功等同于运行时字形验证。 / The final font styles passed compilation and static review; the native interface was not rechecked after that style adjustment. Resource presence and build success do not establish runtime glyph rendering.
 
 ## 合成测试 / Synthetic Tests
 
-2026-10-17 的测试运行通过 **302 项检查**。具体数量以对应源码版本的运行输出为准。
+2026-10-17 的测试运行通过 **339 项检查**。具体数量以对应源码版本的运行输出为准。
 
-The October 17, 2026 run passed **302 checks**. The output for the corresponding source revision is authoritative.
+The October 17, 2026 run passed **339 checks**. The output for the corresponding source revision is authoritative.
 
 `tests/HSRUnlocker.Tests` 使用合成 PE、固定测试数据、临时目录和自有内存，不读取已安装游戏、真实设置或注册表，不联网，也不启动游戏。原生调用与展开测试会执行本项目自行编写的合成机器码，并使用一个有界的同程序集测试子进程。
 
 `tests/HSRUnlocker.Tests` uses synthetic PE files, authored fixtures, temporary directories, and owned memory. It does not read installed games, live settings, or the registry, access the network, or launch a game. Native calling-convention and unwind checks execute synthetic machine code authored for this project and use one bounded child running the same test assembly.
 
-覆盖范围包括结构解析与扫描、动态定位、无效或歧义结构拒绝、调用约定、并发与还原、移动平台参数、配置归一化和权限检查。合成测试通过不替代真实环境中的功能观察。
+覆盖范围包括结构解析与扫描、动态定位、无效或歧义结构拒绝、调用约定、并发与还原、移动平台参数、配置归一化和权限检查；语言测试覆盖系统语言选择、手动选择与配置兼容、四语资源及格式参数、数字格式和并发切换。合成测试通过不替代真实环境中的功能观察。
 
-Coverage includes parsing and scanning, dynamic resolution, rejection of invalid or ambiguous structures, calling conventions, concurrency and restoration, mobile-platform arguments, settings normalization, and privilege checks. Synthetic tests do not replace observing behavior in the intended environment.
+Coverage includes parsing and scanning, dynamic resolution, rejection of invalid or ambiguous structures, calling conventions, concurrency and restoration, mobile-platform arguments, settings normalization, and privilege checks. Localization checks cover system and manual selection, settings compatibility, four-language catalogs and format values, numeric formatting, and concurrent language changes. Synthetic tests do not replace observing behavior in the intended environment.
 
 `tests/Packaging.Tests.ps1` 的 **20 项打包检查**使用临时自编 NuGet 包，覆盖许可与通知原样复制、框架下载依赖、中文路径、隐私清单和越界路径拒绝，不读取真实游戏或配置。
 

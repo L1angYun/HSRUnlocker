@@ -30,9 +30,9 @@ namespace StarRailUnlocker.Core
         public ExecutableEntryPatch(TargetProcess process, ulong entry, byte[] originalInstructions)
         {
             _process = process ?? throw new ArgumentNullException(nameof(process));
-            if (entry == 0 || entry % 8 != 0) throw new ArgumentException("Native entry must be aligned", nameof(entry));
+            if (entry == 0 || entry % 8 != 0) throw new ArgumentException(L10n.T("Resolver.EntryPatch.EntryMustBeAligned"), nameof(entry));
             if (originalInstructions == null || !originalInstructions.AsSpan().SequenceEqual(Prologue))
-                throw new NotSupportedException("Unsupported native entry displacement");
+                throw new NotSupportedException(L10n.T("Resolver.EntryPatch.UnsupportedEntryDisplacement"));
             _entry = entry;
             _original = (byte[])originalInstructions.Clone();
         }
@@ -53,14 +53,14 @@ namespace StarRailUnlocker.Core
                 try
                 {
                     if (_protectionNeedsRestore && !RestorePendingProtection())
-                        throw new InvalidOperationException(LastError ?? "Native entry page protection restoration is pending");
+                        throw new InvalidOperationException(LastError ?? L10n.T("Resolver.EntryPatch.ProtectionRestorationPending"));
                     var next = BuildEntryWord(_entry, wrapper);
                     if (_replacement != null && !_replacement.AsSpan().SequenceEqual(next))
-                        throw new InvalidOperationException("A published entry cannot be redirected to another wrapper");
+                        throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.PublishedEntryCannotBeRedirected"));
                     if (IsInstalled)
                     {
                         if (_process.Read(_entry, 8) is not { } live || !live.AsSpan().SequenceEqual(next))
-                            throw new InvalidOperationException("Published native entry ownership changed");
+                            throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.PublishedEntryOwnershipChanged"));
                         return true;
                     }
                     _replacement = next;
@@ -68,7 +68,7 @@ namespace StarRailUnlocker.Core
                     IsInstalled = true;
                     return true;
                 }
-                catch (Exception ex) { LastError = ex.Message; log?.Invoke("反虚化入口安装失败：" + LastError); return false; }
+                catch (Exception ex) { LastError = ex.Message; log?.Invoke(L10n.T("Resolver.EntryPatch.InstallFailed", LastError)); return false; }
             }
         }
 
@@ -86,26 +86,26 @@ namespace StarRailUnlocker.Core
                         // The write may have reached the target even when its acknowledgement failed.
                         byte[] current = _process.Read(_entry, _original.Length);
                         if (current == null)
-                            throw new InvalidOperationException("Cannot reconcile the published native entry");
+                            throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.CannotReconcilePublishedEntry"));
                         if (_replacement != null && current.AsSpan(0, 8).SequenceEqual(_replacement)
                             && current.AsSpan(8).SequenceEqual(_original.AsSpan(8)))
                             IsInstalled = true;
                         else if (!current.AsSpan().SequenceEqual(_original))
-                            throw new InvalidOperationException("Native entry ownership changed; restoration is pending");
+                            throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.OwnershipChangedRestorationPending"));
                     }
                     if (!IsInstalled)
                     {
                         if (!Native.FlushInstructionCache(_process.Handle, (IntPtr)(long)_entry, (UIntPtr)8))
-                            throw new InvalidOperationException("Cannot flush the restored native entry");
+                            throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.CannotFlushRestoredEntry"));
                         if (!RestorePendingProtection())
-                            throw new InvalidOperationException(LastError ?? "Native entry page protection restoration is pending");
+                            throw new InvalidOperationException(LastError ?? L10n.T("Resolver.EntryPatch.ProtectionRestorationPending"));
                         return true;
                     }
                     if (!Exchange(_replacement, _original.AsSpan(0, 8).ToArray(), false)) return false;
                     IsInstalled = false;
                     return true;
                 }
-                catch (Exception ex) { LastError = ex.Message; log?.Invoke("反虚化入口还原失败：" + LastError); return false; }
+                catch (Exception ex) { LastError = ex.Message; log?.Invoke(L10n.T("Resolver.EntryPatch.RestoreFailed", LastError)); return false; }
             }
         }
 
@@ -118,18 +118,18 @@ namespace StarRailUnlocker.Core
         private bool ExchangeLocked(byte[] expected, byte[] replacement, bool installing)
         {
             if (_process.Pid == (uint)Environment.ProcessId)
-                throw new InvalidOperationException("Refusing to suspend the unlocker's own process");
+                throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.RefusingSelfSuspension"));
             using var pause = new PausedThreads(_process.Pid, _entry, _original.Length);
             byte[] current = _process.Read(_entry, _original.Length);
-            if (current == null) throw new InvalidOperationException("Cannot read the native entry");
+            if (current == null) throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.CannotReadEntry"));
             if (!current.AsSpan(0, 8).SequenceEqual(expected))
-                throw new InvalidOperationException("Native entry ownership changed; no code was overwritten");
+                throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.OwnershipChangedNoOverwrite"));
             if (installing && !current.AsSpan(8).SequenceEqual(_original.AsSpan(8)))
-                throw new InvalidOperationException("Native entry suffix changed; installation refused");
+                throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.SuffixChangedInstallRefused"));
 
             if (!Native.VirtualProtectEx(_process.Handle, (IntPtr)(long)_entry, (IntPtr)8,
                 Native.PAGE_EXECUTE_READWRITE, out uint oldProtection))
-                throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot temporarily write the native entry");
+                throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Resolver.EntryPatch.CannotEnableEntryWrite"));
             bool wrote = false, restoredProtection = false;
             uint restoreProtection = _protectionNeedsRestore ? _pendingProtection : oldProtection;
             try
@@ -144,7 +144,7 @@ namespace StarRailUnlocker.Core
                     bool rolledBack = _process.WriteData(_entry, expected)
                         && _process.Read(_entry, 8) is { } prior && prior.AsSpan().SequenceEqual(expected)
                         && Native.FlushInstructionCache(_process.Handle, (IntPtr)(long)_entry, (UIntPtr)8);
-                    if (!rolledBack) throw new InvalidOperationException("Native entry write and rollback failed; gateway retained");
+                    if (!rolledBack) throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.WriteAndRollbackFailed"));
                 }
             }
             finally
@@ -163,8 +163,8 @@ namespace StarRailUnlocker.Core
                         IsInstalled = false;
                 }
             }
-            if (!restoredProtection) throw new InvalidOperationException("Native entry page protection could not be restored");
-            if (!wrote) throw new InvalidOperationException("Native entry write failed and was rolled back");
+            if (!restoredProtection) throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.CannotRestoreProtection"));
+            if (!wrote) throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.WriteFailedRolledBack"));
             return true;
         }
 
@@ -178,13 +178,13 @@ namespace StarRailUnlocker.Core
                 if (!Native.VirtualProtectEx(_process.Handle, (IntPtr)(long)_entry, (IntPtr)8,
                     Native.PAGE_EXECUTE_READWRITE, out _))
                 {
-                    LastError = "Cannot reopen native entry for pending protection restoration";
+                    LastError = L10n.T("Resolver.EntryPatch.CannotReopenEntryForProtectionRestore");
                     return false;
                 }
                 bool restored = Native.VirtualProtectEx(_process.Handle, (IntPtr)(long)_entry, (IntPtr)8,
                     _pendingProtection, out _);
                 if (restored) _protectionNeedsRestore = false;
-                else LastError = "Native entry page protection restoration is still pending";
+                else LastError = L10n.T("Resolver.EntryPatch.ProtectionRestorationStillPending");
                 return restored;
             }
         }
@@ -209,11 +209,11 @@ namespace StarRailUnlocker.Core
                             if (_handles.ContainsKey(id)) continue;
                             IntPtr handle = OpenThread(0x004A, false, id); // query, context, suspend/resume
                             if (handle == IntPtr.Zero)
-                                throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot inspect every game thread");
+                                throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Resolver.EntryPatch.CannotInspectEveryThread"));
                             if (SuspendThread(handle) == uint.MaxValue)
                             {
                                 Native.CloseHandle(handle);
-                                throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot pause every game thread");
+                                throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Resolver.EntryPatch.CannotPauseEveryThread"));
                             }
                             _handles.Add(id, handle);
                         }
@@ -222,15 +222,15 @@ namespace StarRailUnlocker.Core
                         foreach (uint id in after) if (!_handles.ContainsKey(id)) { stable = false; break; }
                         if (stable) break;
                     }
-                    if (!stable) throw new InvalidOperationException("Game thread list did not stabilize; entry unchanged");
+                    if (!stable) throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.ThreadListUnstable"));
                     foreach (IntPtr handle in _handles.Values)
                     {
                         Marshal.WriteInt32(context, 48, 0x00100001); // AMD64 CONTEXT_CONTROL
                         if (!GetThreadContext(handle, context))
-                            throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot verify a paused instruction pointer");
+                            throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Resolver.EntryPatch.CannotVerifyPausedInstructionPointer"));
                         ulong ip = unchecked((ulong)Marshal.ReadInt64(context, 248));
                         if (ip >= entry && ip - entry < (ulong)length)
-                            throw new InvalidOperationException("A game thread is entering the fade function; retry the toggle");
+                            throw new InvalidOperationException(L10n.T("Resolver.EntryPatch.ThreadEnteringFadeFunction"));
                     }
                 }
                 catch { Dispose(); throw; }
@@ -249,7 +249,7 @@ namespace StarRailUnlocker.Core
             private static HashSet<uint> Enumerate(uint pid)
             {
                 IntPtr snapshot = Native.CreateToolhelp32Snapshot(4, 0);
-                if (snapshot == (IntPtr)(-1)) throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot enumerate game threads");
+                if (snapshot == (IntPtr)(-1)) throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Resolver.EntryPatch.CannotEnumerateThreads"));
                 try
                 {
                     var entry = new ThreadEntry { Size = (uint)Marshal.SizeOf<ThreadEntry>() };
@@ -261,7 +261,7 @@ namespace StarRailUnlocker.Core
                         entry.Size = (uint)Marshal.SizeOf<ThreadEntry>();
                     } while (Thread32Next(snapshot, ref entry));
                     int error = Marshal.GetLastWin32Error();
-                    if (error != 18) throw new Win32Exception(error, "Game thread enumeration was incomplete");
+                    if (error != 18) throw new Win32Exception(error, L10n.T("Resolver.EntryPatch.ThreadEnumerationIncomplete"));
                     return result;
                 }
                 finally { Native.CloseHandle(snapshot); }

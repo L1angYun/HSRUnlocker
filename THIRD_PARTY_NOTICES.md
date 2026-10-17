@@ -2,7 +2,15 @@
 
 本项目自行编写的源码以 **GPL-3.0-only** 发布，见 [LICENSE](LICENSE)。第三方组件遵循各自的许可，不因被本项目引用而改用 GPL。
 
-本源码仓库不包含依赖项二进制文件；构建时由 NuGet 还原所需包。源码仓库与自行构建的发布目录不是同一种分发内容。
+构建依赖由 NuGet 还原；仓库中另附有作为应用资源使用的 MiSans 字体及其许可。源码仓库与自行构建的发布目录不是同一种分发内容。
+
+## MiSans 字体
+
+界面使用随软件附带的原版 MiSans VF 字体。Copyright © 2020-2023 Beijing Xiaomi Mobile Software Co.,Ltd. All Rights Reserved.
+
+字体文件、版权说明和完整小米字体许可分别位于 `gui/Assets/Fonts/MiSansVF.ttf`、[字体通知](gui/Assets/Fonts/NOTICE.md) 和 [字体许可](gui/Assets/Fonts/MiSans-LICENSE.pdf)，构建时一并复制到发布目录的 `Assets/Fonts/`。字体遵循小米的独立许可，不适用本项目源码的 GPL 许可；随软件分发时须保留原字体、版权及许可，遵守其署名和分发条件。
+
+MiSans 未包含的字形使用 Windows 字体回退；这些系统字体不随软件分发。
 
 ## 构建依赖
 

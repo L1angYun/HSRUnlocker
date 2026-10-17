@@ -15,7 +15,7 @@ namespace StarRailUnlocker
     {
         private const int VisibleLogLimit = 300;
         private readonly Queue<string> _logLines = new();
-        private string _lastLoggedLine, _localError;
+        private string _lastLoggedLine, _localErrorKey;
         private bool _logDirty;
         private bool? _wideLayout;
 
@@ -79,10 +79,11 @@ namespace StarRailUnlocker
 
             if (_closePending || _switchingSession || restoring)
             {
-                StateTitle.Text = _closePending ? "正在退出" : _switchingSession ? "正在准备会话" : "正在还原";
+                StateTitle.Text = L10n.T(_closePending ? "Ui.StateExiting" :
+                    _switchingSession ? "Ui.StatePreparing" : "Ui.StateRestoring");
                 StatusText.Text = restoring || _closePending
-                    ? "正在还原帧率、FOV 与反虚化"
-                    : "正在结束上一次会话";
+                    ? L10n.T("Ui.StatusRestoring")
+                    : L10n.T("Ui.StatusEndingPreviousSession");
                 StatusIcon.Glyph = "\uE895";
             }
             else
@@ -90,34 +91,37 @@ namespace StarRailUnlocker
                 var state = session?.State ?? SessionState.Idle;
                 StateTitle.Text = state switch
                 {
-                    SessionState.WaitingForGame => "等待游戏",
-                    SessionState.Patching => "正在附加",
-                    SessionState.Active => "已解锁",
-                    SessionState.Failed => "会话失败",
-                    SessionState.GameExited => "游戏已退出",
-                    _ => _localError != null ? "未找到游戏" : session == null ? "就绪" : "已停止"
+                    SessionState.WaitingForGame => L10n.T("Ui.StateWaiting"),
+                    SessionState.Patching => L10n.T("Ui.StateAttaching"),
+                    SessionState.Active => L10n.T("Ui.StateActive"),
+                    SessionState.Failed => L10n.T("Ui.StateFailed"),
+                    SessionState.GameExited => L10n.T("Ui.StateGameExited"),
+                    _ => L10n.T(_localErrorKey != null ? "Ui.StateGameNotFound" :
+                        session == null ? "Ui.StateReady" : "Ui.StateStopped")
                 };
                 StatusText.Text = state switch
                 {
-                    SessionState.WaitingForGame => "正在等待 StarRail.exe",
-                    SessionState.Patching => "正在等待游戏模块并定位接口",
-                    SessionState.Active => $"帧率上限 {session.AppliedValue} FPS · PID {session.Pid}",
+                    SessionState.WaitingForGame => L10n.T("Ui.StatusWaiting"),
+                    SessionState.Patching => L10n.T("Ui.StatusAttaching"),
+                    SessionState.Active => L10n.T("Ui.StatusActive", session.AppliedValue, session.Pid),
                     SessionState.Failed => session.LastMessage,
-                    SessionState.GameExited => "修改已释放，工具即将退出",
-                    _ => _localError ?? (session == null ? "尚未附加游戏" :
-                        session.OriginalValue > 0 ? $"已还原帧率上限为 {session.OriginalValue} FPS" : "已还原为游戏原始设置")
+                    SessionState.GameExited => L10n.T("Ui.StatusGameExited"),
+                    _ => _localErrorKey != null ? L10n.T(_localErrorKey) :
+                        session == null ? L10n.T("Ui.StatusNotAttached") :
+                        session.OriginalValue > 0 ? L10n.T("Ui.StatusRestoredFps", session.OriginalValue) :
+                        L10n.T("Ui.StatusRestored")
                 };
                 StatusIcon.Glyph = state switch
                 {
                     SessionState.Active => "\uE73E",
                     SessionState.Failed => "\uE783",
                     SessionState.WaitingForGame or SessionState.Patching => "\uE895",
-                    _ => _localError == null ? "\uE930" : "\uE783"
+                    _ => _localErrorKey == null ? "\uE930" : "\uE783"
                 };
             }
 
             FpsStateText.Text = session?.State == SessionState.Active && !restoring
-                ? $"已应用 {session.AppliedValue} FPS · 自动恢复 {session.ReapplyCount} 次" : "未启用";
+                ? L10n.T("Ui.FpsApplied", session.AppliedValue, session.ReapplyCount) : L10n.T("Ui.NotEnabled");
             FovStateText.Text = FovStatusText();
             AntiFadeStateText.Text = AntiFadeStatusText();
         }
@@ -125,23 +129,23 @@ namespace StarRailUnlocker
         private string FovStatusText()
         {
             if (_session?.State != SessionState.Active || _stoppingSession || _closePending)
-                return _config.FovDelta == 0 ? "原始视野" : $"待应用 · {_config.FovDelta:+0.##;-0.##;0}°";
-            if (!string.IsNullOrEmpty(_session.FovError)) return "暂不可用 · " + _session.FovError;
-            if (_config.FovDelta == 0) return _session.FovInstalled ? "正在还原" : "原始视野";
-            if (!_session.FovInstalled) return "等待相机就绪";
+                return _config.FovDelta == 0 ? L10n.T("Ui.OriginalFov") : L10n.T("Ui.FovPending", _config.FovDelta);
+            if (!string.IsNullOrEmpty(_session.FovError)) return L10n.T("Ui.FeatureUnavailable", _session.FovError);
+            if (_config.FovDelta == 0) return L10n.T(_session.FovInstalled ? "Ui.StateRestoring" : "Ui.OriginalFov");
+            if (!_session.FovInstalled) return L10n.T("Ui.WaitingForCamera");
             var stats = _session.FovStatistics;
             return stats == null || stats.Calls == 0
-                ? "已应用，等待镜头更新"
-                : $"已生效 · {stats.Input:0.##}° → {stats.Output:0.##}°";
+                ? L10n.T("Ui.FovAppliedWaiting")
+                : L10n.T("Ui.FovEffective", stats.Input, stats.Output);
         }
 
         private string AntiFadeStatusText()
         {
             if (_session?.State != SessionState.Active || _stoppingSession || _closePending)
-                return _config.DisableCameraFade ? "待应用" : "未启用";
-            if (!string.IsNullOrEmpty(_session.AntiFadeError)) return "暂不可用 · " + _session.AntiFadeError;
-            if (!_config.DisableCameraFade) return _session.AntiFadeInstalled ? "正在还原" : "未启用";
-            return _session.AntiFadeInstalled ? "已应用" : "等待应用";
+                return L10n.T(_config.DisableCameraFade ? "Ui.Pending" : "Ui.NotEnabled");
+            if (!string.IsNullOrEmpty(_session.AntiFadeError)) return L10n.T("Ui.FeatureUnavailable", _session.AntiFadeError);
+            if (!_config.DisableCameraFade) return L10n.T(_session.AntiFadeInstalled ? "Ui.StateRestoring" : "Ui.NotEnabled");
+            return L10n.T(_session.AntiFadeInstalled ? "Ui.Applied" : "Ui.WaitingToApply");
         }
 
         private void Log(string message, bool persist = true)
@@ -192,7 +196,7 @@ namespace StarRailUnlocker
                 data.SetText(string.Join(Environment.NewLine, _logLines));
                 Clipboard.SetContent(data);
             }
-            catch (Exception ex) { Log("复制日志失败：" + ex.Message); }
+            catch (Exception ex) { Log(L10n.T("Ui.LogCopyFailed", ex.Message)); }
         }
     }
 }

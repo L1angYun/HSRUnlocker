@@ -22,6 +22,7 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 | 相机反虚化（实验性） | 关闭相机靠近或俯仰视角引起的角色淡出，支持运行时开关。 |
 | 启动与附加 | 从工具启动游戏，或附加到已运行的游戏进程。 |
 | 托盘与配置 | 最小化到托盘、单实例、自动保存设置，可选择随工具启动游戏。 |
+| 多语言 | 简体中文、English、日本語、한국어；默认跟随系统，可手动切换并保存。 |
 
 程序使用动态寻址，游戏更新后仍可能需要适配。已验证的客户端与功能范围见[验证记录](docs/VALIDATION.md)。
 
@@ -44,6 +45,10 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双击托盘图标可恢复窗口。
 
 配置和日志保存在 `%LOCALAPPDATA%\HSRUnlocker\`。
+
+「界面语言」位于启动设置中，切换后立即更新界面与托盘。已经产生的日志保留原语言，新的提示使用当前语言。
+
+界面使用随包附带的 MiSans 字体，无需额外安装；未包含的韩文等字形使用 Windows 字体回退。
 
 ### 从源码构建
 
@@ -80,6 +85,7 @@ powershell -NoProfile -File .\build.ps1 -OutDir .\artifacts\win-x64
 | Camera anti-fade (experimental) | Disable character fading caused by camera proximity or elevation; can be toggled while playing. |
 | Launch and attach | Launch the game through the tool or attach to an existing game process. |
 | Tray and settings | Minimize to tray, single-instance behavior, automatic settings persistence, and optional game launch when the tool opens. |
+| Languages | Simplified Chinese, English, Japanese, and Korean. Follows the system by default, with a saved manual choice. |
 
 Addresses are resolved dynamically, but game updates may still require compatibility changes. See the [validation record](docs/VALIDATION.md) for tested clients and feature coverage.
 
@@ -94,14 +100,18 @@ Addresses are resolved dynamically, but game updates may still require compatibi
 1. Run `HSRUnlocker.exe` from the build output directory, keeping its dependency files together.
 2. Select the game client's `StarRail.exe`.
 3. Set the target FPS, FOV offset, and desired options.
-4. Click 「启动游戏」 (Launch), or 「附加游戏」 (Attach) for a running client.
-5. Click 「停止并还原」 (Stop and Restore) to restore FPS, FOV, and anti-fade changes.
+4. Click Launch game, or Attach to game for a running client.
+5. Click Stop and restore to restore FPS, FOV, and anti-fade changes.
 
 To use mobile UI, close any running game, enable the option, then launch through the tool. If graphics settings are missing, run that client normally once first. The graphics-settings source is detected automatically by default; the China/global choices only select which saved settings to read.
 
 FOV changes apply on the next camera update. Minimizing moves the tool to the tray; double-click its tray icon to restore the window.
 
 Settings and logs are stored in `%LOCALAPPDATA%\HSRUnlocker\`.
+
+The language selector is in the startup settings. Changes immediately update the interface and tray. Existing log entries retain their original language; new messages use the current selection.
+
+MiSans is bundled with the application. Characters it does not include, such as Hangul, use Windows font fallback.
 
 ### Build From Source
 

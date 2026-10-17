@@ -119,7 +119,7 @@ namespace StarRailUnlocker.Core
             {
                 if (pid == 0)
                 {
-                    Set(SessionState.WaitingForGame, "正在查找 StarRail.exe…");
+                    Set(SessionState.WaitingForGame, L10n.T("Runtime.Session.FindingGame"));
                     bool launchRequested = launchIfMissing || Config.AutoStart;
                     if (launchRequested)
                     {
@@ -127,7 +127,7 @@ namespace StarRailUnlocker.Core
                         {
                             var module = TargetProcess.FindMainModule(existing);
                             if (string.IsNullOrWhiteSpace(module.Path))
-                                throw new InvalidOperationException($"无法确认已运行 StarRail.exe（PID {existing}）的客户端路径；请使用可访问该进程的权限附加，未启动另一个客户端");
+                                throw new InvalidOperationException(L10n.T("Runtime.Session.RunningPathUnknown", existing));
                             if (string.Equals(System.IO.Path.GetFullPath(module.Path), System.IO.Path.GetFullPath(Config.ProcessPath), StringComparison.OrdinalIgnoreCase))
                             { pid = existing; break; }
                         }
@@ -136,28 +136,28 @@ namespace StarRailUnlocker.Core
                     if (pid == 0 && launchRequested)
                     {
                         pid = GameLauncher.Launch(Config, Log, token);
-                        Log($"已启动游戏，PID {pid}" + (Config.UseMobileUI ? "（移动 UI 入口已应用）" : ""));
+                        Log(L10n.T(Config.UseMobileUI ? "Runtime.Session.GameStartedMobile" : "Runtime.Session.GameStarted", pid));
                     }
                     else if (pid != 0 && Config.UseMobileUI)
-                        Log("移动 UI 只在启动游戏时应用；当前附加模式不会改变已运行客户端的启动参数");
+                        Log(L10n.T("Runtime.Session.MobileAttachOnly"));
                     var deadline = DateTime.UtcNow.AddMinutes(10);
                     while (pid == 0 && DateTime.UtcNow < deadline)
                     {
                         Delay(token, 500);
                         pid = TargetProcess.FindProcessId("StarRail.exe");
                     }
-                    if (pid == 0) throw new InvalidOperationException("等待超时，未出现游戏进程");
+                    if (pid == 0) throw new InvalidOperationException(L10n.T("Runtime.Session.GameWaitTimeout"));
                 }
                 token.ThrowIfCancellationRequested();
                 Pid = pid;
                 _proc = new TargetProcess(pid);
-                Set(SessionState.Patching, $"已附加到 PID {pid}，等待游戏模块加载…");
+                Set(SessionState.Patching, L10n.T("Runtime.Session.AttachedWaiting", pid));
                 var moduleDeadline = DateTime.UtcNow.AddMinutes(3);
                 while (TargetProcess.FindModule(pid, "UnityPlayer.dll").Base == 0
                     || TargetProcess.FindModule(pid, "GameAssembly.dll").Base == 0)
                 {
-                    if (!_proc.IsAlive) throw new InvalidOperationException("游戏在加载过程中退出");
-                    if (DateTime.UtcNow >= moduleDeadline) throw new InvalidOperationException("等待游戏模块加载超时");
+                    if (!_proc.IsAlive) throw new InvalidOperationException(L10n.T("Runtime.Session.ExitDuringLoad"));
+                    if (DateTime.UtcNow >= moduleDeadline) throw new InvalidOperationException(L10n.T("Runtime.Session.ModuleWaitTimeout"));
                     Delay(token, 250);
                 }
                 _build = GameBuildResolver.Resolve(_proc, Log);
@@ -165,28 +165,28 @@ namespace StarRailUnlocker.Core
                 CapRva = cap.Rva; CapAddress = _build.UnityBase + cap.Rva;
                 OriginalValue = cap.LiveValue;
                 AppliedValue = Math.Clamp(Config.TargetFramerate, 10, 480);
-                if (!_proc.WriteInt32(CapAddress, AppliedValue)) throw new InvalidOperationException("写入帧率上限失败");
+                if (!_proc.WriteInt32(CapAddress, AppliedValue)) throw new InvalidOperationException(L10n.T("Runtime.Session.WriteCapFailed"));
                 _capWritten = true;
-                if (_proc.ReadInt32(CapAddress) != AppliedValue) throw new InvalidOperationException("帧率上限写入后读回不一致");
-                Set(SessionState.Active, $"帧率上限 {OriginalValue} → {AppliedValue}（UnityPlayer+0x{CapRva:X}）");
+                if (_proc.ReadInt32(CapAddress) != AppliedValue) throw new InvalidOperationException(L10n.T("Runtime.Session.CapReadbackMismatch"));
+                Set(SessionState.Active, L10n.T("Runtime.Session.CapApplied", OriginalValue, AppliedValue, CapRva));
                 while (true)
                 {
                     token.ThrowIfCancellationRequested();
-                    if (!_proc.IsAlive) { Set(SessionState.GameExited, "游戏已退出"); break; }
+                    if (!_proc.IsAlive) { Set(SessionState.GameExited, L10n.T("Runtime.Session.GameExited")); break; }
                     ProcessFov();
                     ReadFovStatistics();
                     ProcessAntiFade();
                     int desired = Math.Clamp(Config.TargetFramerate, 10, 480);
                     int current = _proc.ReadInt32(CapAddress);
-                    if (current == int.MinValue) throw new InvalidOperationException("帧率上限已无法读取");
+                    if (current == int.MinValue) throw new InvalidOperationException(L10n.T("Runtime.Session.CapUnreadable"));
                     if (desired != AppliedValue || current != desired)
                     {
                         if (current != AppliedValue && current >= -1 && current <= 1000)
                             OriginalValue = current;
-                        if (!_proc.WriteInt32(CapAddress, desired)) throw new InvalidOperationException("更新帧率上限失败");
+                        if (!_proc.WriteInt32(CapAddress, desired)) throw new InvalidOperationException(L10n.T("Runtime.Session.UpdateCapFailed"));
                         if (desired == AppliedValue) ReapplyCount++;
                         AppliedValue = desired;
-                        Log($"游戏把上限改了回去，已恢复为 {desired}（第 {ReapplyCount} 次）");
+                        Log(L10n.T("Runtime.Session.CapReapplied", desired, ReapplyCount));
                     }
                     Delay(token, 200);
                 }
@@ -210,7 +210,7 @@ namespace StarRailUnlocker.Core
                     if (!pendingReported)
                     {
                         pendingReported = true;
-                        SafeSet(SessionState.Failed, "还原尚未完成，正在保留目标资源并重试；完成还原或游戏退出后才能结束会话");
+                        SafeSet(SessionState.Failed, L10n.T("Runtime.Session.RestorationPending"));
                     }
                     // Cancellation requests restoration; it cannot abandon a published patch.
                     Delay(CancellationToken.None, 1000);
@@ -223,16 +223,16 @@ namespace StarRailUnlocker.Core
                     FovStatistics = null;
                 }
                 try { _proc?.Dispose(); }
-                catch (Exception ex) { restored = false; SafeLog("进程资源清理失败：" + ex.Message); }
+                catch (Exception ex) { restored = false; SafeLog(L10n.T("Runtime.Session.ProcessCleanupFailed", ex.Message)); }
                 finally
                 {
                     _proc = null; _build = null; _capWritten = false;
                 }
-                if (exited) SafeSet(SessionState.GameExited, "游戏已退出，目标资源已释放");
+                if (exited) SafeSet(SessionState.GameExited, L10n.T("Runtime.Session.ExitedResourcesReleased"));
                 else if (failure) SafeSet(SessionState.Failed, failureMessage);
                 else if (State != SessionState.GameExited)
                     SafeSet(restored ? SessionState.Idle : SessionState.Failed,
-                        restored ? "已停止：帧率、FOV 与反虚化已还原" : "已停止，但还原不完整；详情见日志");
+                        L10n.T(restored ? "Runtime.Session.StoppedRestored" : "Runtime.Session.StoppedIncomplete"));
             }
         }
 
@@ -251,22 +251,22 @@ namespace StarRailUnlocker.Core
             try
             {
                 if (!float.IsFinite(delta) || Math.Abs(delta) > 60)
-                    throw new InvalidOperationException("FOV 增量必须是 −60…60 之间的有效数值");
+                    throw new InvalidOperationException(L10n.T("Runtime.Fov.InvalidDelta"));
                 if (delta == 0)
                 {
-                    if (!TryRemoveFov(out var error)) { RefuseFov("还原失败：" + error, false); return; }
+                    if (!TryRemoveFov(out var error)) { RefuseFov(L10n.T("Runtime.Session.RestoreFailed", error), false); return; }
                     FovError = ""; FovStatistics = null;
-                    ReportFov("FOV 未启用；已还原的视野将在游戏下次更新镜头时恢复");
+                    ReportFov(L10n.T("Runtime.Session.FovDisabled"));
                     return;
                 }
                 if (_fovNeedsRemoval && !TryRemoveFov(out var pendingError))
-                { RefuseFov("上次还原尚未完成：" + pendingError, false); return; }
+                { RefuseFov(L10n.T("Runtime.Session.PreviousRestorePending", pendingError), false); return; }
                 if (!_build.TryResolveCameraSlots(_proc, LogFov))
                 {
-                    if (!TryRemoveFov(out var error)) { RefuseFov("还原失败：" + error, false); return; }
+                    if (!TryRemoveFov(out var error)) { RefuseFov(L10n.T("Runtime.Session.RestoreFailed", error), false); return; }
                     FovError = ""; FovStatistics = null;
                     _retryFov = true; _nextFovRetry = DateTime.UtcNow + FeatureRetryInterval;
-                    ReportFov("FOV 等待游戏初始化相机接口；帧率解锁不受影响");
+                    ReportFov(L10n.T("Runtime.Session.FovWaiting"));
                     return;
                 }
                 _fov ??= new FovPatcher(_proc, _build);
@@ -275,10 +275,10 @@ namespace StarRailUnlocker.Core
                 if (!alreadyInstalled) _build.VerifyCameraAccessors(_proc);
                 bool ok = alreadyInstalled ? _fov.WriteDelta(delta) : _fov.Install(delta, LogFov);
                 if (!ok || !_fov.IsInstalled)
-                { RefuseFov(ErrorOr(_fov.LastError, "无法安装或更新 FOV")); return; }
+                { RefuseFov(ErrorOr(_fov.LastError, L10n.T("Runtime.Session.FovInstallUpdateFailed"))); return; }
                 FovInstalled = true; FovError = "";
                 FovStatistics = null; _fovReported = false; _nextFovReport = DateTime.UtcNow;
-                ReportFov($"FOV 增量已应用为 {delta:0.##}，等待游戏更新镜头");
+                ReportFov(L10n.T("Runtime.Session.FovDeltaApplied", delta));
             }
             catch (Exception ex) { RefuseFov(ex.Message); }
         }
@@ -294,12 +294,13 @@ namespace StarRailUnlocker.Core
                 if (FovStatistics.Calls > 0 && !_fovReported)
                 {
                     _fovReported = true;
-                    LogFov($"FOV 已生效：{FovStatistics.Input:0.###} → {FovStatistics.Output:0.###}" +
-                        $"（存储 {FovStatistics.StoredFov?.ToString("0.###") ?? "未读到"}，增量 {FovStatistics.Delta:0.##}，" +
-                        $"累计 {FovStatistics.Calls} 次）");
+                    LogFov(L10n.T("Runtime.Session.FovEffective", FovStatistics.Input, FovStatistics.Output,
+                        FovStatistics.StoredFov.HasValue ? (object)FovStatistics.StoredFov.Value
+                            : L10n.T("Runtime.Session.ValueUnreadable"),
+                        FovStatistics.Delta, FovStatistics.Calls));
                 }
             }
-            catch (Exception ex) { RefuseFov("读取镜头状态失败：" + ex.Message); }
+            catch (Exception ex) { RefuseFov(L10n.T("Runtime.Session.FovStatisticsFailed", ex.Message)); }
         }
 
         private void ProcessAntiFade()
@@ -314,41 +315,41 @@ namespace StarRailUnlocker.Core
             {
                 if (!desired)
                 {
-                    if (!TryRemoveAntiFade(out var error)) { RefuseAntiFade("还原失败：" + error, false); return; }
+                    if (!TryRemoveAntiFade(out var error)) { RefuseAntiFade(L10n.T("Runtime.Session.RestoreFailed", error), false); return; }
                     AntiFadeError = "";
-                    ReportAntiFade("反虚化未启用，相机淡出保持原样");
+                    ReportAntiFade(L10n.T("Runtime.Session.AntiFadeDisabled"));
                     return;
                 }
                 if (_antiFadeNeedsRemoval && !TryRemoveAntiFade(out var pendingError))
-                { RefuseAntiFade("上次还原尚未完成：" + pendingError, false); return; }
+                { RefuseAntiFade(L10n.T("Runtime.Session.PreviousRestorePending", pendingError), false); return; }
                 // Discovery/constructor failures are optional-feature failures, never FPS failures.
                 _antiFade ??= new AntiFadePatcher(_proc, _build);
                 bool ok = _antiFade.IsInstalled || _antiFade.Install(LogAntiFade);
                 if (!ok || !_antiFade.IsInstalled)
-                { RefuseAntiFade(ErrorOr(_antiFade.LastError, "无法启用相机反虚化")); return; }
+                { RefuseAntiFade(ErrorOr(_antiFade.LastError, L10n.T("Runtime.Session.AntiFadeEnableFailed"))); return; }
                 AntiFadeInstalled = true; AntiFadeError = "";
-                ReportAntiFade("反虚化已应用，效果待游戏场景验证");
+                ReportAntiFade(L10n.T("Runtime.Session.AntiFadeApplied"));
             }
             catch (Exception ex) { RefuseAntiFade(ex.Message); }
         }
 
         private void RefuseFov(string error, bool attemptRemove = true)
         {
-            string detail = ErrorOr(error, "无法安全应用 FOV");
+            string detail = ErrorOr(error, L10n.T("Runtime.Session.FovUnsafe"));
             if (attemptRemove && !TryRemoveFov(out var removalError))
-                detail += "；还原未完成：" + removalError;
+                detail = L10n.T("Runtime.Session.RemovalIncomplete", detail, removalError);
             FovError = detail; FovStatistics = null; _fovReported = false;
             _retryFov = true; _nextFovRetry = DateTime.UtcNow + FeatureRetryInterval;
-            ReportFov("FOV 暂不可用：" + detail + "；帧率解锁不受影响，将稍后重试");
+            ReportFov(L10n.T("Runtime.Session.FovUnavailable", detail));
         }
         private void RefuseAntiFade(string error, bool attemptRemove = true)
         {
-            string detail = ErrorOr(error, "无法安全应用反虚化");
+            string detail = ErrorOr(error, L10n.T("Runtime.Session.AntiFadeUnsafe"));
             if (attemptRemove && !TryRemoveAntiFade(out var removalError))
-                detail += "；还原未完成：" + removalError;
+                detail = L10n.T("Runtime.Session.RemovalIncomplete", detail, removalError);
             AntiFadeError = detail;
             _retryAntiFade = true; _nextAntiFadeRetry = DateTime.UtcNow + FeatureRetryInterval;
-            ReportAntiFade("反虚化暂不可用：" + detail + "；帧率解锁不受影响，将稍后重试");
+            ReportAntiFade(L10n.T("Runtime.Session.AntiFadeUnavailable", detail));
         }
 
         private bool TryRemoveFov(out string error)
@@ -360,7 +361,7 @@ namespace StarRailUnlocker.Core
                 bool ok = _fov.Remove(LogFov);
                 FovInstalled = _fov.IsInstalled;
                 if (ok && !FovInstalled) { _fovNeedsRemoval = false; return true; }
-                error = ErrorOr(_fov.LastError, "FOV 尚未完全还原");
+                error = ErrorOr(_fov.LastError, L10n.T("Runtime.Session.FovNotRestored"));
             }
             catch (Exception ex) { error = ex.Message; }
             _fovNeedsRemoval = true;
@@ -375,7 +376,7 @@ namespace StarRailUnlocker.Core
                 bool ok = _antiFade.Remove(LogAntiFade);
                 AntiFadeInstalled = _antiFade.IsInstalled;
                 if (ok && !AntiFadeInstalled) { _antiFadeNeedsRemoval = false; return true; }
-                error = ErrorOr(_antiFade.LastError, "反虚化尚未完全还原");
+                error = ErrorOr(_antiFade.LastError, L10n.T("Runtime.Session.AntiFadeNotRestored"));
             }
             catch (Exception ex) { error = ex.Message; }
             _antiFadeNeedsRemoval = true;
@@ -387,7 +388,7 @@ namespace StarRailUnlocker.Core
             bool restored = TryRemoveAntiFade(out var error);
             if (!restored)
             {
-                AntiFadeError = error; ReportAntiFade("反虚化还原未完成：" + error);
+                AntiFadeError = error; ReportAntiFade(L10n.T("Runtime.Session.AntiFadeRestoreIncomplete", error));
                 return false;
             }
             if (_antiFade != null)
@@ -398,7 +399,7 @@ namespace StarRailUnlocker.Core
                     _antiFade = null;
                 }
                 catch (Exception ex)
-                { restored = false; AntiFadeError = ex.Message; LogAntiFade("反虚化资源清理失败：" + ex.Message); }
+                { restored = false; AntiFadeError = ex.Message; LogAntiFade(L10n.T("Runtime.Session.AntiFadeCleanupFailed", ex.Message)); }
             }
             if (restored) AntiFadeError = "";
             return restored;
@@ -409,7 +410,7 @@ namespace StarRailUnlocker.Core
             bool restored = TryRemoveFov(out var error);
             if (!restored)
             {
-                FovError = error; ReportFov("FOV 还原未完成：" + error);
+                FovError = error; ReportFov(L10n.T("Runtime.Session.FovRestoreIncomplete", error));
                 return false;
             }
             if (_fov != null)
@@ -420,7 +421,7 @@ namespace StarRailUnlocker.Core
                     _fov = null;
                 }
                 catch (Exception ex)
-                { restored = false; FovError = ex.Message; LogFov("FOV 资源清理失败：" + ex.Message); }
+                { restored = false; FovError = ex.Message; LogFov(L10n.T("Runtime.Session.FovCleanupFailed", ex.Message)); }
             }
             if (restored) FovError = "";
             return restored;
@@ -437,9 +438,9 @@ namespace StarRailUnlocker.Core
                     _capWritten = false;
                     return true;
                 }
-                SafeLog("帧率上限未能还原，将继续重试");
+                SafeLog(L10n.T("Runtime.Session.CapRestoreRetry"));
             }
-            catch (Exception ex) { SafeLog("帧率上限还原失败：" + ex.Message); }
+            catch (Exception ex) { SafeLog(L10n.T("Runtime.Session.CapRestoreFailed", ex.Message)); }
             return false;
         }
 

@@ -1,0 +1,986 @@
+{
+  "Runtime.Session.FindingGame": {
+    "zh-CN": "正在查找 StarRail.exe…",
+    "en-US": "Looking for StarRail.exe…",
+    "ja-JP": "StarRail.exe を検索中…",
+    "ko-KR": "StarRail.exe 찾는 중…"
+  },
+  "Runtime.Session.RunningPathUnknown": {
+    "zh-CN": "无法确认已运行 StarRail.exe（PID {0}）的客户端路径；请使用可访问该进程的权限附加，未启动另一个客户端",
+    "en-US": "Cannot verify the running StarRail.exe path (PID {0}); attach with permission to access it. No additional client was started",
+    "ja-JP": "実行中の StarRail.exe（PID {0}）のパスを確認できません。アクセス権限のある状態で接続してください。別のクライアントは起動していません",
+    "ko-KR": "실행 중인 StarRail.exe(PID {0}) 경로를 확인할 수 없습니다. 해당 프로세스에 접근 가능한 권한으로 연결하세요. 추가 클라이언트는 실행하지 않았습니다"
+  },
+  "Runtime.Session.GameStarted": {
+    "zh-CN": "已启动游戏，PID {0}",
+    "en-US": "Game started, PID {0}",
+    "ja-JP": "ゲームを起動しました。PID {0}",
+    "ko-KR": "게임 실행됨, PID {0}"
+  },
+  "Runtime.Session.GameStartedMobile": {
+    "zh-CN": "已启动游戏，PID {0}（移动 UI 入口已应用）",
+    "en-US": "Game started, PID {0} (mobile UI entry applied)",
+    "ja-JP": "ゲームを起動しました。PID {0}（モバイル UI 起動処理を適用済み）",
+    "ko-KR": "게임 실행됨, PID {0}(모바일 UI 진입점 적용됨)"
+  },
+  "Runtime.Session.MobileAttachOnly": {
+    "zh-CN": "移动 UI 只在启动游戏时应用；当前附加模式不会改变已运行客户端的启动参数",
+    "en-US": "Mobile UI applies only at launch; attaching does not change a running client's launch arguments",
+    "ja-JP": "モバイル UI はゲーム起動時のみ適用されます。接続モードでは実行中クライアントの起動引数は変わりません",
+    "ko-KR": "모바일 UI는 게임 실행 시에만 적용됩니다. 연결 모드는 실행 중인 클라이언트의 실행 인수를 변경하지 않습니다"
+  },
+  "Runtime.Session.GameWaitTimeout": {
+    "zh-CN": "等待超时，未出现游戏进程",
+    "en-US": "Timed out waiting for the game process",
+    "ja-JP": "ゲームプロセスの待機がタイムアウトしました",
+    "ko-KR": "게임 프로세스 대기 시간 초과"
+  },
+  "Runtime.Session.AttachedWaiting": {
+    "zh-CN": "已附加到 PID {0}，等待游戏模块加载…",
+    "en-US": "Attached to PID {0}; waiting for game modules…",
+    "ja-JP": "PID {0} に接続しました。ゲームモジュールの読み込みを待機中…",
+    "ko-KR": "PID {0}에 연결됨. 게임 모듈 로딩 대기 중…"
+  },
+  "Runtime.Session.ExitDuringLoad": {
+    "zh-CN": "游戏在加载过程中退出",
+    "en-US": "The game exited while loading",
+    "ja-JP": "読み込み中にゲームが終了しました",
+    "ko-KR": "로딩 중 게임이 종료되었습니다"
+  },
+  "Runtime.Session.ModuleWaitTimeout": {
+    "zh-CN": "等待游戏模块加载超时",
+    "en-US": "Timed out waiting for game modules",
+    "ja-JP": "ゲームモジュールの読み込み待機がタイムアウトしました",
+    "ko-KR": "게임 모듈 로딩 대기 시간 초과"
+  },
+  "Runtime.Session.WriteCapFailed": {
+    "zh-CN": "写入帧率上限失败",
+    "en-US": "Failed to write the frame cap",
+    "ja-JP": "フレームレート上限の書き込みに失敗しました",
+    "ko-KR": "프레임 제한 쓰기 실패"
+  },
+  "Runtime.Session.CapReadbackMismatch": {
+    "zh-CN": "帧率上限写入后读回不一致",
+    "en-US": "Frame cap readback does not match the written value",
+    "ja-JP": "書き込み後のフレームレート上限が一致しません",
+    "ko-KR": "기록한 프레임 제한과 다시 읽은 값이 일치하지 않습니다"
+  },
+  "Runtime.Session.CapApplied": {
+    "zh-CN": "帧率上限 {0} → {1}（UnityPlayer+0x{2:X}）",
+    "en-US": "Frame cap {0} → {1} (UnityPlayer+0x{2:X})",
+    "ja-JP": "フレームレート上限 {0} → {1}（UnityPlayer+0x{2:X}）",
+    "ko-KR": "프레임 제한 {0} → {1}(UnityPlayer+0x{2:X})"
+  },
+  "Runtime.Session.GameExited": {
+    "zh-CN": "游戏已退出",
+    "en-US": "The game has exited",
+    "ja-JP": "ゲームが終了しました",
+    "ko-KR": "게임이 종료되었습니다"
+  },
+  "Runtime.Session.CapUnreadable": {
+    "zh-CN": "帧率上限已无法读取",
+    "en-US": "The frame cap can no longer be read",
+    "ja-JP": "フレームレート上限を読み取れなくなりました",
+    "ko-KR": "프레임 제한을 더 이상 읽을 수 없습니다"
+  },
+  "Runtime.Session.UpdateCapFailed": {
+    "zh-CN": "更新帧率上限失败",
+    "en-US": "Failed to update the frame cap",
+    "ja-JP": "フレームレート上限の更新に失敗しました",
+    "ko-KR": "프레임 제한 갱신 실패"
+  },
+  "Runtime.Session.CapReapplied": {
+    "zh-CN": "游戏把上限改了回去，已恢复为 {0}（第 {1} 次）",
+    "en-US": "The game reset the cap; reapplied {0} (count {1})",
+    "ja-JP": "ゲームが上限を戻したため、{0} を再適用しました（{1} 回目）",
+    "ko-KR": "게임이 제한을 되돌려 {0}(으)로 다시 적용했습니다({1}회)"
+  },
+  "Runtime.Session.RestorationPending": {
+    "zh-CN": "还原尚未完成，正在保留目标资源并重试；完成还原或游戏退出后才能结束会话",
+    "en-US": "Restoration is pending; target resources are retained for retries. The session can end after restoration or game exit",
+    "ja-JP": "復元が未完了のため、対象リソースを保持して再試行中です。復元完了またはゲーム終了後にセッションを終了できます",
+    "ko-KR": "복원이 완료되지 않아 대상 리소스를 유지하며 재시도합니다. 복원 완료 또는 게임 종료 후 세션을 끝낼 수 있습니다"
+  },
+  "Runtime.Session.ProcessCleanupFailed": {
+    "zh-CN": "进程资源清理失败：{0}",
+    "en-US": "Process resource cleanup failed: {0}",
+    "ja-JP": "プロセスリソースの解放に失敗しました：{0}",
+    "ko-KR": "프로세스 리소스 정리 실패: {0}"
+  },
+  "Runtime.Session.ExitedResourcesReleased": {
+    "zh-CN": "游戏已退出，目标资源已释放",
+    "en-US": "The game has exited; target resources released",
+    "ja-JP": "ゲームが終了し、対象リソースを解放しました",
+    "ko-KR": "게임이 종료되어 대상 리소스를 해제했습니다"
+  },
+  "Runtime.Session.StoppedRestored": {
+    "zh-CN": "已停止：帧率、FOV 与反虚化已还原",
+    "en-US": "Stopped: frame cap, FOV and anti-fade restored",
+    "ja-JP": "停止しました。フレームレート上限、FOV、カメラフェードを復元済み",
+    "ko-KR": "중지됨: 프레임 제한, FOV 및 카메라 페이드 복원 완료"
+  },
+  "Runtime.Session.StoppedIncomplete": {
+    "zh-CN": "已停止，但还原不完整；详情见日志",
+    "en-US": "Stopped with incomplete restoration; see the log",
+    "ja-JP": "停止しましたが復元が未完了です。詳細はログを確認してください",
+    "ko-KR": "중지되었으나 복원이 완료되지 않았습니다. 로그를 확인하세요"
+  },
+  "Runtime.Session.RestoreFailed": {
+    "zh-CN": "还原失败：{0}",
+    "en-US": "Restoration failed: {0}",
+    "ja-JP": "復元に失敗しました：{0}",
+    "ko-KR": "복원 실패: {0}"
+  },
+  "Runtime.Session.PreviousRestorePending": {
+    "zh-CN": "上次还原尚未完成：{0}",
+    "en-US": "Previous restoration is still pending: {0}",
+    "ja-JP": "前回の復元が未完了です：{0}",
+    "ko-KR": "이전 복원이 아직 완료되지 않았습니다: {0}"
+  },
+  "Runtime.Session.FovDisabled": {
+    "zh-CN": "FOV 未启用；已还原的视野将在游戏下次更新镜头时恢复",
+    "en-US": "FOV disabled; the original view returns on the game's next camera update",
+    "ja-JP": "FOV は無効です。次のカメラ更新時に元の視野へ戻ります",
+    "ko-KR": "FOV가 꺼져 있습니다. 게임의 다음 카메라 갱신 시 원래 시야로 돌아갑니다"
+  },
+  "Runtime.Session.FovWaiting": {
+    "zh-CN": "FOV 等待游戏初始化相机接口；帧率解锁不受影响",
+    "en-US": "FOV is waiting for camera initialization; frame rate unlocking is unaffected",
+    "ja-JP": "FOV はカメラインターフェースの初期化待ちです。フレームレート解除への影響はありません",
+    "ko-KR": "FOV가 카메라 인터페이스 초기화를 기다립니다. 프레임 제한 해제에는 영향이 없습니다"
+  },
+  "Runtime.Session.FovInstallUpdateFailed": {
+    "zh-CN": "无法安装或更新 FOV",
+    "en-US": "Cannot install or update FOV",
+    "ja-JP": "FOV を適用または更新できません",
+    "ko-KR": "FOV를 적용하거나 갱신할 수 없습니다"
+  },
+  "Runtime.Session.FovDeltaApplied": {
+    "zh-CN": "FOV 增量已应用为 {0:0.##}，等待游戏更新镜头",
+    "en-US": "FOV offset set to {0:0.##}; waiting for a camera update",
+    "ja-JP": "FOV オフセットを {0:0.##} に設定しました。カメラ更新を待機中",
+    "ko-KR": "FOV 증분을 {0:0.##}(으)로 적용했습니다. 카메라 갱신 대기 중"
+  },
+  "Runtime.Session.FovEffective": {
+    "zh-CN": "FOV 已生效：{0:0.###} → {1:0.###}（存储 {2:0.###}，增量 {3:0.##}，累计 {4} 次）",
+    "en-US": "FOV active: {0:0.###} → {1:0.###} (stored {2:0.###}, offset {3:0.##}, {4} calls)",
+    "ja-JP": "FOV 適用済み：{0:0.###} → {1:0.###}（保存値 {2:0.###}、オフセット {3:0.##}、累計 {4} 回）",
+    "ko-KR": "FOV 적용됨: {0:0.###} → {1:0.###}(저장 값 {2:0.###}, 증분 {3:0.##}, 총 {4}회)"
+  },
+  "Runtime.Session.ValueUnreadable": {
+    "zh-CN": "未读到",
+    "en-US": "unavailable",
+    "ja-JP": "取得不可",
+    "ko-KR": "읽지 못함"
+  },
+  "Runtime.Session.FovStatisticsFailed": {
+    "zh-CN": "读取镜头状态失败：{0}",
+    "en-US": "Failed to read camera status: {0}",
+    "ja-JP": "カメラ状態の読み取りに失敗しました：{0}",
+    "ko-KR": "카메라 상태 읽기 실패: {0}"
+  },
+  "Runtime.Session.AntiFadeDisabled": {
+    "zh-CN": "反虚化未启用，相机淡出保持原样",
+    "en-US": "Anti-fade disabled; camera fading is unchanged",
+    "ja-JP": "カメラフェード無効化はオフです。元のフェード動作を維持します",
+    "ko-KR": "카메라 페이드 방지가 꺼져 있습니다. 기존 페이드 동작을 유지합니다"
+  },
+  "Runtime.Session.AntiFadeEnableFailed": {
+    "zh-CN": "无法启用相机反虚化",
+    "en-US": "Cannot enable camera anti-fade",
+    "ja-JP": "カメラフェード無効化を有効にできません",
+    "ko-KR": "카메라 페이드 방지를 켤 수 없습니다"
+  },
+  "Runtime.Session.AntiFadeApplied": {
+    "zh-CN": "反虚化已应用，效果待游戏场景验证",
+    "en-US": "Anti-fade applied; verify the effect in a game scene",
+    "ja-JP": "カメラフェード無効化を適用しました。効果はゲーム内で確認してください",
+    "ko-KR": "카메라 페이드 방지를 적용했습니다. 게임 장면에서 효과를 확인하세요"
+  },
+  "Runtime.Session.FovUnsafe": {
+    "zh-CN": "无法安全应用 FOV",
+    "en-US": "Cannot safely apply FOV",
+    "ja-JP": "FOV を安全に適用できません",
+    "ko-KR": "FOV를 안전하게 적용할 수 없습니다"
+  },
+  "Runtime.Session.RemovalIncomplete": {
+    "zh-CN": "{0}；还原未完成：{1}",
+    "en-US": "{0}; restoration incomplete: {1}",
+    "ja-JP": "{0}。復元が未完了です：{1}",
+    "ko-KR": "{0}; 복원 미완료: {1}"
+  },
+  "Runtime.Session.FovUnavailable": {
+    "zh-CN": "FOV 暂不可用：{0}；帧率解锁不受影响，将稍后重试",
+    "en-US": "FOV temporarily unavailable: {0}; frame rate unlocking is unaffected. Will retry",
+    "ja-JP": "FOV は一時的に利用できません：{0}。フレームレート解除への影響はありません。後で再試行します",
+    "ko-KR": "FOV를 일시적으로 사용할 수 없습니다: {0}. 프레임 제한 해제에는 영향이 없으며 나중에 재시도합니다"
+  },
+  "Runtime.Session.AntiFadeUnsafe": {
+    "zh-CN": "无法安全应用反虚化",
+    "en-US": "Cannot safely apply anti-fade",
+    "ja-JP": "カメラフェード無効化を安全に適用できません",
+    "ko-KR": "카메라 페이드 방지를 안전하게 적용할 수 없습니다"
+  },
+  "Runtime.Session.AntiFadeUnavailable": {
+    "zh-CN": "反虚化暂不可用：{0}；帧率解锁不受影响，将稍后重试",
+    "en-US": "Anti-fade temporarily unavailable: {0}; frame rate unlocking is unaffected. Will retry",
+    "ja-JP": "カメラフェード無効化は一時的に利用できません：{0}。フレームレート解除への影響はありません。後で再試行します",
+    "ko-KR": "카메라 페이드 방지를 일시적으로 사용할 수 없습니다: {0}. 프레임 제한 해제에는 영향이 없으며 나중에 재시도합니다"
+  },
+  "Runtime.Session.FovNotRestored": {
+    "zh-CN": "FOV 尚未完全还原",
+    "en-US": "FOV is not fully restored",
+    "ja-JP": "FOV の復元が未完了です",
+    "ko-KR": "FOV가 완전히 복원되지 않았습니다"
+  },
+  "Runtime.Session.AntiFadeNotRestored": {
+    "zh-CN": "反虚化尚未完全还原",
+    "en-US": "Anti-fade is not fully restored",
+    "ja-JP": "カメラフェードの復元が未完了です",
+    "ko-KR": "카메라 페이드가 완전히 복원되지 않았습니다"
+  },
+  "Runtime.Session.AntiFadeRestoreIncomplete": {
+    "zh-CN": "反虚化还原未完成：{0}",
+    "en-US": "Anti-fade restoration incomplete: {0}",
+    "ja-JP": "カメラフェードの復元が未完了です：{0}",
+    "ko-KR": "카메라 페이드 복원 미완료: {0}"
+  },
+  "Runtime.Session.AntiFadeCleanupFailed": {
+    "zh-CN": "反虚化资源清理失败：{0}",
+    "en-US": "Anti-fade resource cleanup failed: {0}",
+    "ja-JP": "カメラフェード関連リソースの解放に失敗しました：{0}",
+    "ko-KR": "카메라 페이드 방지 리소스 정리 실패: {0}"
+  },
+  "Runtime.Session.FovRestoreIncomplete": {
+    "zh-CN": "FOV 还原未完成：{0}",
+    "en-US": "FOV restoration incomplete: {0}",
+    "ja-JP": "FOV の復元が未完了です：{0}",
+    "ko-KR": "FOV 복원 미완료: {0}"
+  },
+  "Runtime.Session.FovCleanupFailed": {
+    "zh-CN": "FOV 资源清理失败：{0}",
+    "en-US": "FOV resource cleanup failed: {0}",
+    "ja-JP": "FOV リソースの解放に失敗しました：{0}",
+    "ko-KR": "FOV 리소스 정리 실패: {0}"
+  },
+  "Runtime.Session.CapRestoreRetry": {
+    "zh-CN": "帧率上限未能还原，将继续重试",
+    "en-US": "Frame cap restoration failed; will keep retrying",
+    "ja-JP": "フレームレート上限を復元できませんでした。再試行を続けます",
+    "ko-KR": "프레임 제한을 복원하지 못했습니다. 계속 재시도합니다"
+  },
+  "Runtime.Session.CapRestoreFailed": {
+    "zh-CN": "帧率上限还原失败：{0}",
+    "en-US": "Frame cap restoration failed: {0}",
+    "ja-JP": "フレームレート上限の復元に失敗しました：{0}",
+    "ko-KR": "프레임 제한 복원 실패: {0}"
+  },
+  "Runtime.AntiFade.GameProcessExited": {
+    "zh-CN": "游戏进程已退出",
+    "en-US": "The game process has exited",
+    "ja-JP": "ゲームプロセスが終了しました",
+    "ko-KR": "게임 프로세스가 종료되었습니다"
+  },
+  "Runtime.AntiFade.UnsupportedEntry": {
+    "zh-CN": "相机过渡入口指令不受支持",
+    "en-US": "Unsupported camera transition entry instructions",
+    "ja-JP": "カメラ遷移の入口命令に対応していません",
+    "ko-KR": "지원하지 않는 카메라 전환 진입 명령입니다"
+  },
+  "Runtime.AntiFade.EntryInstallFailed": {
+    "zh-CN": "无法安装相机过渡入口",
+    "en-US": "Cannot install the camera transition entry",
+    "ja-JP": "カメラ遷移の入口を設定できません",
+    "ko-KR": "카메라 전환 진입점을 설정할 수 없습니다"
+  },
+  "Runtime.AntiFade.EnableWrapperFailed": {
+    "zh-CN": "无法启用反虚化标量包装代码",
+    "en-US": "Cannot enable the anti-fade scalar wrapper",
+    "ja-JP": "カメラフェード無効化のスカラーラッパーを有効にできません",
+    "ko-KR": "카메라 페이드 방지 스칼라 래퍼를 활성화할 수 없습니다"
+  },
+  "Runtime.AntiFade.Enabled": {
+    "zh-CN": "反虚化已启用：仅相机距离与仰角虚化使用 1.0，普通角色过渡继续执行",
+    "en-US": "Anti-fade enabled: only camera distance and elevation fading use 1.0; normal character transitions continue",
+    "ja-JP": "カメラフェード無効化が有効です。距離と仰角によるフェードのみ 1.0 とし、通常のキャラクター遷移は維持します",
+    "ko-KR": "카메라 페이드 방지 활성화: 카메라 거리와 고도에 따른 페이드만 1.0을 사용하며 일반 캐릭터 전환은 유지합니다"
+  },
+  "Runtime.AntiFade.EntryRestorePending": {
+    "zh-CN": "{0}；入口还原待重试：{1}",
+    "en-US": "{0}; entry restoration needs a retry: {1}",
+    "ja-JP": "{0}。入口の復元は再試行待ちです：{1}",
+    "ko-KR": "{0}; 진입점 복원 재시도 필요: {1}"
+  },
+  "Runtime.AntiFade.DisableUnconfirmed": {
+    "zh-CN": "{0}；无法确认包装代码已停用",
+    "en-US": "{0}; cannot confirm the wrapper is disabled",
+    "ja-JP": "{0}。ラッパーの停止を確認できません",
+    "ko-KR": "{0}; 래퍼 비활성화를 확인할 수 없습니다"
+  },
+  "Runtime.AntiFade.InstallFailed": {
+    "zh-CN": "反虚化安装失败：{0}",
+    "en-US": "Anti-fade installation failed: {0}",
+    "ja-JP": "カメラフェード無効化の適用に失敗しました：{0}",
+    "ko-KR": "카메라 페이드 방지 적용 실패: {0}"
+  },
+  "Runtime.AntiFade.AllocateFailed": {
+    "zh-CN": "无法分配相机过渡包装代码",
+    "en-US": "Cannot allocate the camera transition wrapper",
+    "ja-JP": "カメラ遷移ラッパーを割り当てできません",
+    "ko-KR": "카메라 전환 래퍼 메모리를 할당할 수 없습니다"
+  },
+  "Runtime.AntiFade.WrapperPageOverflow": {
+    "zh-CN": "包装代码超出独立代码页边界",
+    "en-US": "The wrapper exceeds its separate code page",
+    "ja-JP": "ラッパーが専用コードページの境界を超えています",
+    "ko-KR": "래퍼가 전용 코드 페이지 범위를 초과했습니다"
+  },
+  "Runtime.AntiFade.InitializeFailed": {
+    "zh-CN": "无法初始化反虚化代码与状态",
+    "en-US": "Cannot initialize anti-fade code and state",
+    "ja-JP": "カメラフェード無効化のコードと状態を初期化できません",
+    "ko-KR": "카메라 페이드 방지 코드와 상태를 초기화할 수 없습니다"
+  },
+  "Runtime.AntiFade.ProtectFailed": {
+    "zh-CN": "无法完成反虚化代码页保护",
+    "en-US": "Cannot set anti-fade code page protection",
+    "ja-JP": "カメラフェード無効化のコードページ保護を設定できません",
+    "ko-KR": "카메라 페이드 방지 코드 페이지 보호를 설정할 수 없습니다"
+  },
+  "Runtime.AntiFade.EntryOwnedByOther": {
+    "zh-CN": "相机入口已由其他代码接管；未启用或覆盖该入口",
+    "en-US": "Other code owns the camera entry; the entry was neither enabled nor overwritten",
+    "ja-JP": "カメラ入口は別のコードが使用中です。この入口の有効化や上書きは行っていません",
+    "ko-KR": "다른 코드가 카메라 진입점을 사용 중입니다. 해당 진입점을 활성화하거나 덮어쓰지 않았습니다"
+  },
+  "Runtime.AntiFade.DisableFailed": {
+    "zh-CN": "无法停用反虚化包装代码，入口保持有效以便重试",
+    "en-US": "Cannot disable the anti-fade wrapper; the entry remains valid for retry",
+    "ja-JP": "カメラフェード無効化ラッパーを停止できません。再試行のため入口を維持します",
+    "ko-KR": "카메라 페이드 방지 래퍼를 중지할 수 없습니다. 재시도를 위해 진입점을 유지합니다"
+  },
+  "Runtime.AntiFade.EntryRestoreFailed": {
+    "zh-CN": "无法还原相机入口",
+    "en-US": "Cannot restore the camera entry",
+    "ja-JP": "カメラ入口を復元できません",
+    "ko-KR": "카메라 진입점을 복원할 수 없습니다"
+  },
+  "Runtime.AntiFade.Removed": {
+    "zh-CN": "反虚化已停用，相机过渡入口已还原",
+    "en-US": "Anti-fade disabled; camera transition entry restored",
+    "ja-JP": "カメラフェード無効化を停止し、カメラ遷移入口を復元しました",
+    "ko-KR": "카메라 페이드 방지를 중지하고 카메라 전환 진입점을 복원했습니다"
+  },
+  "Runtime.AntiFade.RestoreFailed": {
+    "zh-CN": "反虚化还原失败：{0}",
+    "en-US": "Anti-fade restoration failed: {0}",
+    "ja-JP": "カメラフェードの復元に失敗しました：{0}",
+    "ko-KR": "카메라 페이드 복원 실패: {0}"
+  },
+  "Runtime.AntiFade.StatisticsReadFailed": {
+    "zh-CN": "无法读取反虚化调用统计",
+    "en-US": "Cannot read anti-fade call statistics",
+    "ja-JP": "カメラフェード無効化の呼び出し統計を読み取れません",
+    "ko-KR": "카메라 페이드 방지 호출 통계를 읽을 수 없습니다"
+  },
+  "Runtime.AntiFade.RestorationPending": {
+    "zh-CN": "相机入口尚未还原，保留补丁状态以便重试",
+    "en-US": "Camera entry restoration is pending; patch state retained for retry",
+    "ja-JP": "カメラ入口の復元が未完了です。再試行のためパッチ状態を保持します",
+    "ko-KR": "카메라 진입점이 복원되지 않았습니다. 재시도를 위해 패치 상태를 유지합니다"
+  },
+  "Runtime.AntiFade.UnsupportedPrologue": {
+    "zh-CN": "只能迁移已验证的完整栈保存序言",
+    "en-US": "Only the verified complete stack-save prologue can be displaced",
+    "ja-JP": "検証済みの完全なスタック保存プロローグのみ移動できます",
+    "ko-KR": "검증된 완전한 스택 저장 프롤로그만 이동할 수 있습니다"
+  },
+  "Runtime.Fov.InvalidDelta": {
+    "zh-CN": "FOV 增量必须是 −60…60 之间的有效数值",
+    "en-US": "FOV offset must be a finite value from -60 to 60",
+    "ja-JP": "FOV オフセットは -60～60 の有限値で指定してください",
+    "ko-KR": "FOV 증분은 -60~60 사이의 유한한 값이어야 합니다"
+  },
+  "Runtime.Fov.SetterNotInitialized": {
+    "zh-CN": "相机 setter 槽位尚未初始化，请稍后在游戏中重试",
+    "en-US": "Camera setter slot is not initialized; retry later in the game",
+    "ja-JP": "カメラ setter スロットが未初期化です。ゲーム内で後ほど再試行してください",
+    "ko-KR": "카메라 setter 슬롯이 초기화되지 않았습니다. 게임에서 나중에 재시도하세요"
+  },
+  "Runtime.Fov.AccessorSame": {
+    "zh-CN": "相机 setter 与 getter 指向同一地址，已拒绝这次无效配置",
+    "en-US": "Camera setter and getter point to the same address; invalid configuration rejected",
+    "ja-JP": "カメラ setter と getter が同じアドレスを指すため、この無効な設定を拒否しました",
+    "ko-KR": "카메라 setter와 getter가 같은 주소를 가리켜 잘못된 설정을 거부했습니다"
+  },
+  "Runtime.Fov.AllocateFailed": {
+    "zh-CN": "无法分配 FOV 包装代码",
+    "en-US": "Cannot allocate the FOV wrapper",
+    "ja-JP": "FOV ラッパーを割り当てできません",
+    "ko-KR": "FOV 래퍼 메모리를 할당할 수 없습니다"
+  },
+  "Runtime.Fov.InitializeFailed": {
+    "zh-CN": "无法初始化 FOV 包装代码",
+    "en-US": "Cannot initialize the FOV wrapper",
+    "ja-JP": "FOV ラッパーを初期化できません",
+    "ko-KR": "FOV 래퍼를 초기화할 수 없습니다"
+  },
+  "Runtime.Fov.SetterChanged": {
+    "zh-CN": "相机 setter 槽位已被改为 0x{0:X}，可能被另一个钩子占用",
+    "en-US": "Camera setter slot changed to 0x{0:X}; another hook may own it",
+    "ja-JP": "カメラ setter スロットが 0x{0:X} に変更されました。別のフックが使用している可能性があります",
+    "ko-KR": "카메라 setter 슬롯이 0x{0:X}(으)로 변경되었습니다. 다른 후크가 사용 중일 수 있습니다"
+  },
+  "Runtime.Fov.EnableFailed": {
+    "zh-CN": "无法启用已安装的 FOV 包装代码",
+    "en-US": "Cannot enable the installed FOV wrapper",
+    "ja-JP": "設定済みの FOV ラッパーを有効にできません",
+    "ko-KR": "설치된 FOV 래퍼를 활성화할 수 없습니다"
+  },
+  "Runtime.Fov.Enabled": {
+    "zh-CN": "FOV 已启用：增量 {0:0.##}，槽位 GameAssembly+0x{1:X}，原函数 UnityPlayer+0x{2:X}",
+    "en-US": "FOV enabled: offset {0:0.##}, slot GameAssembly+0x{1:X}, original UnityPlayer+0x{2:X}",
+    "ja-JP": "FOV が有効です。オフセット {0:0.##}、スロット GameAssembly+0x{1:X}、元の関数 UnityPlayer+0x{2:X}",
+    "ko-KR": "FOV 활성화: 증분 {0:0.##}, 슬롯 GameAssembly+0x{1:X}, 원래 함수 UnityPlayer+0x{2:X}"
+  },
+  "Runtime.Fov.InstallFailed": {
+    "zh-CN": "FOV 启用失败：{0}",
+    "en-US": "Failed to enable FOV: {0}",
+    "ja-JP": "FOV の有効化に失敗しました：{0}",
+    "ko-KR": "FOV 활성화 실패: {0}"
+  },
+  "Runtime.Fov.WrapperNotReady": {
+    "zh-CN": "FOV 包装代码尚未准备完成，无法更新增量",
+    "en-US": "FOV wrapper is not ready; cannot update the offset",
+    "ja-JP": "FOV ラッパーの準備が未完了のため、オフセットを更新できません",
+    "ko-KR": "FOV 래퍼가 준비되지 않아 증분을 갱신할 수 없습니다"
+  },
+  "Runtime.Fov.DeltaWriteFailed": {
+    "zh-CN": "无法写入 FOV 增量",
+    "en-US": "Cannot write the FOV offset",
+    "ja-JP": "FOV オフセットを書き込めません",
+    "ko-KR": "FOV 증분을 기록할 수 없습니다"
+  },
+  "Runtime.Fov.StatisticsReadFailed": {
+    "zh-CN": "无法读取 FOV 运行统计",
+    "en-US": "Cannot read FOV runtime statistics",
+    "ja-JP": "FOV の実行統計を読み取れません",
+    "ko-KR": "FOV 실행 통계를 읽을 수 없습니다"
+  },
+  "Runtime.Fov.DisableFailed": {
+    "zh-CN": "无法停用 FOV 包装代码",
+    "en-US": "Cannot disable the FOV wrapper",
+    "ja-JP": "FOV ラッパーを停止できません",
+    "ko-KR": "FOV 래퍼를 비활성화할 수 없습니다"
+  },
+  "Runtime.Fov.SetterStillOwned": {
+    "zh-CN": "setter 槽位仍由另一个钩子占用（0x{0:X}）；原指针尚未还原",
+    "en-US": "Another hook still owns the setter slot (0x{0:X}); original pointer not restored",
+    "ja-JP": "setter スロットはまだ別のフックが使用中です（0x{0:X}）。元のポインターは未復元です",
+    "ko-KR": "다른 후크가 setter 슬롯(0x{0:X})을 계속 사용 중입니다. 원래 포인터가 복원되지 않았습니다"
+  },
+  "Runtime.Fov.SetterOwned": {
+    "zh-CN": "setter 槽位已被另一个钩子占用（0x{0:X}）；我们的包装代码已停用，未覆盖该指针",
+    "en-US": "Another hook owns the setter slot (0x{0:X}); our wrapper is disabled and the pointer was not overwritten",
+    "ja-JP": "setter スロットは別のフックが使用中です（0x{0:X}）。本ツールのラッパーを停止し、ポインターは上書きしていません",
+    "ko-KR": "다른 후크가 setter 슬롯(0x{0:X})을 사용 중입니다. 이 도구의 래퍼를 중지했으며 포인터는 덮어쓰지 않았습니다"
+  },
+  "Runtime.Fov.ReadbackMismatch": {
+    "zh-CN": "FOV 指针还原后读回不一致",
+    "en-US": "FOV pointer readback does not match after restoration",
+    "ja-JP": "復元後の FOV ポインターの読み取り値が一致しません",
+    "ko-KR": "복원 후 FOV 포인터의 읽기 값이 일치하지 않습니다"
+  },
+  "Runtime.Fov.Removed": {
+    "zh-CN": "FOV 钩子已卸载，原 setter 指针已恢复",
+    "en-US": "FOV hook removed; original setter pointer restored",
+    "ja-JP": "FOV フックを解除し、元の setter ポインターを復元しました",
+    "ko-KR": "FOV 후크를 제거하고 원래 setter 포인터를 복원했습니다"
+  },
+  "Runtime.Fov.RestoreFailed": {
+    "zh-CN": "FOV 还原失败：{0}",
+    "en-US": "FOV restoration failed: {0}",
+    "ja-JP": "FOV の復元に失敗しました：{0}",
+    "ko-KR": "FOV 복원 실패: {0}"
+  },
+  "Runtime.Fov.RestorationPending": {
+    "zh-CN": "FOV 还原尚未完成",
+    "en-US": "FOV restoration is still pending",
+    "ja-JP": "FOV の復元はまだ完了していません",
+    "ko-KR": "FOV 복원이 아직 완료되지 않았습니다"
+  },
+  "Runtime.FrameCap.CodeReadFailed": {
+    "zh-CN": "无法读取帧率接口代码",
+    "en-US": "Cannot read the frame rate interface code",
+    "ja-JP": "フレームレートインターフェースのコードを読み取れません",
+    "ko-KR": "프레임 속도 인터페이스 코드를 읽을 수 없습니다"
+  },
+  "Runtime.FrameCap.TooManyJumps": {
+    "zh-CN": "帧率接口的跳转层数过多",
+    "en-US": "Too many jump layers in the frame rate interface",
+    "ja-JP": "フレームレートインターフェースのジャンプ階層が多すぎます",
+    "ko-KR": "프레임 속도 인터페이스의 점프 단계가 너무 많습니다"
+  },
+  "Runtime.FrameCap.UnsupportedSetter": {
+    "zh-CN": "当前客户端的帧率 setter 结构不受支持",
+    "en-US": "The selected client's frame rate setter layout is unsupported",
+    "ja-JP": "現在のクライアントのフレームレート setter 構造に対応していません",
+    "ko-KR": "현재 클라이언트의 프레임 속도 setter 구조를 지원하지 않습니다"
+  },
+  "Runtime.FrameCap.UnsupportedGetter": {
+    "zh-CN": "当前客户端的帧率 getter 结构不受支持",
+    "en-US": "The selected client's frame rate getter layout is unsupported",
+    "ja-JP": "現在のクライアントのフレームレート getter 構造に対応していません",
+    "ko-KR": "현재 클라이언트의 프레임 속도 getter 구조를 지원하지 않습니다"
+  },
+  "Runtime.FrameCap.StaticMismatch": {
+    "zh-CN": "帧率 setter 与 getter 未指向同一个可写静态量",
+    "en-US": "Frame rate setter and getter do not reference the same writable static",
+    "ja-JP": "フレームレート setter と getter が同じ書き込み可能な静的変数を参照していません",
+    "ko-KR": "프레임 속도 setter와 getter가 같은 쓰기 가능한 정적 변수를 가리키지 않습니다"
+  },
+  "Runtime.FrameCap.StaticReadFailed": {
+    "zh-CN": "无法读取帧率静态量",
+    "en-US": "Cannot read the frame rate static value",
+    "ja-JP": "フレームレートの静的変数を読み取れません",
+    "ko-KR": "프레임 속도 정적 값을 읽을 수 없습니다"
+  },
+  "Runtime.FrameCap.Resolved": {
+    "zh-CN": "帧率 getter/setter 一致指向 UnityPlayer+0x{0:X}，当前值 {1}",
+    "en-US": "Frame rate getter/setter both reference UnityPlayer+0x{0:X}; current value {1}",
+    "ja-JP": "フレームレート getter/setter は共に UnityPlayer+0x{0:X} を参照しています。現在値 {1}",
+    "ko-KR": "프레임 속도 getter/setter 모두 UnityPlayer+0x{0:X} 참조, 현재 값 {1}"
+  },
+  "Runtime.Launcher.InvalidPath": {
+    "zh-CN": "请选择有效的 StarRail.exe 游戏路径",
+    "en-US": "Select a valid StarRail.exe game path",
+    "ja-JP": "有効な StarRail.exe のパスを選択してください",
+    "ko-KR": "올바른 StarRail.exe 게임 경로를 선택하세요"
+  },
+  "Runtime.Launcher.RunAsInvoker": {
+    "zh-CN": "检测到 RunAsInvoker 降权启动环境，已取消启动游戏；请从正常管理员权限的 HSRUnlocker 启动，避免资源更新失败",
+    "en-US": "RunAsInvoker was detected; game launch canceled. Run HSRUnlocker with normal administrator rights to avoid resource update failures",
+    "ja-JP": "RunAsInvoker を検出したため起動を中止しました。リソース更新の失敗を防ぐため、通常の管理者権限で HSRUnlocker を実行してください",
+    "ko-KR": "RunAsInvoker 환경을 감지하여 게임 실행을 취소했습니다. 리소스 업데이트 실패를 방지하려면 정상적인 관리자 권한으로 HSRUnlocker를 실행하세요"
+  },
+  "Runtime.Launcher.AdminRequired": {
+    "zh-CN": "启动游戏需要管理员权限以写入客户端资源目录；请正常运行 HSRUnlocker 并允许 Windows 管理员提示",
+    "en-US": "Game launch requires administrator rights to write client resources; run HSRUnlocker normally and allow the Windows administrator prompt",
+    "ja-JP": "ゲーム起動にはリソースフォルダーへの書き込み用の管理者権限が必要です。通常どおり HSRUnlocker を実行し、Windows の管理者確認を許可してください",
+    "ko-KR": "클라이언트 리소스 폴더에 쓰려면 관리자 권한이 필요합니다. HSRUnlocker를 정상 실행하고 Windows 관리자 권한 요청을 허용하세요"
+  },
+  "Runtime.Launcher.StartFailed": {
+    "zh-CN": "游戏未能启动",
+    "en-US": "The game could not be started",
+    "ja-JP": "ゲームを起動できませんでした",
+    "ko-KR": "게임을 실행하지 못했습니다"
+  },
+  "Runtime.MobileLauncher.ArgumentsTooLong": {
+    "zh-CN": "移动启动参数过长",
+    "en-US": "Mobile launch arguments are too long",
+    "ja-JP": "モバイル起動引数が長すぎます",
+    "ko-KR": "모바일 실행 인수가 너무 깁니다"
+  },
+  "Runtime.MobileLauncher.PathQuote": {
+    "zh-CN": "客户端路径包含无效引号",
+    "en-US": "The client path contains an invalid quotation mark",
+    "ja-JP": "クライアントのパスに無効な引用符が含まれています",
+    "ko-KR": "클라이언트 경로에 잘못된 따옴표가 포함되어 있습니다"
+  },
+  "Runtime.MobileLauncher.SuspendedStartFailed": {
+    "zh-CN": "无法挂起启动所选客户端",
+    "en-US": "Cannot start the selected client in a suspended state",
+    "ja-JP": "選択したクライアントを中断状態で起動できません",
+    "ko-KR": "선택한 클라이언트를 일시 중단 상태로 실행할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.StateAllocateFailed": {
+    "zh-CN": "无法分配移动启动状态",
+    "en-US": "Cannot allocate mobile launch state",
+    "ja-JP": "モバイル起動状態のメモリを割り当てできません",
+    "ko-KR": "모바일 실행 상태 메모리를 할당할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.WriteFailed": {
+    "zh-CN": "无法写入移动启动器",
+    "en-US": "Cannot write the mobile launcher",
+    "ja-JP": "モバイル起動コードを書き込めません",
+    "ko-KR": "모바일 실행 코드를 기록할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.CodePageFailed": {
+    "zh-CN": "无法准备移动启动代码页",
+    "en-US": "Cannot prepare the mobile launch code page",
+    "ja-JP": "モバイル起動コードページを準備できません",
+    "ko-KR": "모바일 실행 코드 페이지를 준비할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.ThreadStartFailed": {
+    "zh-CN": "无法启动移动初始化线程",
+    "en-US": "Cannot start the mobile initialization thread",
+    "ja-JP": "モバイル初期化スレッドを開始できません",
+    "ko-KR": "모바일 초기화 스레드를 시작할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.ThreadExited": {
+    "zh-CN": "移动初始化线程在入口校验前退出",
+    "en-US": "The mobile initialization thread exited before entry verification",
+    "ja-JP": "入口の検証前にモバイル初期化スレッドが終了しました",
+    "ko-KR": "진입점 검증 전에 모바일 초기화 스레드가 종료되었습니다"
+  },
+  "Runtime.MobileLauncher.LoaderTimeout": {
+    "zh-CN": "等待 Windows 客户端加载器超时",
+    "en-US": "Timed out waiting for the Windows client loader",
+    "ja-JP": "Windows クライアントローダーの待機がタイムアウトしました",
+    "ko-KR": "Windows 클라이언트 로더 대기 시간 초과"
+  },
+  "Runtime.MobileLauncher.EngineMismatch": {
+    "zh-CN": "加载的 UnityPlayer 与所选客户端不匹配",
+    "en-US": "The loaded UnityPlayer does not match the selected client",
+    "ja-JP": "読み込まれた UnityPlayer が選択したクライアントと一致しません",
+    "ko-KR": "로드된 UnityPlayer가 선택한 클라이언트와 일치하지 않습니다"
+  },
+  "Runtime.MobileLauncher.EntryChanged": {
+    "zh-CN": "加载的 UnityMain 入口已改变，已取消移动启动",
+    "en-US": "The loaded UnityMain entry has changed; mobile launch canceled",
+    "ja-JP": "読み込まれた UnityMain 入口が変更されているため、モバイル起動を中止しました",
+    "ko-KR": "로드된 UnityMain 진입점이 변경되어 모바일 실행을 취소했습니다"
+  },
+  "Runtime.MobileLauncher.ExitEntryWriteFailed": {
+    "zh-CN": "无法设置客户端退出入口",
+    "en-US": "Cannot set the client exit entry",
+    "ja-JP": "クライアント終了用の入口を設定できません",
+    "ko-KR": "클라이언트 종료 진입점을 설정할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.ImportMismatch": {
+    "zh-CN": "UnityMain 导入与命名导出不一致，已取消移动启动",
+    "en-US": "UnityMain import does not match the named export; mobile launch canceled",
+    "ja-JP": "UnityMain のインポートと名前付きエクスポートが一致しないため、モバイル起動を中止しました",
+    "ko-KR": "UnityMain 가져오기가 명명된 내보내기와 일치하지 않아 모바일 실행을 취소했습니다"
+  },
+  "Runtime.MobileLauncher.EntryWriteFailed": {
+    "zh-CN": "无法设置已验证的 Unity 入口",
+    "en-US": "Cannot set the verified Unity entry",
+    "ja-JP": "検証済みの Unity 入口を設定できません",
+    "ko-KR": "검증된 Unity 진입점을 설정할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.EntryVerified": {
+    "zh-CN": "移动 UI：已按名称校验 UnityMain，准备独立启动入口",
+    "en-US": "Mobile UI: UnityMain verified by name; preparing a separate launch entry",
+    "ja-JP": "モバイル UI：UnityMain を名前で検証しました。専用の起動入口を準備中",
+    "ko-KR": "모바일 UI: 이름으로 UnityMain 검증 완료. 별도 실행 진입점 준비 중"
+  },
+  "Runtime.MobileLauncher.CommitFailed": {
+    "zh-CN": "无法提交移动启动",
+    "en-US": "Cannot commit the mobile launch",
+    "ja-JP": "モバイル起動を確定できません",
+    "ko-KR": "모바일 실행을 확정할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.ClientExited": {
+    "zh-CN": "客户端在移动初始化时退出",
+    "en-US": "The client exited during mobile initialization",
+    "ja-JP": "モバイル初期化中にクライアントが終了しました",
+    "ko-KR": "모바일 초기화 중 클라이언트가 종료되었습니다"
+  },
+  "Runtime.MobileLauncher.CommitTimeout": {
+    "zh-CN": "提交移动启动超时",
+    "en-US": "Timed out committing the mobile launch",
+    "ja-JP": "モバイル起動の確定がタイムアウトしました",
+    "ko-KR": "모바일 실행 확정 시간 초과"
+  },
+  "Runtime.MobileLauncher.EntryNotRunning": {
+    "zh-CN": "UnityMain 未保持运行，无法确认移动启动",
+    "en-US": "UnityMain did not stay running; mobile launch cannot be confirmed",
+    "ja-JP": "UnityMain が実行を継続していないため、モバイル起動を確認できません",
+    "ko-KR": "UnityMain이 계속 실행되지 않아 모바일 실행을 확인할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.EntryRunning": {
+    "zh-CN": "移动 UI：独立 Unity 启动入口已运行；布局效果需进入游戏确认",
+    "en-US": "Mobile UI: separate Unity launch entry is running; verify the layout in the game",
+    "ja-JP": "モバイル UI：専用の Unity 起動入口が実行中です。レイアウトはゲーム内で確認してください",
+    "ko-KR": "모바일 UI: 별도 Unity 실행 진입점이 실행 중입니다. 게임에서 레이아웃을 확인하세요"
+  },
+  "Runtime.MobileLauncher.CleanupUnconfirmed": {
+    "zh-CN": "启动失败后的客户端清理未确认（PID {0}，错误 {1}）；初始化内存仍由该进程持有",
+    "en-US": "Client cleanup after launch failure is unconfirmed (PID {0}, error {1}); the process still owns initialization memory",
+    "ja-JP": "起動失敗後のクライアント解放を確認できません（PID {0}、エラー {1}）。初期化メモリはこのプロセスが保持しています",
+    "ko-KR": "실행 실패 후 클라이언트 정리가 확인되지 않았습니다(PID {0}, 오류 {1}). 초기화 메모리는 해당 프로세스가 유지합니다"
+  },
+  "Runtime.MobileLauncher.UnverifiedArguments": {
+    "zh-CN": "移动启动只接受经过验证的平台和图形参数",
+    "en-US": "Mobile launch accepts only verified platform and graphics arguments",
+    "ja-JP": "モバイル起動では検証済みのプラットフォーム引数とグラフィック引数のみ使用できます",
+    "ko-KR": "모바일 실행에는 검증된 플랫폼 및 그래픽 인수만 사용할 수 있습니다"
+  },
+  "Runtime.MobileLauncher.InvalidGraphics": {
+    "zh-CN": "无效的移动图形参数",
+    "en-US": "Invalid mobile graphics arguments",
+    "ja-JP": "モバイルのグラフィック引数が無効です",
+    "ko-KR": "잘못된 모바일 그래픽 인수입니다"
+  },
+  "Runtime.MobileLauncher.NonCanonicalGraphics": {
+    "zh-CN": "移动图形参数必须是非空的规范 Base64",
+    "en-US": "Mobile graphics arguments must be nonempty canonical Base64",
+    "ja-JP": "モバイルのグラフィック引数は空でない正規の Base64 で指定してください",
+    "ko-KR": "모바일 그래픽 인수는 비어 있지 않은 정규 Base64여야 합니다"
+  },
+  "Runtime.MobileLauncher.PlatformLayoutMismatch": {
+    "zh-CN": "移动平台接口的运行时结构与所选客户端不一致",
+    "en-US": "Mobile platform runtime layout does not match the selected client",
+    "ja-JP": "モバイルプラットフォームの実行時構造が選択したクライアントと一致しません",
+    "ko-KR": "모바일 플랫폼의 런타임 구조가 선택한 클라이언트와 일치하지 않습니다"
+  },
+  "Runtime.MobileLauncher.PlatformPointerChanged": {
+    "zh-CN": "移动平台注册指针已经改变，已取消启动",
+    "en-US": "The mobile platform registration pointer has changed; launch canceled",
+    "ja-JP": "モバイルプラットフォームの登録ポインターが変更されているため、起動を中止しました",
+    "ko-KR": "모바일 플랫폼 등록 포인터가 변경되어 실행을 취소했습니다"
+  },
+  "Runtime.MobileLauncher.PlatformSectionInvalid": {
+    "zh-CN": "移动平台注册项不属于只读或可写数据节",
+    "en-US": "The mobile platform registration is outside read-only or writable data sections",
+    "ja-JP": "モバイルプラットフォーム登録が読み取り専用または書き込み可能なデータセクション内にありません",
+    "ko-KR": "모바일 플랫폼 등록 항목이 읽기 전용 또는 쓰기 가능한 데이터 섹션에 속하지 않습니다"
+  },
+  "Runtime.MobileLauncher.PlatformFunctionFailed": {
+    "zh-CN": "无法准备独立移动平台函数",
+    "en-US": "Cannot prepare the separate mobile platform function",
+    "ja-JP": "専用のモバイルプラットフォーム関数を準備できません",
+    "ko-KR": "별도 모바일 플랫폼 함수를 준비할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.PlatformPageFailed": {
+    "zh-CN": "无法准备平台注册数据页",
+    "en-US": "Cannot prepare the platform registration data page",
+    "ja-JP": "プラットフォーム登録データページを準備できません",
+    "ko-KR": "플랫폼 등록 데이터 페이지를 준비할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.PlatformRegistrationChanged": {
+    "zh-CN": "移动平台注册项被其他组件改变，已取消启动",
+    "en-US": "Another component changed the mobile platform registration; launch canceled",
+    "ja-JP": "別のコンポーネントがモバイルプラットフォーム登録を変更したため、起動を中止しました",
+    "ko-KR": "다른 구성 요소가 모바일 플랫폼 등록 항목을 변경하여 실행을 취소했습니다"
+  },
+  "Runtime.MobileLauncher.PlatformProtectionFailed": {
+    "zh-CN": "无法恢复平台注册数据页保护",
+    "en-US": "Cannot restore platform registration data page protection",
+    "ja-JP": "プラットフォーム登録データページの保護を復元できません",
+    "ko-KR": "플랫폼 등록 데이터 페이지 보호를 복원할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.PlatformReplacementUnconfirmed": {
+    "zh-CN": "无法确认移动平台注册替换",
+    "en-US": "Cannot confirm the mobile platform registration replacement",
+    "ja-JP": "モバイルプラットフォーム登録の置換を確認できません",
+    "ko-KR": "모바일 플랫폼 등록 교체를 확인할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.PlatformReplaced": {
+    "zh-CN": "移动 UI：按名称替换 Application.get_platform 注册项（UnityPlayer+0x{0:X}）",
+    "en-US": "Mobile UI: replaced the named Application.get_platform registration (UnityPlayer+0x{0:X})",
+    "ja-JP": "モバイル UI：Application.get_platform 登録を名前で特定し置換しました（UnityPlayer+0x{0:X}）",
+    "ko-KR": "모바일 UI: 이름으로 확인한 Application.get_platform 등록 항목 교체됨(UnityPlayer+0x{0:X})"
+  },
+  "Runtime.MobileLauncher.ExitResolveFailed": {
+    "zh-CN": "无法解析 ExitProcess",
+    "en-US": "Cannot resolve ExitProcess",
+    "ja-JP": "ExitProcess を解決できません",
+    "ko-KR": "ExitProcess를 확인할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.ExitEntryMismatch": {
+    "zh-CN": "目标进程的系统退出入口不匹配",
+    "en-US": "The target process system exit entry does not match",
+    "ja-JP": "対象プロセスのシステム終了入口が一致しません",
+    "ko-KR": "대상 프로세스의 시스템 종료 진입점이 일치하지 않습니다"
+  },
+  "Runtime.MobileLauncher.ExitEntryChanged": {
+    "zh-CN": "目标进程的系统退出入口已改变",
+    "en-US": "The target process system exit entry has changed",
+    "ja-JP": "対象プロセスのシステム終了入口が変更されています",
+    "ko-KR": "대상 프로세스의 시스템 종료 진입점이 변경되었습니다"
+  },
+  "Runtime.MobileLauncher.ExitModuleUnknown": {
+    "zh-CN": "无法确认命名系统退出入口的模块",
+    "en-US": "Cannot identify the module containing the named system exit entry",
+    "ja-JP": "名前付きシステム終了入口を含むモジュールを確認できません",
+    "ko-KR": "명명된 시스템 종료 진입점이 속한 모듈을 확인할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.PebReadFailed": {
+    "zh-CN": "无法读取新进程的 PEB",
+    "en-US": "Cannot read the new process PEB",
+    "ja-JP": "新規プロセスの PEB を読み取れません",
+    "ko-KR": "새 프로세스의 PEB를 읽을 수 없습니다"
+  },
+  "Runtime.MobileLauncher.ImageBaseReadFailed": {
+    "zh-CN": "无法读取新进程映像基址",
+    "en-US": "Cannot read the new process image base",
+    "ja-JP": "新規プロセスのイメージベースを読み取れません",
+    "ko-KR": "새 프로세스의 이미지 기준 주소를 읽을 수 없습니다"
+  },
+  "Runtime.MobileLauncher.ImageInvalid": {
+    "zh-CN": "无法验证客户端映像",
+    "en-US": "Cannot validate the client image",
+    "ja-JP": "クライアントイメージを検証できません",
+    "ko-KR": "클라이언트 이미지를 검증할 수 없습니다"
+  },
+  "Runtime.MobileLauncher.ImageIdentityMismatch": {
+    "zh-CN": "加载映像与所选文件的 PE 身份不匹配",
+    "en-US": "The loaded image PE identity does not match the selected file",
+    "ja-JP": "読み込まれたイメージの PE 識別情報が選択したファイルと一致しません",
+    "ko-KR": "로드된 이미지의 PE 식별 정보가 선택한 파일과 일치하지 않습니다"
+  },
+  "Runtime.MobileSettings.InvalidSourceSelection": {
+    "zh-CN": "移动 UI 图形设置来源无效；请选择自动、国服或国际服",
+    "en-US": "Invalid mobile UI graphics source; select Auto, China or Global",
+    "ja-JP": "モバイル UI のグラフィック設定元が無効です。自動、中国版、グローバル版から選択してください",
+    "ko-KR": "모바일 UI 그래픽 설정 원본이 잘못되었습니다. 자동, 중국 또는 글로벌을 선택하세요"
+  },
+  "Runtime.MobileSettings.AutoChina": {
+    "zh-CN": "移动 UI 图形设置：自动识别 国服；只读 HKCU\\{0}",
+    "en-US": "Mobile UI graphics: China auto-detected; read-only HKCU\\{0}",
+    "ja-JP": "モバイル UI グラフィック設定：中国版を自動検出。読み取り専用 HKCU\\{0}",
+    "ko-KR": "모바일 UI 그래픽 설정: 중국 버전 자동 감지. 읽기 전용 HKCU\\{0}"
+  },
+  "Runtime.MobileSettings.AutoGlobal": {
+    "zh-CN": "移动 UI 图形设置：自动识别 国际服；只读 HKCU\\{0}",
+    "en-US": "Mobile UI graphics: Global auto-detected; read-only HKCU\\{0}",
+    "ja-JP": "モバイル UI グラフィック設定：グローバル版を自動検出。読み取り専用 HKCU\\{0}",
+    "ko-KR": "모바일 UI 그래픽 설정: 글로벌 버전 자동 감지. 읽기 전용 HKCU\\{0}"
+  },
+  "Runtime.MobileSettings.ManualChina": {
+    "zh-CN": "移动 UI 图形设置：手动选择 国服；只读 HKCU\\{0}",
+    "en-US": "Mobile UI graphics: China selected manually; read-only HKCU\\{0}",
+    "ja-JP": "モバイル UI グラフィック設定：中国版を手動選択。読み取り専用 HKCU\\{0}",
+    "ko-KR": "모바일 UI 그래픽 설정: 중국 버전 수동 선택. 읽기 전용 HKCU\\{0}"
+  },
+  "Runtime.MobileSettings.ManualGlobal": {
+    "zh-CN": "移动 UI 图形设置：手动选择 国际服；只读 HKCU\\{0}",
+    "en-US": "Mobile UI graphics: Global selected manually; read-only HKCU\\{0}",
+    "ja-JP": "モバイル UI グラフィック設定：グローバル版を手動選択。読み取り専用 HKCU\\{0}",
+    "ko-KR": "모바일 UI 그래픽 설정: 글로벌 버전 수동 선택. 읽기 전용 HKCU\\{0}"
+  },
+  "Runtime.MobileSettings.GraphicsMissingChina": {
+    "zh-CN": "移动 UI 启动需要所选国服的图形设置（HKCU\\{0}）；请先用普通模式启动相应客户端，再启用移动 UI",
+    "en-US": "Mobile UI launch needs graphics settings for the selected China client (HKCU\\{0}); launch it normally once before enabling mobile UI",
+    "ja-JP": "モバイル UI 起動には選択した中国版のグラフィック設定が必要です（HKCU\\{0}）。先に通常モードで該当クライアントを起動してください",
+    "ko-KR": "모바일 UI 실행에는 선택한 중국 클라이언트의 그래픽 설정이 필요합니다(HKCU\\{0}). 먼저 해당 클라이언트를 일반 모드로 실행한 후 모바일 UI를 켜세요"
+  },
+  "Runtime.MobileSettings.GraphicsMissingGlobal": {
+    "zh-CN": "移动 UI 启动需要所选国际服的图形设置（HKCU\\{0}）；请先用普通模式启动相应客户端，再启用移动 UI",
+    "en-US": "Mobile UI launch needs graphics settings for the selected Global client (HKCU\\{0}); launch it normally once before enabling mobile UI",
+    "ja-JP": "モバイル UI 起動には選択したグローバル版のグラフィック設定が必要です（HKCU\\{0}）。先に通常モードで該当クライアントを起動してください",
+    "ko-KR": "모바일 UI 실행에는 선택한 글로벌 클라이언트의 그래픽 설정이 필요합니다(HKCU\\{0}). 먼저 해당 클라이언트를 일반 모드로 실행한 후 모바일 UI를 켜세요"
+  },
+  "Runtime.MobileSettings.Arguments": {
+    "zh-CN": "使用移动 UI 启动参数 CLOUD_WEB_TOUCH；图形设置 {0} 字节，客户端效果待确认",
+    "en-US": "Using mobile UI argument CLOUD_WEB_TOUCH; graphics settings {0} bytes. Client effect unverified",
+    "ja-JP": "モバイル UI 起動引数 CLOUD_WEB_TOUCH を使用。グラフィック設定 {0} バイト。クライアントでの効果は未確認です",
+    "ko-KR": "모바일 UI 실행 인수 CLOUD_WEB_TOUCH 사용. 그래픽 설정 {0}바이트, 클라이언트 효과는 미확인"
+  },
+  "Runtime.MobileSettings.InvalidSource": {
+    "zh-CN": "移动 UI 图形设置来源无效",
+    "en-US": "Invalid mobile UI graphics source",
+    "ja-JP": "モバイル UI のグラフィック設定元が無効です",
+    "ko-KR": "잘못된 모바일 UI 그래픽 설정 원본입니다"
+  },
+  "Runtime.MobileSettings.MetadataConflict": {
+    "zh-CN": "当前客户端 config.ini 与 app.info 的移动 UI 渠道信息冲突；请确认客户端或手动选择图形设置来源",
+    "en-US": "Client config.ini and app.info disagree on the mobile UI channel; verify the client or select a graphics source manually",
+    "ja-JP": "config.ini と app.info のモバイル UI チャンネル情報が矛盾しています。クライアントを確認するか、設定元を手動で選択してください",
+    "ko-KR": "클라이언트의 config.ini와 app.info의 모바일 UI 채널 정보가 충돌합니다. 클라이언트를 확인하거나 그래픽 설정 원본을 수동으로 선택하세요"
+  },
+  "Runtime.MobileSettings.SourceUnknown": {
+    "zh-CN": "无法从当前客户端 config.ini（uapc）或 StarRail_Data/app.info 确认移动 UI 渠道；请手动选择国服或国际服图形设置来源",
+    "en-US": "Cannot identify the mobile UI channel from config.ini (uapc) or StarRail_Data/app.info; select China or Global graphics settings manually",
+    "ja-JP": "config.ini（uapc）または StarRail_Data/app.info からモバイル UI チャンネルを特定できません。中国版かグローバル版の設定元を手動で選択してください",
+    "ko-KR": "config.ini(uapc) 또는 StarRail_Data/app.info에서 모바일 UI 채널을 확인할 수 없습니다. 중국 또는 글로벌 그래픽 설정 원본을 수동으로 선택하세요"
+  },
+  "Runtime.MobileSettings.SourceUnresolved": {
+    "zh-CN": "尚未确认移动 UI 图形设置渠道",
+    "en-US": "The mobile UI graphics channel is not yet identified",
+    "ja-JP": "モバイル UI のグラフィック設定チャンネルが未確定です",
+    "ko-KR": "모바일 UI 그래픽 설정 채널이 아직 확인되지 않았습니다"
+  },
+  "Runtime.MobileSettings.ChannelConflict": {
+    "zh-CN": "当前客户端 config.ini 包含互相冲突的 uapc 渠道；请确认客户端或手动选择图形设置来源",
+    "en-US": "Client config.ini contains conflicting uapc channels; verify the client or select a graphics source manually",
+    "ja-JP": "config.ini に矛盾する uapc チャンネルが含まれています。クライアントを確認するか、設定元を手動で選択してください",
+    "ko-KR": "클라이언트 config.ini에 서로 충돌하는 uapc 채널이 있습니다. 클라이언트를 확인하거나 그래픽 설정 원본을 수동으로 선택하세요"
+  },
+  "Runtime.MobileSettings.ChannelAmbiguous": {
+    "zh-CN": "当前客户端 uapc 同时包含国服和国际服渠道；请确认客户端或手动选择图形设置来源",
+    "en-US": "Client uapc contains both China and Global channels; verify the client or select a graphics source manually",
+    "ja-JP": "uapc に中国版とグローバル版の両チャンネルが含まれています。クライアントを確認するか、設定元を手動で選択してください",
+    "ko-KR": "클라이언트 uapc에 중국 및 글로벌 채널이 모두 있습니다. 클라이언트를 확인하거나 그래픽 설정 원본을 수동으로 선택하세요"
+  },
+  "Runtime.MobileSettings.ChannelUnknown": {
+    "zh-CN": "当前客户端 config.ini 的 uapc 渠道无法识别；请确认客户端或手动选择图形设置来源",
+    "en-US": "Cannot recognize the client config.ini uapc channel; verify the client or select a graphics source manually",
+    "ja-JP": "config.ini の uapc チャンネルを認識できません。クライアントを確認するか、設定元を手動で選択してください",
+    "ko-KR": "클라이언트 config.ini의 uapc 채널을 인식할 수 없습니다. 클라이언트를 확인하거나 그래픽 설정 원본을 수동으로 선택하세요"
+  },
+  "Runtime.MobileSettings.AppIdentityUnknown": {
+    "zh-CN": "当前客户端 app.info 的公司/产品信息无法识别；请确认客户端或手动选择图形设置来源",
+    "en-US": "Cannot recognize the client app.info company/product identity; verify the client or select a graphics source manually",
+    "ja-JP": "app.info の会社・製品情報を認識できません。クライアントを確認するか、設定元を手動で選択してください",
+    "ko-KR": "클라이언트 app.info의 회사 및 제품 정보를 인식할 수 없습니다. 클라이언트를 확인하거나 그래픽 설정 원본을 수동으로 선택하세요"
+  },
+  "Runtime.MobileSettings.MetadataTooLarge": {
+    "zh-CN": "当前客户端 {0} 元数据超过 {1} 字节；请确认客户端或手动选择图形设置来源",
+    "en-US": "Client {0} metadata exceeds {1} bytes; verify the client or select a graphics source manually",
+    "ja-JP": "クライアントの {0} メタデータが {1} バイトを超えています。クライアントを確認するか、設定元を手動で選択してください",
+    "ko-KR": "클라이언트 {0} 메타데이터가 {1}바이트를 초과합니다. 클라이언트를 확인하거나 그래픽 설정 원본을 수동으로 선택하세요"
+  },
+  "Runtime.Interop.ProcessOpenFailed": {
+    "zh-CN": "无法打开目标进程（错误 {0}）。请以管理员身份运行 HSRUnlocker。",
+    "en-US": "Cannot open the target process (error {0}). Run HSRUnlocker as administrator.",
+    "ja-JP": "対象プロセスを開けません（エラー {0}）。HSRUnlocker を管理者として実行してください。",
+    "ko-KR": "대상 프로세스를 열 수 없습니다(오류 {0}). HSRUnlocker를 관리자 권한으로 실행하세요."
+  },
+  "Runtime.Interop.PointerReadFailed": {
+    "zh-CN": "无法读取 0x{0:X} 处的指针",
+    "en-US": "Cannot read pointer at 0x{0:X}",
+    "ja-JP": "0x{0:X} のポインターを読み取れません",
+    "ko-KR": "0x{0:X}의 포인터를 읽을 수 없습니다"
+  },
+  "Runtime.Interop.PointerUnaligned": {
+    "zh-CN": "指针槽位必须对齐",
+    "en-US": "Pointer slot must be aligned",
+    "ja-JP": "ポインタースロットはアラインされている必要があります",
+    "ko-KR": "포인터 슬롯이 정렬되어 있어야 합니다"
+  },
+  "Runtime.Interop.PointerPreviousPending": {
+    "zh-CN": "必须先协调完成上一次指针交换，才能执行其他操作",
+    "en-US": "A previous pointer exchange must be reconciled before another operation",
+    "ja-JP": "別の操作の前に、前回のポインター交換を確定する必要があります",
+    "ko-KR": "다른 작업 전에 이전 포인터 교환 상태를 확인하고 정리해야 합니다"
+  },
+  "Runtime.Interop.ExchangeAllocateFailed": {
+    "zh-CN": "无法分配比较交换辅助程序",
+    "en-US": "Cannot allocate compare/exchange helper",
+    "ja-JP": "比較交換ヘルパーを割り当てできません",
+    "ko-KR": "비교 교환 도우미 메모리를 할당할 수 없습니다"
+  },
+  "Runtime.Interop.ExchangePrepareFailed": {
+    "zh-CN": "无法准备比较交换辅助程序",
+    "en-US": "Cannot prepare compare/exchange helper",
+    "ja-JP": "比較交換ヘルパーを準備できません",
+    "ko-KR": "비교 교환 도우미를 준비할 수 없습니다"
+  },
+  "Runtime.Interop.RemoteThreadFailed": {
+    "zh-CN": "CreateRemoteThread 失败（错误 {0}）",
+    "en-US": "CreateRemoteThread failed (error {0})",
+    "ja-JP": "CreateRemoteThread に失敗しました（エラー {0}）",
+    "ko-KR": "CreateRemoteThread 실패(오류 {0})"
+  },
+  "Runtime.Interop.ExchangePending": {
+    "zh-CN": "指针交换尚未完成；所有权未知，已保留相关内存页和句柄",
+    "en-US": "Pointer exchange still pending; ownership is unknown and its pages/handle were retained",
+    "ja-JP": "ポインター交換が未完了です。所有権が不明なため、関連ページとハンドルを保持しています",
+    "ko-KR": "포인터 교환이 완료되지 않았습니다. 소유권을 알 수 없어 관련 메모리 페이지와 핸들을 유지했습니다"
+  },
+  "Runtime.Interop.ExchangeHelperFailed": {
+    "zh-CN": "指针交换辅助程序失败（退出码 0x{0:X}）；未将其视为成功",
+    "en-US": "Pointer exchange helper failed (exit 0x{0:X}); no success is assumed",
+    "ja-JP": "ポインター交換ヘルパーが失敗しました（終了コード 0x{0:X}）。成功とは判定していません",
+    "ko-KR": "포인터 교환 도우미 실패(종료 코드 0x{0:X}). 성공으로 간주하지 않습니다"
+  },
+  "Runtime.Interop.ExchangeNotPublished": {
+    "zh-CN": "指针交换结果尚未发布",
+    "en-US": "Pointer exchange result was not published",
+    "ja-JP": "ポインター交換の結果が公開されていません",
+    "ko-KR": "포인터 교환 결과가 게시되지 않았습니다"
+  }
+}

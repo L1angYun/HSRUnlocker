@@ -14,6 +14,7 @@ powershell -NoProfile -File .\tests\Packaging.Tests.ps1
 - 无法唯一确定目标时应拒绝操作并给出明确错误，不猜测，也不按安装目录名称判断兼容性。
 - 功能变化应同步更新 [README.md](README.md) 与 [docs/VALIDATION.md](docs/VALIDATION.md)，如实区分构建结果、合成测试和实际功能观察。
 - 默认测试应能在未安装游戏的机器上运行，只使用自编合成数据、自有内存和临时目录，不读取真实设置或注册表，不联网、不启动游戏。
+- 用户可见文案使用 `L10n.T`，资源位于 `gui/Localization/*.json`。新增文案同时提供 `zh-CN`、`en-US`、`ja-JP`、`ko-KR`，保留各语言一致的格式参数；路径、协议标识和模块名不翻译。
 
 ## 提交内容
 

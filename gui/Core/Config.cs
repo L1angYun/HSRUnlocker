@@ -39,6 +39,7 @@ namespace StarRailUnlocker.Core
         public bool StartMinimized { get; set; } = false;
         public bool UseMobileUI { get; set; } = false;
         public MobileGraphicsSource GraphicsSource { get; set; } = MobileGraphicsSource.Auto;
+        public string Language { get; set; } = "auto";
 
         /// <summary>Directory owned by this tool for settings and diagnostics.</summary>
         public static string DataDirectory =>
@@ -70,9 +71,9 @@ namespace StarRailUnlocker.Core
             {
                 legacy.Normalize();
                 if (legacy.Save())
-                    AppendLog("Config migration", "Migrated legacy settings to " + DefaultPath);
+                    AppendLog("Config migration", L10n.T("Config.Migrated", DefaultPath));
                 else
-                    AppendLog("Config migration", "Loaded legacy settings but could not write " + DefaultPath);
+                    AppendLog("Config migration", L10n.T("Config.MigrationSaveFailed", DefaultPath));
                 return legacy;
             }
 
@@ -91,7 +92,7 @@ namespace StarRailUnlocker.Core
             }
             catch (Exception ex)
             {
-                AppendLog("Config save", "Could not write " + DefaultPath, ex);
+                AppendLog("Config save", L10n.T("Config.SaveFailed", DefaultPath), ex);
                 return false;
             }
         }
@@ -105,6 +106,7 @@ namespace StarRailUnlocker.Core
                 FovDelta = 0.0;
             FovDelta = Math.Clamp(FovDelta, FovMin, FovMax);
             if (!Enum.IsDefined(GraphicsSource)) GraphicsSource = MobileGraphicsSource.Auto;
+            Language = L10n.NormalizePreference(Language);
         }
 
         public UnlockConfig Clone() => new UnlockConfig
@@ -117,6 +119,7 @@ namespace StarRailUnlocker.Core
             StartMinimized = StartMinimized,
             UseMobileUI = UseMobileUI,
             GraphicsSource = GraphicsSource,
+            Language = Language,
         };
 
         internal static void AppendLog(string stage, string message, Exception ex = null)
@@ -155,11 +158,11 @@ namespace StarRailUnlocker.Core
                 var json = File.ReadAllText(path, Utf8);
                 config = JsonSerializer.Deserialize<UnlockConfig>(json, Opts);
                 if (config != null) return true;
-                AppendLog("Config load", "Settings file was empty: " + path);
+                AppendLog("Config load", L10n.T("Config.Empty", path));
             }
             catch (Exception ex)
             {
-                AppendLog("Config load", "Could not read " + path, ex);
+                AppendLog("Config load", L10n.T("Config.LoadFailed", path), ex);
             }
 
             config = null;

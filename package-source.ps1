@@ -1,4 +1,4 @@
-# Package approved project source, tests, build scripts, and documentation.
+# Package approved source, font assets and licenses, tests, build scripts, and documentation.
 #
 # Exclude build output, NuGet caches, game files, dumps, logs, local settings,
 # original executables, and decompilation output.
@@ -18,11 +18,14 @@ $include = @(
     'docs\VALIDATION.md', '.github\workflows\build.yml',
     'scripts\Copy-ThirdPartyNotices.ps1', 'tests\Packaging.Tests.ps1',
     'gui\App.xaml', 'gui\App.xaml.cs', 'gui\MainWindow.xaml', 'gui\MainWindow.xaml.cs',
-    'gui\MainWindow.Presentation.cs', 'gui\WindowLayout.cs', 'gui\Assets\AppIcon.png', 'gui\Assets\AppIcon.ico',
+    'gui\MainWindow.Presentation.cs', 'gui\MainWindow.Localization.cs', 'gui\WindowLayout.cs', 'gui\Assets\AppIcon.png', 'gui\Assets\AppIcon.ico',
+    'gui\Assets\Fonts\MiSansVF.ttf', 'gui\Assets\Fonts\MiSans-LICENSE.pdf', 'gui\Assets\Fonts\NOTICE.md',
     'gui\TrayIcon.cs', 'gui\HSRUnlocker.csproj', 'gui\app.manifest'
 )
 $include += (Get-ChildItem -LiteralPath (Join-Path $repo 'gui\Core') -Filter '*.cs' -File |
     ForEach-Object { 'gui\Core\' + $_.Name })
+$include += (Get-ChildItem -LiteralPath (Join-Path $repo 'gui\Localization') -Filter '*.json' -File |
+    ForEach-Object { 'gui\Localization\' + $_.Name })
 $include += (Get-ChildItem -LiteralPath (Join-Path $repo 'tests\HSRUnlocker.Tests') -Filter '*.cs' -File |
     ForEach-Object { 'tests\HSRUnlocker.Tests\' + $_.Name })
 $include += 'tests\HSRUnlocker.Tests\HSRUnlocker.Tests.csproj'

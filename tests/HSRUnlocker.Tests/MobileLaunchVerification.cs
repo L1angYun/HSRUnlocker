@@ -91,7 +91,7 @@ internal static class MobileLaunchVerification
         }, logs.Add);
         check(correctMetadataPaths && metadataReads == (source == MobileGraphicsSource.Auto ? 2 : 0)
             && registryReads.Count == 1 && registryReads[0] == (expectedRegistry, MobileLaunchSettings.GraphicsValueName)
-            && logs.Any(line => line.Contains("只读 HKCU\\" + expectedRegistry, StringComparison.Ordinal)), description);
+            && logs.Any(line => line.Contains("HKCU\\" + expectedRegistry, StringComparison.Ordinal)), description);
         check(arguments.SequenceEqual(new[] { "-platform_type", "CLOUD_WEB_TOUCH", "-graphics_setting", ExpectedBase64 })
             && Convert.FromBase64String(arguments[3]).SequenceEqual(original) && Graphics.SequenceEqual(original),
             description + "; only the original two argument pairs preserve every byte and trailing NUL");
@@ -129,7 +129,10 @@ internal static class MobileLaunchVerification
                     return value;
                 });
         }
-        catch (InvalidOperationException ex) { refused = ex.Message.Contains("图形设置", StringComparison.Ordinal); }
+        catch (InvalidOperationException ex)
+        {
+            refused = ex.Message.Contains("HKCU\\" + MobileLaunchSettings.GlobalRegistryPath, StringComparison.Ordinal);
+        }
         check(refused && correctSelection && registryReads == 1, description);
     }
 
@@ -198,7 +201,8 @@ internal static class MobileLaunchVerification
             check(MobileLaunchSettings.ReadOptionalLines(iniPath).Single().Length == MobileLaunchSettings.MaxConfigMetadataBytes,
                 "config.ini accepts the exact 64 KiB metadata limit");
             File.WriteAllBytes(iniPath, new byte[MobileLaunchSettings.MaxConfigMetadataBytes + 1]);
-            VerifyOversizeRefusal(check, executable, "oversized config.ini is refused before registry reads");
+            VerifyOversizeRefusal(check, executable, "config.ini", MobileLaunchSettings.MaxConfigMetadataBytes,
+                "oversized config.ini is refused before registry reads");
             File.Delete(iniPath); // Exact, tool-created fixture path under the unique temporary directory.
             byte[] identity = Encoding.UTF8.GetBytes("miHoYo\n崩坏：星穹铁道\n");
             byte[] exactApp = Enumerable.Repeat((byte)' ', MobileLaunchSettings.MaxAppInfoBytes).ToArray();
@@ -208,7 +212,8 @@ internal static class MobileLaunchVerification
                 MobileLaunchSettings.ReadOptionalLines(appPath)) == MobileGraphicsSource.China,
                 "app.info accepts and parses the exact 4 KiB metadata limit");
             File.WriteAllBytes(appPath, new byte[MobileLaunchSettings.MaxAppInfoBytes + 1]);
-            VerifyOversizeRefusal(check, executable, "oversized app.info is refused before registry reads");
+            VerifyOversizeRefusal(check, executable, "app.info", MobileLaunchSettings.MaxAppInfoBytes,
+                "oversized app.info is refused before registry reads");
             reads = 0;
             args = MobileLaunchSettings.BuildArguments(executable, MobileGraphicsSource.China,
                 _ => throw new InvalidOperationException("Explicit choice must bypass even oversized metadata"), (_, _) => { reads++; return Graphics; });
@@ -227,7 +232,8 @@ internal static class MobileLaunchVerification
         }
     }
 
-    private static void VerifyOversizeRefusal(Action<bool, string> check, string executable, string description)
+    private static void VerifyOversizeRefusal(Action<bool, string> check, string executable, string fileName,
+        int limit, string description)
     {
         int reads = 0;
         bool refused = false;
@@ -236,7 +242,11 @@ internal static class MobileLaunchVerification
             MobileLaunchSettings.BuildArguments(executable, MobileGraphicsSource.Auto,
                 MobileLaunchSettings.ReadOptionalLines, (_, _) => { reads++; return Graphics; });
         }
-        catch (InvalidOperationException ex) { refused = ex.Message.Contains("元数据超过", StringComparison.Ordinal); }
+        catch (InvalidOperationException ex)
+        {
+            refused = ex.Message.Contains(fileName, StringComparison.Ordinal)
+                && ex.Message.Contains(limit.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal);
+        }
         check(refused && reads == 0, description);
     }
 }

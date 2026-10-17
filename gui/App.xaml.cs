@@ -21,7 +21,6 @@ namespace StarRailUnlocker
                 WriteLog("AppDomain.UnhandledException", e.ExceptionObject as Exception);
 
             _instanceGuard = new System.Threading.Mutex(true, "HSRUnlocker", out _ownsInstance);
-            WriteLog("Startup", "HSRUnlocker " + MainWindow.AppVersion + " starting");
             InitializeComponent();
         }
 

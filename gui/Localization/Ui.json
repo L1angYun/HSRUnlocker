@@ -1,0 +1,788 @@
+{
+  "Ui.FontCredit": {
+    "zh-CN": "本软件使用 MiSans 字体。",
+    "en-US": "This software uses MiSans fonts.",
+    "ja-JP": "本ソフトウェアは MiSans フォントを使用しています。",
+    "ko-KR": "이 소프트웨어는 MiSans 글꼴을 사용합니다."
+  },
+  "Ui.WindowTitle": {
+    "zh-CN": "HSRUnlocker {0}",
+    "en-US": "HSRUnlocker {0}",
+    "ja-JP": "HSRUnlocker {0}",
+    "ko-KR": "HSRUnlocker {0}"
+  },
+  "Ui.Version": {
+    "zh-CN": "崩坏：星穹铁道 · {0}",
+    "en-US": "Honkai: Star Rail · {0}",
+    "ja-JP": "崩壊：スターレイル · {0}",
+    "ko-KR": "붕괴: 스타레일 · {0}"
+  },
+  "Ui.UnknownVersion": {
+    "zh-CN": "未知版本",
+    "en-US": "Unknown version",
+    "ja-JP": "不明なバージョン",
+    "ko-KR": "알 수 없는 버전"
+  },
+  "Ui.Client": {
+    "zh-CN": "客户端",
+    "en-US": "Game client",
+    "ja-JP": "ゲームクライアント",
+    "ko-KR": "게임 클라이언트"
+  },
+  "Ui.ChooseExecutable": {
+    "zh-CN": "选择 StarRail.exe",
+    "en-US": "Choose StarRail.exe",
+    "ja-JP": "StarRail.exe を選択",
+    "ko-KR": "StarRail.exe 선택"
+  },
+  "Ui.DisplaySection": {
+    "zh-CN": "画面与镜头",
+    "en-US": "Display and camera",
+    "ja-JP": "画面とカメラ",
+    "ko-KR": "화면 및 카메라"
+  },
+  "Ui.TargetFramerate": {
+    "zh-CN": "目标帧率",
+    "en-US": "Target frame rate",
+    "ja-JP": "目標フレームレート",
+    "ko-KR": "목표 프레임 레이트"
+  },
+  "Ui.FpsUnit": {
+    "zh-CN": "FPS",
+    "en-US": "FPS",
+    "ja-JP": "FPS",
+    "ko-KR": "FPS"
+  },
+  "Ui.FovDelta": {
+    "zh-CN": "FOV 增量",
+    "en-US": "FOV adjustment",
+    "ja-JP": "FOV 調整値",
+    "ko-KR": "FOV 조정값"
+  },
+  "Ui.AntiFade": {
+    "zh-CN": "相机反虚化",
+    "en-US": "Prevent camera fade",
+    "ja-JP": "カメラフェード防止",
+    "ko-KR": "카메라 페이드 방지"
+  },
+  "Ui.StartupSection": {
+    "zh-CN": "启动设置",
+    "en-US": "Startup settings",
+    "ja-JP": "起動設定",
+    "ko-KR": "시작 설정"
+  },
+  "Ui.MobileUi": {
+    "zh-CN": "移动端 UI",
+    "en-US": "Mobile UI",
+    "ja-JP": "モバイル UI",
+    "ko-KR": "모바일 UI"
+  },
+  "Ui.NextGameLaunch": {
+    "zh-CN": "下次启动游戏",
+    "en-US": "On the next game launch",
+    "ja-JP": "次回のゲーム起動時に適用",
+    "ko-KR": "다음 게임 실행 시 적용"
+  },
+  "Ui.AutoStart": {
+    "zh-CN": "随工具启动游戏",
+    "en-US": "Launch game with the tool",
+    "ja-JP": "ツールと同時にゲームを起動",
+    "ko-KR": "도구와 함께 게임 실행"
+  },
+  "Ui.StartMinimized": {
+    "zh-CN": "启动时收起到托盘",
+    "en-US": "Start in the system tray",
+    "ja-JP": "システムトレイに格納して起動",
+    "ko-KR": "시스템 트레이에서 시작"
+  },
+  "Ui.LaunchGame": {
+    "zh-CN": "启动游戏",
+    "en-US": "Launch game",
+    "ja-JP": "ゲームを起動",
+    "ko-KR": "게임 실행"
+  },
+  "Ui.AttachGame": {
+    "zh-CN": "附加游戏",
+    "en-US": "Attach to game",
+    "ja-JP": "ゲームに接続",
+    "ko-KR": "게임에 연결"
+  },
+  "Ui.GraphicsSource": {
+    "zh-CN": "画质设置来源",
+    "en-US": "Graphics settings source",
+    "ja-JP": "画質設定の参照元",
+    "ko-KR": "그래픽 설정 원본"
+  },
+  "Ui.GraphicsAuto": {
+    "zh-CN": "自动（当前客户端）",
+    "en-US": "Automatic (current client)",
+    "ja-JP": "自動（現在のクライアント）",
+    "ko-KR": "자동 (현재 클라이언트)"
+  },
+  "Ui.GraphicsChina": {
+    "zh-CN": "沿用国服画质",
+    "en-US": "Use China server settings",
+    "ja-JP": "中国サーバーの設定を使用",
+    "ko-KR": "중국 서버 설정 사용"
+  },
+  "Ui.GraphicsGlobal": {
+    "zh-CN": "沿用国际服画质",
+    "en-US": "Use global server settings",
+    "ja-JP": "グローバルサーバーの設定を使用",
+    "ko-KR": "글로벌 서버 설정 사용"
+  },
+  "Ui.RuntimeLog": {
+    "zh-CN": "运行日志",
+    "en-US": "Activity log",
+    "ja-JP": "実行ログ",
+    "ko-KR": "실행 로그"
+  },
+  "Ui.Language": {
+    "zh-CN": "界面语言",
+    "en-US": "Interface language",
+    "ja-JP": "表示言語",
+    "ko-KR": "표시 언어"
+  },
+  "Ui.LanguageAuto": {
+    "zh-CN": "跟随系统",
+    "en-US": "Use system language",
+    "ja-JP": "システムに従う",
+    "ko-KR": "시스템 언어 사용"
+  },
+  "Ui.LanguageTip": {
+    "zh-CN": "工具界面使用的语言",
+    "en-US": "Language used by the tool's interface",
+    "ja-JP": "ツールの画面に使用する言語",
+    "ko-KR": "도구 화면에 사용할 언어"
+  },
+  "Ui.SaveConfig": {
+    "zh-CN": "保存配置",
+    "en-US": "Save settings",
+    "ja-JP": "設定を保存",
+    "ko-KR": "설정 저장"
+  },
+  "Ui.GamePath": {
+    "zh-CN": "游戏路径",
+    "en-US": "Game path",
+    "ja-JP": "ゲームのパス",
+    "ko-KR": "게임 경로"
+  },
+  "Ui.FpsSliderName": {
+    "zh-CN": "目标帧率滑块",
+    "en-US": "Target frame rate slider",
+    "ja-JP": "目標フレームレートのスライダー",
+    "ko-KR": "목표 프레임 레이트 슬라이더"
+  },
+  "Ui.FpsBoxName": {
+    "zh-CN": "目标帧率数值",
+    "en-US": "Target frame rate value",
+    "ja-JP": "目標フレームレートの数値",
+    "ko-KR": "목표 프레임 레이트 값"
+  },
+  "Ui.FpsSliderTip": {
+    "zh-CN": "目标帧率 10 至 480；游戏重设上限时自动恢复",
+    "en-US": "Target frame rate from 10 to 480; automatically reapplied when the game resets its limit.",
+    "ja-JP": "目標フレームレートは 10～480。ゲームが上限をリセットすると、自動的に再適用します。",
+    "ko-KR": "목표 프레임 레이트는 10~480입니다. 게임에서 제한을 초기화하면 자동으로 다시 적용합니다."
+  },
+  "Ui.FpsBoxTip": {
+    "zh-CN": "目标帧率，单位为 FPS",
+    "en-US": "Target frame rate in FPS",
+    "ja-JP": "目標フレームレート（FPS）",
+    "ko-KR": "목표 프레임 레이트 (FPS)"
+  },
+  "Ui.FovSliderName": {
+    "zh-CN": "FOV 增量滑块",
+    "en-US": "FOV adjustment slider",
+    "ja-JP": "FOV 調整値のスライダー",
+    "ko-KR": "FOV 조정 슬라이더"
+  },
+  "Ui.FovBoxName": {
+    "zh-CN": "FOV 增量数值",
+    "en-US": "FOV adjustment value",
+    "ja-JP": "FOV 調整値の数値",
+    "ko-KR": "FOV 조정값"
+  },
+  "Ui.FovSliderTip": {
+    "zh-CN": "视野增量，单位为度，范围 -60 至 60",
+    "en-US": "Field of view adjustment in degrees, from -60 to 60",
+    "ja-JP": "視野角の調整値（度）。範囲は -60～60。",
+    "ko-KR": "시야각 조정값입니다. 단위는 도이며 범위는 -60~60입니다."
+  },
+  "Ui.FovBoxTip": {
+    "zh-CN": "FOV 增量，单位为度；0 为游戏原始视野，下一次镜头更新时应用",
+    "en-US": "FOV adjustment in degrees; 0 keeps the game's original field of view. Applied on the next camera update.",
+    "ja-JP": "FOV の調整値（度）。0 はゲーム本来の視野角です。次回のカメラ更新時に適用します。",
+    "ko-KR": "FOV 조정값입니다. 단위는 도이며 0은 게임의 기본 시야각입니다. 다음 카메라 업데이트 시 적용됩니다."
+  },
+  "Ui.ResetFov": {
+    "zh-CN": "重置 FOV",
+    "en-US": "Reset FOV",
+    "ja-JP": "FOV をリセット",
+    "ko-KR": "FOV 초기화"
+  },
+  "Ui.ResetFovTip": {
+    "zh-CN": "重置 FOV 为 0",
+    "en-US": "Reset the FOV adjustment to 0",
+    "ja-JP": "FOV の調整値を 0 にリセット",
+    "ko-KR": "FOV 조정값을 0으로 초기화"
+  },
+  "Ui.AntiFadeTip": {
+    "zh-CN": "仅针对相机靠近或俯仰角引起的角色淡出；普通生成与剧情淡入淡出保持正常。可在游戏运行时开关，关闭后恢复。",
+    "en-US": "Prevents character fading caused by camera distance or angle. Normal spawn and story fades remain unchanged. Can be toggled while the game is running; disabling restores the original behavior.",
+    "ja-JP": "カメラの接近や角度によるキャラクターのフェードアウトを防ぎます。通常の出現やストーリーのフェード演出は維持します。ゲーム実行中に切り替えられ、オフにすると元に戻ります。",
+    "ko-KR": "카메라의 거리나 각도로 인한 캐릭터 페이드를 방지합니다. 일반 등장 및 스토리 페이드 효과는 유지됩니다. 게임 실행 중에도 전환할 수 있으며, 끄면 원래 동작으로 복원됩니다."
+  },
+  "Ui.MobileUiTip": {
+    "zh-CN": "仅在下次由工具启动游戏时应用移动 UI；附加到已运行客户端时不会改变界面",
+    "en-US": "Applies the mobile UI the next time the tool launches the game. Attaching to a running client does not change its UI.",
+    "ja-JP": "次回ツールからゲームを起動するときにモバイル UI を適用します。実行中のクライアントに接続しても UI は変わりません。",
+    "ko-KR": "다음에 도구로 게임을 실행할 때 모바일 UI를 적용합니다. 실행 중인 클라이언트에 연결할 때는 UI를 변경하지 않습니다."
+  },
+  "Ui.GraphicsSourceName": {
+    "zh-CN": "移动 UI 画质设置来源",
+    "en-US": "Graphics settings source for mobile UI",
+    "ja-JP": "モバイル UI の画質設定の参照元",
+    "ko-KR": "모바일 UI의 그래픽 설정 원본"
+  },
+  "Ui.GraphicsSourceTip": {
+    "zh-CN": "选择移动 UI 启动时沿用的画质设置。默认根据客户端信息自动识别；国服与国际服的设置保存位置不同。",
+    "en-US": "Select the graphics settings to use when launching with the mobile UI. Automatic detection uses client information; China and global clients store settings separately.",
+    "ja-JP": "モバイル UI で起動する際に使用する画質設定を選択します。標準ではクライアント情報から自動判別します。中国版とグローバル版では設定の保存先が異なります。",
+    "ko-KR": "모바일 UI로 실행할 때 사용할 그래픽 설정을 선택합니다. 기본적으로 클라이언트 정보로 자동 감지합니다. 중국 및 글로벌 클라이언트는 설정을 서로 다른 위치에 저장합니다."
+  },
+  "Ui.AutoStartTip": {
+    "zh-CN": "下次打开解锁器时自动启动所选客户端并应用设置",
+    "en-US": "Automatically launch the selected client and apply settings the next time the tool opens.",
+    "ja-JP": "次回ツールを開くときに、選択したクライアントを自動起動して設定を適用します。",
+    "ko-KR": "다음에 도구를 열 때 선택한 클라이언트를 자동으로 실행하고 설정을 적용합니다."
+  },
+  "Ui.StartMinimizedTip": {
+    "zh-CN": "下次打开解锁器时隐藏到托盘；双击托盘图标恢复",
+    "en-US": "Hide the tool in the system tray on its next launch. Double-click the tray icon to restore the window.",
+    "ja-JP": "次回起動時にツールをシステムトレイに格納します。トレイアイコンをダブルクリックするとウィンドウを表示します。",
+    "ko-KR": "다음 실행 시 도구를 시스템 트레이에 숨깁니다. 트레이 아이콘을 두 번 클릭하면 창이 다시 표시됩니다."
+  },
+  "Ui.RuntimeLogContent": {
+    "zh-CN": "运行日志内容",
+    "en-US": "Activity log contents",
+    "ja-JP": "実行ログの内容",
+    "ko-KR": "실행 로그 내용"
+  },
+  "Ui.CopyLog": {
+    "zh-CN": "复制日志",
+    "en-US": "Copy log",
+    "ja-JP": "ログをコピー",
+    "ko-KR": "로그 복사"
+  },
+  "Ui.CopyVisibleLog": {
+    "zh-CN": "复制可见日志",
+    "en-US": "Copy visible log",
+    "ja-JP": "表示中のログをコピー",
+    "ko-KR": "표시된 로그 복사"
+  },
+  "Ui.ClearVisibleLog": {
+    "zh-CN": "清空可见日志",
+    "en-US": "Clear visible log",
+    "ja-JP": "表示中のログを消去",
+    "ko-KR": "표시된 로그 지우기"
+  },
+  "Ui.LaunchGameTip": {
+    "zh-CN": "启动所选客户端并应用设置；该客户端已运行时直接附加",
+    "en-US": "Launch the selected client and apply settings, or attach if that client is already running.",
+    "ja-JP": "選択したクライアントを起動して設定を適用します。すでに実行中の場合はそのクライアントに接続します。",
+    "ko-KR": "선택한 클라이언트를 실행하고 설정을 적용합니다. 이미 실행 중이면 해당 클라이언트에 연결합니다."
+  },
+  "Ui.AttachGameTip": {
+    "zh-CN": "附加正在运行的游戏并应用设置",
+    "en-US": "Attach to a running game and apply settings",
+    "ja-JP": "実行中のゲームに接続して設定を適用",
+    "ko-KR": "실행 중인 게임에 연결하여 설정 적용"
+  },
+  "Ui.StopRestore": {
+    "zh-CN": "停止并还原",
+    "en-US": "Stop and restore",
+    "ja-JP": "停止して元に戻す",
+    "ko-KR": "중지 및 복원"
+  },
+  "Ui.StopRestoreTip": {
+    "zh-CN": "停止并还原帧率、FOV 和反虚化",
+    "en-US": "Stop and restore frame rate, FOV, and camera fade",
+    "ja-JP": "停止してフレームレート、FOV、カメラフェードを元に戻す",
+    "ko-KR": "중지하고 프레임 레이트, FOV 및 카메라 페이드 복원"
+  },
+  "Ui.FpsPreset": {
+    "zh-CN": "{0} FPS",
+    "en-US": "{0} FPS",
+    "ja-JP": "{0} FPS",
+    "ko-KR": "{0} FPS"
+  },
+  "Ui.StateReady": {
+    "zh-CN": "就绪",
+    "en-US": "Ready",
+    "ja-JP": "準備完了",
+    "ko-KR": "준비 완료"
+  },
+  "Ui.StateIdle": {
+    "zh-CN": "空闲",
+    "en-US": "Idle",
+    "ja-JP": "待機中",
+    "ko-KR": "대기 중"
+  },
+  "Ui.StateExiting": {
+    "zh-CN": "正在退出",
+    "en-US": "Exiting",
+    "ja-JP": "終了中",
+    "ko-KR": "종료 중"
+  },
+  "Ui.StatePreparing": {
+    "zh-CN": "正在准备会话",
+    "en-US": "Preparing session",
+    "ja-JP": "セッションを準備中",
+    "ko-KR": "세션 준비 중"
+  },
+  "Ui.StateRestoring": {
+    "zh-CN": "正在还原",
+    "en-US": "Restoring",
+    "ja-JP": "復元中",
+    "ko-KR": "복원 중"
+  },
+  "Ui.StateWaiting": {
+    "zh-CN": "等待游戏",
+    "en-US": "Waiting for game",
+    "ja-JP": "ゲームを待機中",
+    "ko-KR": "게임 대기 중"
+  },
+  "Ui.StateAttaching": {
+    "zh-CN": "正在附加",
+    "en-US": "Attaching",
+    "ja-JP": "接続中",
+    "ko-KR": "연결 중"
+  },
+  "Ui.StateActive": {
+    "zh-CN": "已解锁",
+    "en-US": "Unlocked",
+    "ja-JP": "解除済み",
+    "ko-KR": "제한 해제됨"
+  },
+  "Ui.StateFailed": {
+    "zh-CN": "会话失败",
+    "en-US": "Session failed",
+    "ja-JP": "セッション失敗",
+    "ko-KR": "세션 실패"
+  },
+  "Ui.StateGameExited": {
+    "zh-CN": "游戏已退出",
+    "en-US": "Game exited",
+    "ja-JP": "ゲーム終了",
+    "ko-KR": "게임 종료됨"
+  },
+  "Ui.StateGameNotFound": {
+    "zh-CN": "未找到游戏",
+    "en-US": "Game not found",
+    "ja-JP": "ゲームが見つかりません",
+    "ko-KR": "게임을 찾을 수 없음"
+  },
+  "Ui.StateStopped": {
+    "zh-CN": "已停止",
+    "en-US": "Stopped",
+    "ja-JP": "停止済み",
+    "ko-KR": "중지됨"
+  },
+  "Ui.StatusRestoring": {
+    "zh-CN": "正在还原帧率、FOV 与反虚化",
+    "en-US": "Restoring frame rate, FOV, and camera fade",
+    "ja-JP": "フレームレート、FOV、カメラフェードを復元しています",
+    "ko-KR": "프레임 레이트, FOV 및 카메라 페이드 복원 중"
+  },
+  "Ui.StatusEndingPreviousSession": {
+    "zh-CN": "正在结束上一次会话",
+    "en-US": "Ending the previous session",
+    "ja-JP": "前のセッションを終了しています",
+    "ko-KR": "이전 세션 종료 중"
+  },
+  "Ui.StatusWaiting": {
+    "zh-CN": "正在等待 StarRail.exe",
+    "en-US": "Waiting for StarRail.exe",
+    "ja-JP": "StarRail.exe を待機しています",
+    "ko-KR": "StarRail.exe 대기 중"
+  },
+  "Ui.StatusAttaching": {
+    "zh-CN": "正在等待游戏模块并定位接口",
+    "en-US": "Waiting for game modules and locating interfaces",
+    "ja-JP": "ゲームモジュールを待機し、インターフェースを検索しています",
+    "ko-KR": "게임 모듈 대기 및 인터페이스 검색 중"
+  },
+  "Ui.StatusActive": {
+    "zh-CN": "帧率上限 {0} FPS · PID {1}",
+    "en-US": "Frame rate limit {0} FPS · PID {1}",
+    "ja-JP": "フレームレート上限 {0} FPS · PID {1}",
+    "ko-KR": "프레임 레이트 제한 {0} FPS · PID {1}"
+  },
+  "Ui.StatusGameExited": {
+    "zh-CN": "修改已释放，工具即将退出",
+    "en-US": "Changes released; the tool will exit shortly",
+    "ja-JP": "変更を解除しました。まもなくツールを終了します",
+    "ko-KR": "변경 사항을 해제했습니다. 곧 도구가 종료됩니다"
+  },
+  "Ui.StatusNotAttached": {
+    "zh-CN": "尚未附加游戏",
+    "en-US": "No game attached",
+    "ja-JP": "ゲームに接続していません",
+    "ko-KR": "연결된 게임 없음"
+  },
+  "Ui.StatusRestoredFps": {
+    "zh-CN": "已还原帧率上限为 {0} FPS",
+    "en-US": "Frame rate limit restored to {0} FPS",
+    "ja-JP": "フレームレート上限を {0} FPS に復元しました",
+    "ko-KR": "프레임 레이트 제한을 {0} FPS로 복원했습니다"
+  },
+  "Ui.StatusRestored": {
+    "zh-CN": "已还原为游戏原始设置",
+    "en-US": "Original game settings restored",
+    "ja-JP": "ゲーム本来の設定に復元しました",
+    "ko-KR": "게임의 기본 설정으로 복원했습니다"
+  },
+  "Ui.FpsApplied": {
+    "zh-CN": "已应用 {0} FPS · 自动恢复 {1} 次",
+    "en-US": "{0} FPS applied · Reapplied {1} times",
+    "ja-JP": "{0} FPS 適用済み · 自動再適用 {1} 回",
+    "ko-KR": "{0} FPS 적용됨 · 자동 재적용 {1}회"
+  },
+  "Ui.NotEnabled": {
+    "zh-CN": "未启用",
+    "en-US": "Not enabled",
+    "ja-JP": "無効",
+    "ko-KR": "비활성화됨"
+  },
+  "Ui.OriginalFov": {
+    "zh-CN": "原始视野",
+    "en-US": "Original field of view",
+    "ja-JP": "本来の視野角",
+    "ko-KR": "기본 시야각"
+  },
+  "Ui.FovPending": {
+    "zh-CN": "待应用 · {0:+0.##;-0.##;0}°",
+    "en-US": "Pending · {0:+0.##;-0.##;0}°",
+    "ja-JP": "適用待ち · {0:+0.##;-0.##;0}°",
+    "ko-KR": "적용 대기 중 · {0:+0.##;-0.##;0}°"
+  },
+  "Ui.FeatureUnavailable": {
+    "zh-CN": "暂不可用 · {0}",
+    "en-US": "Unavailable · {0}",
+    "ja-JP": "利用不可 · {0}",
+    "ko-KR": "사용 불가 · {0}"
+  },
+  "Ui.WaitingForCamera": {
+    "zh-CN": "等待相机就绪",
+    "en-US": "Waiting for camera",
+    "ja-JP": "カメラの準備を待機中",
+    "ko-KR": "카메라 준비 대기 중"
+  },
+  "Ui.FovAppliedWaiting": {
+    "zh-CN": "已应用，等待镜头更新",
+    "en-US": "Applied; waiting for camera update",
+    "ja-JP": "適用済み、カメラ更新を待機中",
+    "ko-KR": "적용됨, 카메라 업데이트 대기 중"
+  },
+  "Ui.FovEffective": {
+    "zh-CN": "已生效 · {0:0.##}° → {1:0.##}°",
+    "en-US": "Active · {0:0.##}° → {1:0.##}°",
+    "ja-JP": "反映済み · {0:0.##}° → {1:0.##}°",
+    "ko-KR": "적용 중 · {0:0.##}° → {1:0.##}°"
+  },
+  "Ui.Pending": {
+    "zh-CN": "待应用",
+    "en-US": "Pending",
+    "ja-JP": "適用待ち",
+    "ko-KR": "적용 대기 중"
+  },
+  "Ui.Applied": {
+    "zh-CN": "已应用",
+    "en-US": "Applied",
+    "ja-JP": "適用済み",
+    "ko-KR": "적용됨"
+  },
+  "Ui.WaitingToApply": {
+    "zh-CN": "等待应用",
+    "en-US": "Waiting to apply",
+    "ja-JP": "適用を待機中",
+    "ko-KR": "적용 대기 중"
+  },
+  "Ui.NoAttachableGame": {
+    "zh-CN": "未找到可附加的 StarRail.exe，请确认游戏已启动且权限可访问",
+    "en-US": "No accessible StarRail.exe found. Make sure the game is running and you have permission to access it.",
+    "ja-JP": "接続可能な StarRail.exe が見つかりません。ゲームが起動しており、アクセス権限があることを確認してください。",
+    "ko-KR": "연결 가능한 StarRail.exe를 찾을 수 없습니다. 게임이 실행 중이며 접근 권한이 있는지 확인하세요."
+  },
+  "Ui.SetupTitle": {
+    "zh-CN": "设置游戏路径",
+    "en-US": "Set game path",
+    "ja-JP": "ゲームのパスを設定",
+    "ko-KR": "게임 경로 설정"
+  },
+  "Ui.SetupContent": {
+    "zh-CN": "请选择客户端目录中的 StarRail.exe。",
+    "en-US": "Choose StarRail.exe in the game client's directory.",
+    "ja-JP": "ゲームクライアントのフォルダーにある StarRail.exe を選択してください。",
+    "ko-KR": "게임 클라이언트 폴더에서 StarRail.exe를 선택하세요."
+  },
+  "Ui.SetupLater": {
+    "zh-CN": "稍后设置",
+    "en-US": "Set up later",
+    "ja-JP": "後で設定",
+    "ko-KR": "나중에 설정"
+  },
+  "Ui.RunningGame": {
+    "zh-CN": "StarRail.exe · PID {0}",
+    "en-US": "StarRail.exe · PID {0}",
+    "ja-JP": "StarRail.exe · PID {0}",
+    "ko-KR": "StarRail.exe · PID {0}"
+  },
+  "Ui.ChooseRunningGameTitle": {
+    "zh-CN": "选择正在运行的游戏",
+    "en-US": "Choose a running game",
+    "ja-JP": "実行中のゲームを選択",
+    "ko-KR": "실행 중인 게임 선택"
+  },
+  "Ui.Attach": {
+    "zh-CN": "附加",
+    "en-US": "Attach",
+    "ja-JP": "接続",
+    "ko-KR": "연결"
+  },
+  "Ui.Cancel": {
+    "zh-CN": "取消",
+    "en-US": "Cancel",
+    "ja-JP": "キャンセル",
+    "ko-KR": "취소"
+  },
+  "Ui.LogInvalidConfiguredPath": {
+    "zh-CN": "配置中的游戏路径已失效，改为自动检测: {0}",
+    "en-US": "The saved game path is no longer valid; switching to automatic detection: {0}",
+    "ja-JP": "保存されたゲームのパスが無効になったため、自動検出に切り替えます: {0}",
+    "ko-KR": "저장된 게임 경로가 유효하지 않아 자동 감지로 전환합니다: {0}"
+  },
+  "Ui.LogConfiguredPath": {
+    "zh-CN": "配置中的游戏路径: {0}",
+    "en-US": "Saved game path: {0}",
+    "ja-JP": "保存されたゲームのパス: {0}",
+    "ko-KR": "저장된 게임 경로: {0}"
+  },
+  "Ui.LogConfigPath": {
+    "zh-CN": "配置文件: {0}",
+    "en-US": "Settings file: {0}",
+    "ja-JP": "設定ファイル: {0}",
+    "ko-KR": "설정 파일: {0}"
+  },
+  "Ui.LogTrayInitializationFailed": {
+    "zh-CN": "托盘图标初始化失败，窗口保持可见",
+    "en-US": "Could not initialize the tray icon; the window will remain visible.",
+    "ja-JP": "トレイアイコンを初期化できません。ウィンドウを表示したままにします。",
+    "ko-KR": "트레이 아이콘을 초기화하지 못했습니다. 창을 계속 표시합니다."
+  },
+  "Ui.LogHiddenToTray": {
+    "zh-CN": "窗口已最小化到托盘；双击图标可恢复",
+    "en-US": "Window minimized to the system tray; double-click the icon to restore it.",
+    "ja-JP": "ウィンドウをシステムトレイに格納しました。アイコンをダブルクリックすると再表示します。",
+    "ko-KR": "창을 시스템 트레이로 최소화했습니다. 아이콘을 두 번 클릭하면 다시 표시됩니다."
+  },
+  "Ui.LogDetectedGame": {
+    "zh-CN": "自动检测到正在运行的游戏: PID {0}, {1}",
+    "en-US": "Automatically detected a running game: PID {0}, {1}",
+    "ja-JP": "実行中のゲームを自動検出しました: PID {0}, {1}",
+    "ko-KR": "실행 중인 게임을 자동 감지했습니다: PID {0}, {1}"
+  },
+  "Ui.LogAttachGame": {
+    "zh-CN": "附加到游戏: PID {0}, {1}",
+    "en-US": "Attaching to game: PID {0}, {1}",
+    "ja-JP": "ゲームに接続します: PID {0}, {1}",
+    "ko-KR": "게임에 연결합니다: PID {0}, {1}"
+  },
+  "Ui.LogMultipleGames": {
+    "zh-CN": "检测到多个游戏进程，可在附加时选择目标",
+    "en-US": "Multiple game processes detected. Choose a target when attaching.",
+    "ja-JP": "複数のゲームプロセスを検出しました。接続時に対象を選択できます。",
+    "ko-KR": "여러 게임 프로세스를 감지했습니다. 연결할 때 대상을 선택하세요."
+  },
+  "Ui.LogNoAutoDetectedGame": {
+    "zh-CN": "未自动检测到游戏，请选择 StarRail.exe",
+    "en-US": "No game detected automatically. Choose StarRail.exe.",
+    "ja-JP": "ゲームを自動検出できませんでした。StarRail.exe を選択してください。",
+    "ko-KR": "게임을 자동 감지하지 못했습니다. StarRail.exe를 선택하세요."
+  },
+  "Ui.LogModulePathUnavailable": {
+    "zh-CN": "PID {0}: 无法枚举主模块路径（进程可能已退出或权限不足）",
+    "en-US": "PID {0}: Cannot read the main module path; the process may have exited or access may be denied.",
+    "ja-JP": "PID {0}: メインモジュールのパスを取得できません。プロセスが終了したか、アクセス権限が不足している可能性があります。",
+    "ko-KR": "PID {0}: 주 모듈 경로를 읽을 수 없습니다. 프로세스가 종료되었거나 접근 권한이 부족할 수 있습니다."
+  },
+  "Ui.LogModulePathInvalid": {
+    "zh-CN": "PID {0}: 主模块路径无效: {1}",
+    "en-US": "PID {0}: Invalid main module path: {1}",
+    "ja-JP": "PID {0}: メインモジュールのパスが無効です: {1}",
+    "ko-KR": "PID {0}: 주 모듈 경로가 유효하지 않습니다: {1}"
+  },
+  "Ui.LogModulePathInaccessible": {
+    "zh-CN": "PID {0}: 主模块路径不可访问或文件已消失: {1}",
+    "en-US": "PID {0}: Main module path is inaccessible or the file no longer exists: {1}",
+    "ja-JP": "PID {0}: メインモジュールのパスにアクセスできないか、ファイルが存在しません: {1}",
+    "ko-KR": "PID {0}: 주 모듈 경로에 접근할 수 없거나 파일이 더 이상 존재하지 않습니다: {1}"
+  },
+  "Ui.LogFoundGame": {
+    "zh-CN": "发现 StarRail.exe，PID {0}: {1}",
+    "en-US": "Found StarRail.exe, PID {0}: {1}",
+    "ja-JP": "StarRail.exe を検出しました。PID {0}: {1}",
+    "ko-KR": "StarRail.exe를 찾았습니다. PID {0}: {1}"
+  },
+  "Ui.LogModuleEnumerationFailed": {
+    "zh-CN": "PID {0}: 枚举主模块时出错",
+    "en-US": "PID {0}: Failed to enumerate the main module",
+    "ja-JP": "PID {0}: メインモジュールの列挙に失敗しました",
+    "ko-KR": "PID {0}: 주 모듈 열거에 실패했습니다"
+  },
+  "Ui.LogProcessEnumerationFailed": {
+    "zh-CN": "枚举 StarRail.exe 进程失败，无法安全附加",
+    "en-US": "Failed to enumerate StarRail.exe processes; cannot attach safely.",
+    "ja-JP": "StarRail.exe プロセスの列挙に失敗したため、安全に接続できません。",
+    "ko-KR": "StarRail.exe 프로세스 열거에 실패하여 안전하게 연결할 수 없습니다."
+  },
+  "Ui.LogNoRunningGame": {
+    "zh-CN": "未找到正在运行的 StarRail.exe",
+    "en-US": "No running StarRail.exe found",
+    "ja-JP": "実行中の StarRail.exe が見つかりません",
+    "ko-KR": "실행 중인 StarRail.exe를 찾을 수 없습니다"
+  },
+  "Ui.LogNoAccessibleGame": {
+    "zh-CN": "找到 StarRail.exe，但无法取得任何主模块路径；请确认管理员权限后重试",
+    "en-US": "Found StarRail.exe, but no main module paths are accessible. Check administrator permissions and try again.",
+    "ja-JP": "StarRail.exe は見つかりましたが、メインモジュールのパスを取得できません。管理者権限を確認して再試行してください。",
+    "ko-KR": "StarRail.exe를 찾았지만 주 모듈 경로에 접근할 수 없습니다. 관리자 권한을 확인한 후 다시 시도하세요."
+  },
+  "Ui.LogFovChanged": {
+    "zh-CN": "FOV 增量设为 {0:0.##}",
+    "en-US": "FOV adjustment set to {0:0.##}",
+    "ja-JP": "FOV 調整値を {0:0.##} に設定しました",
+    "ko-KR": "FOV 조정값을 {0:0.##}(으)로 설정했습니다"
+  },
+  "Ui.LogChooseGameExecutable": {
+    "zh-CN": "请选择客户端目录中的 StarRail.exe",
+    "en-US": "Choose StarRail.exe in the game client's directory",
+    "ja-JP": "ゲームクライアントのフォルダーにある StarRail.exe を選択してください",
+    "ko-KR": "게임 클라이언트 폴더에서 StarRail.exe를 선택하세요"
+  },
+  "Ui.LogGamePathSet": {
+    "zh-CN": "游戏路径已设为: {0}",
+    "en-US": "Game path set to: {0}",
+    "ja-JP": "ゲームのパスを設定しました: {0}",
+    "ko-KR": "게임 경로를 설정했습니다: {0}"
+  },
+  "Ui.LogGamePickerFailed": {
+    "zh-CN": "选择游戏失败: {0}",
+    "en-US": "Could not choose the game: {0}",
+    "ja-JP": "ゲームを選択できませんでした: {0}",
+    "ko-KR": "게임을 선택하지 못했습니다: {0}"
+  },
+  "Ui.LogAutoStartNeedsPath": {
+    "zh-CN": "自启动已开启，但尚未选择有效游戏路径；请先选择 StarRail.exe",
+    "en-US": "Automatic launch is enabled, but the game path is invalid. Choose StarRail.exe first.",
+    "ja-JP": "自動起動は有効ですが、有効なゲームのパスが設定されていません。先に StarRail.exe を選択してください。",
+    "ko-KR": "자동 실행이 활성화되어 있지만 게임 경로가 유효하지 않습니다. 먼저 StarRail.exe를 선택하세요."
+  },
+  "Ui.LogConfigSaved": {
+    "zh-CN": "配置已保存: {0}",
+    "en-US": "Settings saved: {0}",
+    "ja-JP": "設定を保存しました: {0}",
+    "ko-KR": "설정을 저장했습니다: {0}"
+  },
+  "Ui.LogConfigSaveFailed": {
+    "zh-CN": "配置保存失败，请查看工具日志: {0}",
+    "en-US": "Could not save settings. See the tool's log: {0}",
+    "ja-JP": "設定を保存できませんでした。ツールのログを確認してください: {0}",
+    "ko-KR": "설정을 저장하지 못했습니다. 도구 로그를 확인하세요: {0}"
+  },
+  "Ui.LogInvalidGamePath": {
+    "zh-CN": "当前游戏路径无效，请选择 StarRail.exe",
+    "en-US": "The current game path is invalid. Choose StarRail.exe.",
+    "ja-JP": "現在のゲームのパスは無効です。StarRail.exe を選択してください。",
+    "ko-KR": "현재 게임 경로가 유효하지 않습니다. StarRail.exe를 선택하세요."
+  },
+  "Ui.LogStartingGame": {
+    "zh-CN": "开始：查找或启动游戏…",
+    "en-US": "Starting: finding or launching the game…",
+    "ja-JP": "開始: ゲームを検索または起動しています…",
+    "ko-KR": "시작: 게임을 찾거나 실행하는 중…"
+  },
+  "Ui.LogProcessPickerFailed": {
+    "zh-CN": "选择进程失败: {0}",
+    "en-US": "Could not choose a process: {0}",
+    "ja-JP": "プロセスを選択できませんでした: {0}",
+    "ko-KR": "프로세스를 선택하지 못했습니다: {0}"
+  },
+  "Ui.LogStopping": {
+    "zh-CN": "停止中（将还原帧率、FOV 与反虚化设置）…",
+    "en-US": "Stopping and restoring frame rate, FOV, and camera fade…",
+    "ja-JP": "停止してフレームレート、FOV、カメラフェードを復元しています…",
+    "ko-KR": "중지하고 프레임 레이트, FOV 및 카메라 페이드를 복원하는 중…"
+  },
+  "Ui.LogSession": {
+    "zh-CN": "[{0}] {1}",
+    "en-US": "[{0}] {1}",
+    "ja-JP": "[{0}] {1}",
+    "ko-KR": "[{0}] {1}"
+  },
+  "Ui.LogCopyFailed": {
+    "zh-CN": "复制日志失败: {0}",
+    "en-US": "Could not copy the log: {0}",
+    "ja-JP": "ログをコピーできませんでした: {0}",
+    "ko-KR": "로그를 복사하지 못했습니다: {0}"
+  },
+  "Tray.RegisterCallbackFailed": {
+    "zh-CN": "无法注册 HSRUnlocker 托盘窗口回调",
+    "en-US": "Cannot register the HSRUnlocker tray window callback",
+    "ja-JP": "HSRUnlocker のトレイウィンドウコールバックを登録できません",
+    "ko-KR": "HSRUnlocker 트레이 창 콜백을 등록할 수 없습니다"
+  },
+  "Tray.RegisterWindowFailed": {
+    "zh-CN": "无法注册 HSRUnlocker 主窗口",
+    "en-US": "Cannot register the HSRUnlocker main window",
+    "ja-JP": "HSRUnlocker のメインウィンドウを登録できません",
+    "ko-KR": "HSRUnlocker 기본 창을 등록할 수 없습니다"
+  },
+  "Tray.LoadIconFailed": {
+    "zh-CN": "无法加载 Assets/AppIcon.ico；改用 Windows 默认图标",
+    "en-US": "Cannot load Assets/AppIcon.ico; using the Windows fallback icon",
+    "ja-JP": "Assets/AppIcon.ico を読み込めないため、Windows の代替アイコンを使用します",
+    "ko-KR": "Assets/AppIcon.ico를 불러올 수 없어 Windows 기본 아이콘을 사용합니다"
+  },
+  "Tray.CreateIconFailed": {
+    "zh-CN": "无法创建 HSRUnlocker 托盘图标；窗口保持可见",
+    "en-US": "Cannot create the HSRUnlocker tray icon; window remains visible",
+    "ja-JP": "HSRUnlocker のトレイアイコンを作成できません。ウィンドウを表示したままにします",
+    "ko-KR": "HSRUnlocker 트레이 아이콘을 만들 수 없습니다. 창을 계속 표시합니다"
+  },
+  "Tray.HiddenBalloon": {
+    "zh-CN": "工具已最小化到托盘，双击图标可恢复窗口。",
+    "en-US": "The tool is minimized to the system tray. Double-click its icon to restore the window.",
+    "ja-JP": "ツールをシステムトレイに格納しました。アイコンをダブルクリックするとウィンドウを表示します。",
+    "ko-KR": "도구를 시스템 트레이로 최소화했습니다. 아이콘을 두 번 클릭하면 창이 다시 표시됩니다."
+  },
+  "Tray.Open": {
+    "zh-CN": "打开 HSRUnlocker",
+    "en-US": "Open HSRUnlocker",
+    "ja-JP": "HSRUnlocker を開く",
+    "ko-KR": "HSRUnlocker 열기"
+  },
+  "Tray.StopRestore": {
+    "zh-CN": "停止并还原",
+    "en-US": "Stop and restore",
+    "ja-JP": "停止して元に戻す",
+    "ko-KR": "중지 및 복원"
+  },
+  "Tray.Exit": {
+    "zh-CN": "退出",
+    "en-US": "Exit",
+    "ja-JP": "終了",
+    "ko-KR": "종료"
+  }
+}

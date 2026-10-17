@@ -42,7 +42,7 @@ namespace StarRailUnlocker.Core
             try
             {
                 if (_disposed) throw new ObjectDisposedException(nameof(AntiFadePatcher));
-                if (!_proc.IsAlive) throw new InvalidOperationException("游戏进程已退出");
+                if (!_proc.IsAlive) throw new InvalidOperationException(L10n.T("Runtime.AntiFade.GameProcessExited"));
                 if (IsInstalled)
                 {
                     RequireOwnedEntry();
@@ -53,7 +53,7 @@ namespace StarRailUnlocker.Core
                 CameraFadeResolver.VerifyLive(_proc, _build, _resolved);
                 _entry = checked(_build.AssemblyBase + _resolved.Helper.Rva);
                 if (!_resolved.Helper.Code.AsSpan(0, Prologue.Length).SequenceEqual(Prologue))
-                    throw new NotSupportedException("相机过渡入口指令不受支持");
+                    throw new NotSupportedException(L10n.T("Runtime.AntiFade.UnsupportedEntry"));
                 if (_region == 0) PrepareRegion();
                 _unwind ??= new RemoteFunctionTable(_proc, GatewayAddress);
                 try { _unwind.Register(); }
@@ -64,13 +64,13 @@ namespace StarRailUnlocker.Core
                 bool installed;
                 try { installed = _entryPatch.Install(WrapperAddress, log); }
                 finally { _published |= _entryPatch.WasPublished; }
-                if (!installed) throw new InvalidOperationException(_entryPatch.LastError ?? "无法安装相机过渡入口");
+                if (!installed) throw new InvalidOperationException(_entryPatch.LastError ?? L10n.T("Runtime.AntiFade.EntryInstallFailed"));
                 RequireOwnedEntry();
                 bool wroteEnabled = _proc.WriteData(_region + EnabledOffset, new byte[] { 1 });
                 if (wroteEnabled) _enabled = true;
                 if (!wroteEnabled || _proc.Read(_region + EnabledOffset, 1) is not { } enabled || enabled[0] != 1)
-                    throw new InvalidOperationException("无法启用反虚化标量包装代码");
-                log?.Invoke("反虚化已启用：仅相机距离与仰角虚化使用 1.0，普通角色过渡继续执行");
+                    throw new InvalidOperationException(L10n.T("Runtime.AntiFade.EnableWrapperFailed"));
+                log?.Invoke(L10n.T("Runtime.AntiFade.Enabled"));
                 return true;
             }
             catch (Exception ex)
@@ -81,11 +81,11 @@ namespace StarRailUnlocker.Core
                 if (disabled && _entryPatch?.WasPublished == true)
                 {
                     bool removed = _entryPatch.Remove(log);
-                    if (!removed) reason += "；入口还原待重试：" + _entryPatch.LastError;
+                    if (!removed) reason = L10n.T("Runtime.AntiFade.EntryRestorePending", reason, _entryPatch.LastError);
                 }
-                if (!disabled && _proc.IsAlive) reason += "；无法确认包装代码已停用";
+                if (!disabled && _proc.IsAlive) reason = L10n.T("Runtime.AntiFade.DisableUnconfirmed", reason);
                 LastError = reason;
-                log?.Invoke("反虚化安装失败：" + reason);
+                log?.Invoke(L10n.T("Runtime.AntiFade.InstallFailed", reason));
                 return false;
             }
         }
@@ -93,7 +93,7 @@ namespace StarRailUnlocker.Core
         private void PrepareRegion()
         {
             _region = _proc.AllocateNear(_entry, AllocationSize);
-            if (_region == 0) throw new InvalidOperationException("无法分配相机过渡包装代码");
+            if (_region == 0) throw new InvalidOperationException(L10n.T("Runtime.AntiFade.AllocateFailed"));
             try
             {
                 // AllocateNear can fall back to an arbitrary address; all relative branches must fit.
@@ -103,18 +103,18 @@ namespace StarRailUnlocker.Core
                 foreach (ulong rva in _resolved.HotfixFlags) flags.Add(checked(_build.AssemblyBase + rva));
                 byte[] wrapper = BuildWrapper(WrapperAddress, _region, flags);
                 if (wrapper.Length > GatewayOffset - CodeOffset || gateway.Length > 0x100)
-                    throw new InvalidOperationException("包装代码超出独立代码页边界");
+                    throw new InvalidOperationException(L10n.T("Runtime.AntiFade.WrapperPageOverflow"));
                 var state = new byte[0x1000];
                 BitConverter.GetBytes(1.0f).CopyTo(state, OneOffset);
                 BitConverter.GetBytes(GatewayAddress).CopyTo(state, GatewayPointerOffset);
                 if (!_proc.WriteData(_region, state) || !_proc.WriteData(WrapperAddress, wrapper)
                     || !_proc.WriteData(GatewayAddress, gateway))
-                    throw new InvalidOperationException("无法初始化反虚化代码与状态");
+                    throw new InvalidOperationException(L10n.T("Runtime.AntiFade.InitializeFailed"));
                 CameraFadeResolver.Equal(_proc, _region, state);
                 CameraFadeResolver.Equal(_proc, WrapperAddress, wrapper);
                 CameraFadeResolver.Equal(_proc, GatewayAddress, gateway);
                 if (!_proc.MakeExecutable(WrapperAddress, 0x1000))
-                    throw new InvalidOperationException("无法完成反虚化代码页保护");
+                    throw new InvalidOperationException(L10n.T("Runtime.AntiFade.ProtectFailed"));
             }
             catch
             {
@@ -130,7 +130,7 @@ namespace StarRailUnlocker.Core
             byte[] owned = ExecutableEntryPatch.BuildEntryWord(_entry, WrapperAddress);
             if (current == null || !current.AsSpan(0, owned.Length).SequenceEqual(owned)
                 || !current.AsSpan(owned.Length).SequenceEqual(Prologue.AsSpan(owned.Length)))
-                throw new InvalidOperationException("相机入口已由其他代码接管；未启用或覆盖该入口");
+                throw new InvalidOperationException(L10n.T("Runtime.AntiFade.EntryOwnedByOther"));
         }
 
         private bool Disable()
@@ -147,23 +147,23 @@ namespace StarRailUnlocker.Core
             LastError = null;
             try
             {
-                if (!Disable()) throw new InvalidOperationException("无法停用反虚化包装代码，入口保持有效以便重试");
+                if (!Disable()) throw new InvalidOperationException(L10n.T("Runtime.AntiFade.DisableFailed"));
                 if (_region == 0 || !_proc.IsAlive) return true;
                 if (_entryPatch != null)
                 {
                     _published |= _entryPatch.WasPublished;
-                    if (!_entryPatch.Remove(log)) throw new InvalidOperationException(_entryPatch.LastError ?? "无法还原相机入口");
+                    if (!_entryPatch.Remove(log)) throw new InvalidOperationException(_entryPatch.LastError ?? L10n.T("Runtime.AntiFade.EntryRestoreFailed"));
                 }
                 // A failed partial publication is never silently reported as a completed removal.
                 if (_entry != 0 && _published)
                     CameraFadeResolver.Equal(_proc, _entry, Prologue);
-                log?.Invoke("反虚化已停用，相机过渡入口已还原");
+                log?.Invoke(L10n.T("Runtime.AntiFade.Removed"));
                 return true;
             }
             catch (Exception ex)
             {
                 LastError = ex.Message;
-                log?.Invoke("反虚化还原失败：" + LastError);
+                log?.Invoke(L10n.T("Runtime.AntiFade.RestoreFailed", LastError));
                 return false;
             }
         }
@@ -172,7 +172,7 @@ namespace StarRailUnlocker.Core
         {
             if (_region == 0 || !_proc.IsAlive) return new(0, 0, 0, 0, 0, false);
             byte[] data = _proc.Read(_region, 56);
-            if (data == null) throw new InvalidOperationException("无法读取反虚化调用统计");
+            if (data == null) throw new InvalidOperationException(L10n.T("Runtime.AntiFade.StatisticsReadFailed"));
             return new(unchecked(BitConverter.ToUInt64(data, CameraCallsOffset) - _cameraBaseline),
                 unchecked(BitConverter.ToUInt64(data, OtherCallsOffset) - _otherBaseline),
                 BitConverter.ToUInt64(data, ObjectOffset), BitConverter.ToSingle(data, InputOffset),
@@ -183,7 +183,7 @@ namespace StarRailUnlocker.Core
         {
             if (_disposed) return;
             if (!Remove())
-                throw new InvalidOperationException(LastError ?? "相机入口尚未还原，保留补丁状态以便重试");
+                throw new InvalidOperationException(LastError ?? L10n.T("Runtime.AntiFade.RestorationPending"));
             _unwind?.Dispose();
             _published |= _unwind?.MustRetainGateway == true;
             _published |= _entryPatch?.WasPublished == true;
@@ -241,7 +241,7 @@ namespace StarRailUnlocker.Core
         public static byte[] BuildGateway(ulong gatewayAddress, ulong entryAddress, byte[] originalInstructions)
         {
             if (originalInstructions == null || !originalInstructions.AsSpan().SequenceEqual(Prologue))
-                throw new NotSupportedException("Only the verified complete stack-save prologue can be displaced");
+                throw new NotSupportedException(L10n.T("Runtime.AntiFade.UnsupportedPrologue"));
             // An outward JMP is scanned as a tail epilogue and skips this frame's unwind codes.
             // CMP RSP,RSP; JE always transfers without being recognized as an epilogue.
             var code = new byte[Prologue.Length + 9]; Prologue.CopyTo(code, 0);

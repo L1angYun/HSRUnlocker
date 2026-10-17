@@ -53,20 +53,20 @@ namespace StarRailUnlocker.Core
                 if (length < 1 || length > MaximumBodyBytes) throw new ArgumentOutOfRangeException(nameof(length));
                 ArgumentNullException.ThrowIfNull(sha256);
                 ArgumentNullException.ThrowIfNull(wildcards);
-                if (sha256.Length != 64) throw new ArgumentException("A SHA-256 body fingerprint is required", nameof(sha256));
+                if (sha256.Length != 64) throw new ArgumentException(L10n.T("Resolver.CameraFade.BodyFingerprintRequired"), nameof(sha256));
                 try { _sha256 = Convert.FromHexString(sha256); }
-                catch (FormatException ex) { throw new ArgumentException("Invalid SHA-256 body fingerprint", nameof(sha256), ex); }
+                catch (FormatException ex) { throw new ArgumentException(L10n.T("Resolver.CameraFade.InvalidBodyFingerprint"), nameof(sha256), ex); }
                 Length = length;
                 _wildcards = ((int Offset, int Length)[])wildcards.Clone();
                 int end = 0, masked = 0;
                 foreach (var range in _wildcards)
                 {
                     if (range.Offset < end || range.Length < 1 || range.Offset > Length || range.Length > Length - range.Offset)
-                        throw new ArgumentException("Body wildcard ranges must be ordered, nonoverlapping and bounded", nameof(wildcards));
+                        throw new ArgumentException(L10n.T("Resolver.CameraFade.InvalidBodyWildcardRanges"), nameof(wildcards));
                     end = range.Offset + range.Length;
                     masked += range.Length;
                 }
-                if (masked == Length) throw new ArgumentException("A body fingerprint must retain fixed bytes", nameof(wildcards));
+                if (masked == Length) throw new ArgumentException(L10n.T("Resolver.CameraFade.BodyFingerprintRequiresFixedBytes"), nameof(wildcards));
             }
             internal bool Matches(byte[] code)
             {
@@ -99,7 +99,7 @@ namespace StarRailUnlocker.Core
                     }
                     else run = 0;
                 }
-                if (best == 0) throw new ArgumentException("A signature requires a fixed anchor");
+                if (best == 0) throw new ArgumentException(L10n.T("Resolver.CameraFade.SignatureRequiresFixedAnchor"));
                 AnchorOffset = bestStart; Anchor = _bytes.AsSpan(bestStart, best).ToArray();
             }
             internal bool Matches(ReadOnlySpan<byte> bytes)
@@ -171,21 +171,21 @@ namespace StarRailUnlocker.Core
                 Dos = new byte[64]; stream.ReadExactly(Dos);
                 NtOffset = BitConverter.ToUInt32(Dos, 60);
                 if (BitConverter.ToUInt16(Dos, 0) != 0x5A4D || NtOffset < 64 || NtOffset > 1024 * 1024
-                    || (ulong)NtOffset + 24 > (ulong)stream.Length) throw new InvalidDataException("Invalid DOS header");
+                    || (ulong)NtOffset + 24 > (ulong)stream.Length) throw new InvalidDataException(L10n.T("Resolver.CameraFade.InvalidDosHeader"));
                 stream.Position = NtOffset; var fixedHeader = new byte[24]; stream.ReadExactly(fixedHeader);
                 int sectionCount = BitConverter.ToUInt16(fixedHeader, 6), optionalSize = BitConverter.ToUInt16(fixedHeader, 20);
                 if (BitConverter.ToUInt32(fixedHeader, 0) != 0x4550 || BitConverter.ToUInt16(fixedHeader, 4) != 0x8664
                     || sectionCount < 1 || sectionCount > 96 || optionalSize < 144 || optionalSize > 4096)
-                    throw new InvalidDataException("Unsupported x64 header");
+                    throw new InvalidDataException(L10n.T("Resolver.CameraFade.UnsupportedX64Header"));
                 Nt = new byte[checked(24 + optionalSize + sectionCount * 40)];
                 stream.Position = NtOffset; stream.ReadExactly(Nt);
                 if (BitConverter.ToUInt16(Nt, 24) != 0x20B || BitConverter.ToUInt32(Nt, 24 + 108) < 4
                     || BitConverter.ToUInt32(Nt, 8) != image.Timestamp || BitConverter.ToUInt32(Nt, 24 + 56) != image.SizeOfImage)
-                    throw new InvalidDataException("PE identity changed while resolving camera transitions");
+                    throw new InvalidDataException(L10n.T("Resolver.CameraFade.ImageIdentityChangedDuringResolution"));
                 int directory = 24 + 112 + 3 * 8;
                 _rva = BitConverter.ToUInt32(Nt, directory); uint size = BitConverter.ToUInt32(Nt, directory + 4);
                 if (size < 12 || size > MaximumExceptionBytes || size % 12 != 0)
-                    throw new NotSupportedException("A bounded x64 exception table is required");
+                    throw new NotSupportedException(L10n.T("Resolver.CameraFade.BoundedExceptionTableRequired"));
                 RequireRange(image, _rva, checked((int)size));
                 PeSection section = SectionFor(image, _rva, checked((int)size));
                 stream.Position = checked((long)section.Raw + _rva - section.Rva);
@@ -196,10 +196,10 @@ namespace StarRailUnlocker.Core
                     uint begin = U32(i, 0), end = U32(i, 4), unwind = U32(i, 8);
                     if ((begin | end | unwind) == 0) { padding = true; continue; }
                     if (padding || begin < previousEnd || end <= begin || end > image.SizeOfImage || unwind >= image.SizeOfImage)
-                        throw new InvalidDataException("Unsorted or overlapping native function table");
+                        throw new InvalidDataException(L10n.T("Resolver.CameraFade.UnsortedOrOverlappingFunctionTable"));
                     previousEnd = end; _count++;
                 }
-                if (_count == 0) throw new InvalidDataException("Empty native function table");
+                if (_count == 0) throw new InvalidDataException(L10n.T("Resolver.CameraFade.EmptyFunctionTable"));
             }
             private uint U32(int index, int offset) => BitConverter.ToUInt32(_table, checked(index * 12 + offset));
             internal CameraFadeFunction TryRead(ulong site, BodyShape body)
@@ -218,7 +218,7 @@ namespace StarRailUnlocker.Core
                 RequireRange(_image, unwind, 4); byte[] header = _image.ReadRva(unwind, 4);
                 int version = header[0] & 7, flags = header[0] >> 3;
                 if ((version != 1 && version != 2) || (flags & ~3) != 0 || header[1] > code.Length)
-                    throw new NotSupportedException("Camera member is not an independent native unwind root");
+                    throw new NotSupportedException(L10n.T("Resolver.CameraFade.MemberNotIndependentUnwindRoot"));
                 int unwindSize = (4 + header[2] * 2 + 3) & ~3;
                 if ((flags & 3) != 0) unwindSize += 4;
                 RequireRange(_image, unwind, unwindSize);
@@ -243,18 +243,18 @@ namespace StarRailUnlocker.Core
                     {
                         var function = table.TryRead(chunk.Rva + (ulong)offset, bodies[k]);
                         if (function != null) groups[k].TryAdd(function.Rva, function);
-                        if (groups[k].Count > 1) throw new NotSupportedException("Ambiguous native camera-transition cohort");
+                        if (groups[k].Count > 1) throw new NotSupportedException(L10n.T("Resolver.CameraFade.AmbiguousCohort"));
                     }
                 }
             }
             var members = new CameraFadeFunction[5];
             for (int k = 0; k < groups.Length; k++)
             {
-                if (groups[k].Count != 1) throw new NotSupportedException("Complete native camera-transition cohort was not found");
+                if (groups[k].Count != 1) throw new NotSupportedException(L10n.T("Resolver.CameraFade.CompleteCohortNotFound"));
                 foreach (var member in groups[k].Values) members[k] = member;
             }
             var distinct = new HashSet<ulong>(); foreach (var member in members) distinct.Add(member.Rva);
-            if (distinct.Count != members.Length) throw new InvalidDataException("Camera member functions overlap");
+            if (distinct.Count != members.Length) throw new InvalidDataException(L10n.T("Resolver.CameraFade.MemberFunctionsOverlap"));
             var distance = members[0]; var elevation = members[1]; var clear = members[2]; var ordinary = members[3]; var helper = members[4];
             int d = Unique(DistanceNucleus, distance.Code), e = Unique(ElevationNucleus, elevation.Code);
             int c = Unique(ClearNucleus, clear.Code), o = Unique(OrdinaryNucleus, ordinary.Code), h = Unique(PriorityNucleus, helper.Code);
@@ -262,22 +262,22 @@ namespace StarRailUnlocker.Core
             if (elevationField < 16 || elevationField % 4 != 0 || distanceField != elevationField + 4
                 || elevation.Code[e + 4] != elevationField || elevation.Code[e + 9] != distanceField
                 || clear.Code[c + 16] != elevationField || helper.Code[h + 21] != mask)
-                throw new InvalidDataException("Camera scalars or priority mask do not agree");
+                throw new InvalidDataException(L10n.T("Resolver.CameraFade.ScalarOrPriorityMaskMismatch"));
             int enabled = distance.Code[Unique(new Pattern("80 7E ?? 00 74 39"), distance.Code) + 2];
             if (elevation.Code[Unique(new Pattern("80 7E ?? 00 74 39"), elevation.Code) + 2] != enabled
                 || clear.Code[Unique(new Pattern("80 7E ?? 00 0F 84"), clear.Code) + 2] != enabled
                 || ordinary.Code[Unique(new Pattern("80 7F ?? 00 74 51"), ordinary.Code) + 2] != enabled
                 || distance.Code[Unique(new Pattern("C7 46 ?? 00 00 80 3F"), distance.Code) + 2] != distanceField
                 || elevation.Code[Unique(new Pattern("C7 46 ?? 00 00 80 3F"), elevation.Code) + 2] != elevationField)
-                throw new InvalidDataException("Camera enabled/reset fields do not agree");
+                throw new InvalidDataException(L10n.T("Resolver.CameraFade.EnabledOrResetFieldMismatch"));
             foreach (int at in new Pattern("89 5E ??").Find(helper.Code))
-                if (helper.Code[at + 2] != mask) throw new InvalidDataException("Camera priority mask writes disagree");
+                if (helper.Code[at + 2] != mask) throw new InvalidDataException(L10n.T("Resolver.CameraFade.PriorityMaskWriteMismatch"));
             RequireCall(distance, d + 22, helper.Rva, 0xE8);
             RequireCall(elevation, e + 22, helper.Rva, 0xE8);
             int tail = Unique(new Pattern("48 89 F1 41 B8 01 00 00 00 41 B1 01 48 83 C4 30 5E E9 ?? ?? ?? ??"), clear.Code);
             RequireCall(clear, tail + 17, helper.Rva, 0xE9);
             RequireCall(ordinary, o + 25, helper.Rva, 0xE9);
-            if ((helper.Rva & 7) != 0) throw new NotSupportedException("Camera helper entry is not aligned");
+            if ((helper.Rva & 7) != 0) throw new NotSupportedException(L10n.T("Resolver.CameraFade.HelperEntryNotAligned"));
             var literals = new List<CameraFadeLiteral>();
             var loadOne = new Pattern("F3 0F 10 0D ?? ?? ?? ??");
             foreach (var member in new[] { distance, elevation, ordinary, clear })
@@ -292,11 +292,11 @@ namespace StarRailUnlocker.Core
                 foreach (int at in flagPattern.Find(member.Code))
                 {
                     ulong rva = Relative(member.Rva + (ulong)at + 7, BitConverter.ToInt32(member.Code, at + 2));
-                    if (!image.IsWritableRva(rva, 1)) throw new InvalidDataException("Hotfix guard is outside writable image data");
+                    if (!image.IsWritableRva(rva, 1)) throw new InvalidDataException(L10n.T("Resolver.CameraFade.HotfixGuardOutsideWritableData"));
                     flags.Add(rva);
                 }
-            if (flags.Count == 0) throw new InvalidDataException("Native hotfix guard was not established");
-            log?.Invoke("已定位反虚化相机标量、普通过渡与共享优先级函数");
+            if (flags.Count == 0) throw new InvalidDataException(L10n.T("Resolver.CameraFade.HotfixGuardNotEstablished"));
+            log?.Invoke(L10n.T("Resolver.CameraFade.FunctionsLocated"));
             return new ResolvedCameraFade { Distance = distance, Elevation = elevation, Clear = clear, Ordinary = ordinary, Helper = helper,
                 DistanceField = distanceField, ElevationField = elevationField, MaskField = mask, Literals = literals.AsReadOnly(),
                 HotfixFlags = new List<ulong>(flags).AsReadOnly(), DosHeader = table.Dos, NtHeaders = table.Nt, NtOffset = table.NtOffset,
@@ -311,25 +311,25 @@ namespace StarRailUnlocker.Core
                 || module.Size != fade.ImageSize || build.AssemblyImage.Timestamp != fade.Timestamp
                 || !string.Equals(System.IO.Path.GetFullPath(module.Path), fade.ImagePath, StringComparison.OrdinalIgnoreCase)
                 || !string.Equals(System.IO.Path.GetFullPath(build.AssemblyImage.Path), fade.ImagePath, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("GameAssembly module identity changed");
+                throw new InvalidOperationException(L10n.T("Resolver.CameraFade.AssemblyModuleIdentityChanged"));
             var disk = new PeImage(fade.ImagePath);
             if (disk.Timestamp != fade.Timestamp || disk.SizeOfImage != fade.ImageSize)
-                throw new InvalidOperationException("GameAssembly file changed after camera resolution");
+                throw new InvalidOperationException(L10n.T("Resolver.CameraFade.AssemblyFileChangedAfterResolution"));
             using (var stream = File.OpenRead(disk.Path))
             {
                 byte[] dos = new byte[fade.DosHeader.Length]; stream.ReadExactly(dos);
                 stream.Position = fade.NtOffset; byte[] nt = new byte[fade.NtHeaders.Length]; stream.ReadExactly(nt);
                 if (!dos.AsSpan().SequenceEqual(fade.DosHeader) || !nt.AsSpan().SequenceEqual(fade.NtHeaders))
-                    throw new InvalidOperationException("GameAssembly file headers changed after camera resolution");
+                    throw new InvalidOperationException(L10n.T("Resolver.CameraFade.AssemblyFileHeadersChangedAfterResolution"));
             }
             Equal(process, build.AssemblyBase, fade.DosHeader);
             if (!MatchesMappedHeaders(fade.NtHeaders,
                 process.Read(checked(build.AssemblyBase + fade.NtOffset), fade.NtHeaders.Length), build.AssemblyBase))
-                throw new InvalidOperationException("GameAssembly mapped headers differ from their verified identity");
+                throw new InvalidOperationException(L10n.T("Resolver.CameraFade.AssemblyMappedHeaderIdentityMismatch"));
             void Range(ulong rva, byte[] expected)
             {
                 if (!disk.ReadRva(rva, expected.Length).AsSpan().SequenceEqual(expected))
-                    throw new InvalidOperationException("GameAssembly file changed after camera resolution");
+                    throw new InvalidOperationException(L10n.T("Resolver.CameraFade.AssemblyFileChangedAfterResolution"));
                 Equal(process, checked(build.AssemblyBase + rva), expected);
             }
             foreach (var member in fade.Functions)
@@ -342,14 +342,14 @@ namespace StarRailUnlocker.Core
             foreach (ulong flag in fade.HotfixFlags)
             {
                 byte[] live = process.Read(checked(build.AssemblyBase + flag), 1);
-                if (live == null || live[0] != 0) throw new NotSupportedException("Camera transition is hotfixed or not initialized; retry after initialization");
+                if (live == null || live[0] != 0) throw new NotSupportedException(L10n.T("Resolver.CameraFade.HotfixedOrNotInitialized"));
             }
         }
         internal static void Equal(TargetProcess process, ulong address, byte[] expected)
         {
             byte[] actual = process.Read(address, expected.Length);
             if (actual == null || !actual.AsSpan().SequenceEqual(expected))
-                throw new InvalidOperationException("Camera transition differs from its verified disk identity");
+                throw new InvalidOperationException(L10n.T("Resolver.CameraFade.VerifiedDiskIdentityMismatch"));
         }
         internal static bool MatchesMappedHeaders(byte[] expected, byte[] actual, ulong mappedBase)
         {
@@ -365,26 +365,26 @@ namespace StarRailUnlocker.Core
         private static int Unique(Pattern pattern, byte[] code)
         {
             var matches = pattern.Find(code);
-            if (matches.Count != 1) throw new InvalidDataException("Ambiguous camera instruction relationship");
+            if (matches.Count != 1) throw new InvalidDataException(L10n.T("Resolver.CameraFade.AmbiguousInstructionRelationship"));
             return matches[0];
         }
         private static void RequireCall(CameraFadeFunction function, int offset, ulong target, byte opcode)
         {
             if (offset < 0 || offset > function.Code.Length - 5 || function.Code[offset] != opcode
                 || Relative(function.Rva + (ulong)offset + 5, BitConverter.ToInt32(function.Code, offset + 1)) != target)
-                throw new InvalidDataException("Camera transition does not call the common priority helper");
+                throw new InvalidDataException(L10n.T("Resolver.CameraFade.CommonPriorityHelperNotCalled"));
         }
         private static ulong Relative(ulong next, int displacement)
         {
             long rva = checked((long)next + displacement);
-            if (rva <= 0 || rva > uint.MaxValue) throw new InvalidDataException("Native relative reference is outside RVA space");
+            if (rva <= 0 || rva > uint.MaxValue) throw new InvalidDataException(L10n.T("Resolver.CameraFade.RelativeReferenceOutsideRva"));
             return (ulong)rva;
         }
         private static void AddLiteral(PeImage image, List<CameraFadeLiteral> literals, ulong rva, int size)
         {
             RequireRange(image, rva, size); byte[] bytes = image.ReadRva(rva, size);
             for (int at = 0; at < size; at += 4)
-                if (BitConverter.ToUInt32(bytes, at) != 0x3F800000) throw new InvalidDataException("Camera unity-alpha literal differs");
+                if (BitConverter.ToUInt32(bytes, at) != 0x3F800000) throw new InvalidDataException(L10n.T("Resolver.CameraFade.UnityAlphaLiteralMismatch"));
             foreach (var prior in literals) if (prior.Rva == rva && prior.Bytes.Length == size) return;
             literals.Add(new(rva, bytes));
         }
@@ -397,13 +397,13 @@ namespace StarRailUnlocker.Core
                 if (rva < end && section.Rva < rva + (ulong)size) overlaps++;
                 if (rva >= section.Rva && rva + (ulong)size <= end) result = section;
             }
-            if (overlaps != 1 || result == null) throw new InvalidDataException("Ambiguous file-backed PE range");
+            if (overlaps != 1 || result == null) throw new InvalidDataException(L10n.T("Resolver.CameraFade.AmbiguousFileBackedRange"));
             return result;
         }
         private static void RequireRange(PeImage image, ulong rva, int size)
         {
             if (size <= 0 || rva == 0 || rva >= image.SizeOfImage || (ulong)size > image.SizeOfImage - rva)
-                throw new InvalidDataException("Camera range is outside the image");
+                throw new InvalidDataException(L10n.T("Resolver.CameraFade.RangeOutsideImage"));
             SectionFor(image, rva, size);
         }
     }

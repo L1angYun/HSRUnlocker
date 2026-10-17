@@ -27,27 +27,27 @@ namespace StarRailUnlocker.Core
             using var stream = File.OpenRead(path);
             using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
             if (stream.Length < 0x40 || reader.ReadUInt16() != 0x5A4D)
-                throw new InvalidDataException("Not a PE image: " + path);
+                throw new InvalidDataException(L10n.T("Resolver.Pe.NotImage", path));
             stream.Position = 0x3C;
             int pe = reader.ReadInt32();
-            if (pe < 0x40 || pe > stream.Length - 264) throw new InvalidDataException("Invalid PE header");
+            if (pe < 0x40 || pe > stream.Length - 264) throw new InvalidDataException(L10n.T("Resolver.Pe.InvalidHeader"));
             stream.Position = pe;
             if (reader.ReadUInt32() != 0x4550 || reader.ReadUInt16() != 0x8664)
-                throw new InvalidDataException("Expected an x64 PE image");
+                throw new InvalidDataException(L10n.T("Resolver.Pe.ExpectedX64"));
             ushort sectionCount = reader.ReadUInt16();
             Timestamp = reader.ReadUInt32();
             stream.Position = pe + 20;
             ushort optionalSize = reader.ReadUInt16();
             if (optionalSize < 144 || sectionCount == 0 || sectionCount > 96
                 || (long)pe + 24 + optionalSize + sectionCount * 40 > stream.Length)
-                throw new InvalidDataException("Invalid PE header sizes");
+                throw new InvalidDataException(L10n.T("Resolver.Pe.InvalidHeaderSizes"));
             stream.Position = pe + 24;
-            if (reader.ReadUInt16() != 0x20B) throw new InvalidDataException("Expected PE32+");
+            if (reader.ReadUInt16() != 0x20B) throw new InvalidDataException(L10n.T("Resolver.Pe.ExpectedPe32Plus"));
             stream.Position = pe + 24 + 24;
             PreferredImageBase = reader.ReadUInt64();
             stream.Position = pe + 24 + 56;
             SizeOfImage = reader.ReadUInt32();
-            if (SizeOfImage == 0) throw new InvalidDataException("Empty PE image");
+            if (SizeOfImage == 0) throw new InvalidDataException(L10n.T("Resolver.Pe.EmptyImage"));
             stream.Position = pe + 24 + 108;
             uint directories = reader.ReadUInt32();
             if (directories >= 4)
@@ -66,7 +66,7 @@ namespace StarRailUnlocker.Core
                 uint flags = reader.ReadUInt32();
                 if (rva >= SizeOfImage || (ulong)rva + virtualSize > SizeOfImage
                     || (ulong)raw + rawSize > (ulong)stream.Length)
-                    throw new InvalidDataException("PE section is outside its image or file");
+                    throw new InvalidDataException(L10n.T("Resolver.Pe.SectionOutsideImageOrFile"));
                 _sections.Add(new(name, rva, virtualSize, raw, rawSize, flags));
             }
         }
@@ -94,7 +94,7 @@ namespace StarRailUnlocker.Core
             if (size < 1 || size > 4 * 1024 * 1024) throw new ArgumentOutOfRangeException(nameof(size));
             var section = FindRange(rva, size, true);
             if (section == null)
-                throw new InvalidDataException($"RVA 0x{rva:X} has no file-backed range in {System.IO.Path.GetFileName(Path)}");
+                throw new InvalidDataException(L10n.T("Resolver.Pe.NoFileBackedRange", rva, System.IO.Path.GetFileName(Path)));
             using var stream = File.OpenRead(Path);
             stream.Position = checked((long)section.Raw + (long)(rva - section.Rva));
             var bytes = new byte[size];
@@ -132,7 +132,7 @@ namespace StarRailUnlocker.Core
             if (_runtimeFunctions == null)
             {
                 if (_exceptionSize == 0 || _exceptionSize > 4 * 1024 * 1024 || _exceptionSize % 12 != 0)
-                    throw new NotSupportedException("A bounded x64 exception directory is required to verify camera functions");
+                    throw new NotSupportedException(L10n.T("Resolver.Pe.CameraRequiresBoundedExceptionDirectory"));
                 var bytes = ReadRva(_exceptionRva, checked((int)_exceptionSize));
                 var functions = new Dictionary<uint, RuntimeFunction>();
                 for (int i = 0; i < bytes.Length; i += 12)
@@ -142,12 +142,12 @@ namespace StarRailUnlocker.Core
                     if (begin == 0 && end == 0 && unwind == 0) continue;
                     if (end <= begin || !IsExecutableRva(begin, checked((int)(end - begin)))
                         || !IsFileBackedRva(unwind, 4) || !functions.TryAdd(begin, new(begin, end, unwind)))
-                        throw new InvalidDataException("Invalid x64 function table");
+                        throw new InvalidDataException(L10n.T("Resolver.Pe.InvalidX64FunctionTable"));
                 }
                 _runtimeFunctions = functions;
             }
             if (!_runtimeFunctions.TryGetValue((uint)rva, out var first) || UnwindRoot(first) != first.Begin)
-                throw new NotSupportedException("Camera target is not an independently bounded native function root");
+                throw new NotSupportedException(L10n.T("Resolver.Pe.CameraTargetNotIndependentRoot"));
             ulong endRva = first.End;
             foreach (var function in _runtimeFunctions.Values)
             {
@@ -155,7 +155,7 @@ namespace StarRailUnlocker.Core
                 if (UnwindRoot(function) == rva) endRva = Math.Max(endRva, function.End);
             }
             if (endRva <= rva || endRva - rva > (ulong)maximumBytes)
-                throw new NotSupportedException("Native camera function exceeds the bounded verification range");
+                throw new NotSupportedException(L10n.T("Resolver.Pe.CameraFunctionExceedsVerificationRange"));
             return ReadRva(rva, checked((int)(endRva - rva)));
         }
 
@@ -164,20 +164,20 @@ namespace StarRailUnlocker.Core
             var seen = new HashSet<uint>();
             for (int depth = 0; depth < 16; depth++)
             {
-                if (!seen.Add(function.Begin)) throw new InvalidDataException("Cyclic unwind chain");
+                if (!seen.Add(function.Begin)) throw new InvalidDataException(L10n.T("Resolver.Pe.CyclicUnwindChain"));
                 var header = ReadRva(function.Unwind, 4);
                 int version = header[0] & 7, flags = header[0] >> 3;
-                if (version != 1 && version != 2) throw new NotSupportedException("Unknown x64 unwind version");
+                if (version != 1 && version != 2) throw new NotSupportedException(L10n.T("Resolver.Pe.UnknownX64UnwindVersion"));
                 if ((flags & 4) == 0) return function.Begin;
-                if ((flags & 3) != 0) throw new InvalidDataException("Invalid chained unwind flags");
+                if ((flags & 3) != 0) throw new InvalidDataException(L10n.T("Resolver.Pe.InvalidChainedUnwindFlags"));
                 int chainOffset = (4 + header[2] * 2 + 3) & ~3;
                 var chain = ReadRva(function.Unwind + (ulong)chainOffset, 12);
                 uint begin = BitConverter.ToUInt32(chain, 0), end = BitConverter.ToUInt32(chain, 4);
                 uint unwind = BitConverter.ToUInt32(chain, 8);
                 if (!_runtimeFunctions.TryGetValue(begin, out function) || function.End != end || function.Unwind != unwind)
-                    throw new InvalidDataException("Unwind chain does not reference its runtime function");
+                    throw new InvalidDataException(L10n.T("Resolver.Pe.UnwindChainFunctionMismatch"));
             }
-            throw new InvalidDataException("Too many chained unwind entries");
+            throw new InvalidDataException(L10n.T("Resolver.Pe.TooManyChainedUnwindEntries"));
         }
     }
 
@@ -204,7 +204,7 @@ namespace StarRailUnlocker.Core
         public bool TryResolveCameraSlots(TargetProcess proc, Action<string> log = null)
         {
             if (CameraSetterSlot != 0) return true;
-            if (AssemblyImage == null) throw new InvalidOperationException("GameAssembly image is unavailable");
+            if (AssemblyImage == null) throw new InvalidOperationException(L10n.T("Resolver.GameBuild.AssemblyImageUnavailable"));
             _forwarders ??= GameBuildResolver.DiscoverForwarders(AssemblyImage);
             var grouped = new SortedDictionary<ulong, List<GameBuildResolver.Forwarder>>();
             foreach (var forwarder in _forwarders)
@@ -225,7 +225,7 @@ namespace StarRailUnlocker.Core
                 var snapshot = proc.Read(checked(AssemblyBase + slots[start]), size);
                 if (snapshot == null)
                 {
-                    if (!_waitingLogged) log?.Invoke("等待游戏初始化相机缓存…");
+                    if (!_waitingLogged) log?.Invoke(L10n.T("Resolver.GameBuild.WaitingForCameraCache"));
                     _waitingLogged = true;
                     return false; // An incomplete scan cannot establish a unique match.
                 }
@@ -238,16 +238,16 @@ namespace StarRailUnlocker.Core
                 start = finish;
             }
             if (setters.Count > 1 || getters.Count > 1)
-                throw new NotSupportedException("多个 IL2CPP 缓存都匹配命名相机接口；为避免歧义拒绝写入");
+                throw new NotSupportedException(L10n.T("Resolver.GameBuild.AmbiguousCameraCaches"));
             if (setters.Count == 0)
             {
-                if (!_waitingLogged) log?.Invoke("等待游戏初始化相机接口…");
+                if (!_waitingLogged) log?.Invoke(L10n.T("Resolver.GameBuild.WaitingForCameraInterface"));
                 _waitingLogged = true;
                 return false;
             }
             ulong setterRva = setters[0], getterRva = getters.Count == 1 ? getters[0] : 0;
             if (getterRva != 0 && getterRva == setterRva)
-                throw new InvalidDataException("相机 getter 与 setter 不能共用同一个指针槽");
+                throw new InvalidDataException(L10n.T("Resolver.GameBuild.CameraAccessorsShareSlot"));
             VerifyForwarder(proc, grouped[setterRva][0]);
             if (getterRva != 0) VerifyForwarder(proc, grouped[getterRva][0]);
             if (proc.ReadUInt64(checked(AssemblyBase + setterRva)) != CameraSetterTarget)
@@ -257,7 +257,7 @@ namespace StarRailUnlocker.Core
             CameraSetterSlot = checked(AssemblyBase + setterRva);
             CameraGetterSlot = getterRva == 0 ? 0 : checked(AssemblyBase + getterRva);
             _waitingLogged = false;
-            log?.Invoke($"已定位相机 setter 缓存：GameAssembly+0x{setterRva:X}");
+            log?.Invoke(L10n.T("Resolver.GameBuild.CameraSetterCacheLocated", setterRva));
             return true;
         }
 
@@ -265,17 +265,17 @@ namespace StarRailUnlocker.Core
         {
             var live = proc.Read(checked(AssemblyBase + forwarder.EntryRva), 16);
             if (live == null || !live.AsSpan().SequenceEqual(forwarder.Code))
-                throw new InvalidOperationException("匹配到的 IL2CPP 转发器与磁盘指令不一致");
+                throw new InvalidOperationException(L10n.T("Resolver.GameBuild.ForwarderDiskMismatch"));
         }
 
         public void VerifyCameraAccessors(TargetProcess proc)
         {
             if (CameraSetterSlot == 0 || proc.ReadUInt64(CameraSetterSlot) != CameraSetterTarget)
-                throw new InvalidOperationException("Camera setter cache does not contain its independently named native target");
+                throw new InvalidOperationException(L10n.T("Resolver.GameBuild.CameraSetterCacheTargetMismatch"));
             if (CameraGetterSlot != 0 && proc.ReadUInt64(CameraGetterSlot) != CameraGetterTarget)
-                throw new InvalidOperationException("Camera getter cache no longer matches its named target");
+                throw new InvalidOperationException(L10n.T("Resolver.GameBuild.CameraGetterCacheTargetChanged"));
             if (CameraSetterTarget == CameraGetterTarget)
-                throw new InvalidDataException("Camera setter and getter resolve to the same function");
+                throw new InvalidDataException(L10n.T("Resolver.GameBuild.CameraAccessorsShareFunction"));
             VerifyNativeCode(proc, CameraSetterTarget);
             VerifyNativeCode(proc, CameraGetterTarget);
             var setter = UnityImage.ReadRva(CameraSetterTarget - UnityBase, 32);
@@ -285,10 +285,10 @@ namespace StarRailUnlocker.Core
                 0x48,0x85,0xC0,0x74,0x0C,0x48,0x8B,0xC8,0x48,0x83,0xC4,0x28,0xE9 };
             for (int i = 0; i < prefix.Length; i++)
                 if (i != 12 && (setter[i] != prefix[i] || getter[i] != prefix[i]))
-                    throw new NotSupportedException("相机接口的对象解析/异常处理结构与预期不符");
+                    throw new NotSupportedException(L10n.T("Resolver.GameBuild.CameraObjectResolutionMismatch"));
             int objectOffset = unchecked((sbyte)setter[12]);
             if (objectOffset <= 0 || objectOffset % 8 != 0 || getter[12] != setter[12])
-                throw new NotSupportedException("相机 getter/setter 对对象指针成员的位置不一致");
+                throw new NotSupportedException(L10n.T("Resolver.GameBuild.CameraObjectPointerFieldMismatch"));
             ulong nativeSetterRva = GameBuildResolver.RelativeTarget(CameraSetterTarget - UnityBase + 30, BitConverter.ToInt32(setter, 26));
             ulong nativeGetterRva = GameBuildResolver.RelativeTarget(CameraGetterTarget - UnityBase + 30, BitConverter.ToInt32(getter, 26));
             var setterBody = UnityImage.ReadFunctionBytes(nativeSetterRva);
@@ -299,11 +299,11 @@ namespace StarRailUnlocker.Core
             byte[] cameraBase = { 0x48,0x8B,0xD9 }; // MOV RBX,RCX
             if (setterBody.AsSpan().IndexOf(argument) < 0 || setterBody.AsSpan().IndexOf(cameraBase) < 0
                 || getterBody.AsSpan().IndexOf(cameraBase) < 0)
-                throw new NotSupportedException("相机参数/对象寄存器关系与预期不符");
+                throw new NotSupportedException(L10n.T("Resolver.GameBuild.CameraRegisterRelationshipMismatch"));
             var fields = CameraFields(getterBody, 0x10);
             fields.IntersectWith(CameraFields(setterBody, 0x11));
             if (fields.Count != 1)
-                throw new NotSupportedException("相机 getter/setter 未能确定唯一的视野字段");
+                throw new NotSupportedException(L10n.T("Resolver.GameBuild.CameraFovFieldNotUnique"));
             foreach (int field in fields) StoredFovOffset = field;
             _nativePointerOffset = objectOffset;
         }
@@ -339,11 +339,11 @@ namespace StarRailUnlocker.Core
         {
             if (length < 1 || address < UnityBase || UnityImage == null
                 || !UnityImage.IsExecutableRva(address - UnityBase, length))
-                throw new InvalidOperationException("Native accessor is outside file-backed executable UnityPlayer sections");
+                throw new InvalidOperationException(L10n.T("Resolver.GameBuild.NativeAccessorOutsideExecutableSections"));
             var expected = UnityImage.ReadRva(address - UnityBase, length);
             var actual = proc.Read(address, length);
             if (actual == null || !actual.AsSpan().SequenceEqual(expected))
-                throw new InvalidOperationException("Native accessor differs from its disk instructions; refusing an unknown patch");
+                throw new InvalidOperationException(L10n.T("Resolver.GameBuild.NativeAccessorDiskMismatch"));
         }
     }
 
@@ -363,7 +363,7 @@ namespace StarRailUnlocker.Core
         internal static ulong RelativeTarget(ulong nextRva, int displacement)
         {
             long target = checked((long)nextRva + displacement);
-            if (target < 0 || target > uint.MaxValue) throw new InvalidDataException("Relative target is outside PE RVA space");
+            if (target < 0 || target > uint.MaxValue) throw new InvalidDataException(L10n.T("Resolver.GameBuild.RelativeTargetOutsideRva"));
             return (ulong)target;
         }
 
@@ -453,11 +453,11 @@ namespace StarRailUnlocker.Core
                     catch (InvalidDataException) { continue; }
                     catch (OverflowException) { continue; }
                     if (candidate == null) continue;
-                    if (found != null) throw new NotSupportedException("存在多个有效的内部调用注册结构，地址不唯一，已拒绝写入");
+                    if (found != null) throw new NotSupportedException(L10n.T("Resolver.GameBuild.AmbiguousInternalCallRegistration"));
                     found = candidate;
                 }
             }
-            return found ?? throw new NotSupportedException("未找到唯一的内部调用注册结构；该客户端版本可能不受支持");
+            return found ?? throw new NotSupportedException(L10n.T("Resolver.GameBuild.InternalCallRegistrationNotFound"));
         }
 
         internal sealed record NamedRegistration(ulong TableEntryRva, ulong NativeTargetRva,
@@ -471,15 +471,15 @@ namespace StarRailUnlocker.Core
             for (int i = 0; i < registration.Keys.Length / 4; i++)
                 if (BitConverter.ToUInt32(registration.Keys, i * 4) == hash)
                 {
-                    if (found >= 0) throw new NotSupportedException("命名内部调用存在重复键，已拒绝写入: " + name);
+                    if (found >= 0) throw new NotSupportedException(L10n.T("Resolver.GameBuild.DuplicateNamedInternalCall", name));
                     found = i;
                 }
-            if (found < 0) throw new NotSupportedException("缺少命名内部调用: " + name);
+            if (found < 0) throw new NotSupportedException(L10n.T("Resolver.GameBuild.NamedInternalCallMissing", name));
             ulong functions = RelativeTarget(registration.EntryRva + 13, BitConverter.ToInt32(registration.Entry, 9));
             ulong slot = checked(functions + (ulong)found * 8);
             ulong pointer = BitConverter.ToUInt64(image.ReadRva(slot, 8));
             if (pointer < image.PreferredImageBase || !image.IsExecutableRva(pointer - image.PreferredImageBase, 32))
-                throw new InvalidDataException("命名内部调用不指向可执行目标: " + name);
+                throw new InvalidDataException(L10n.T("Resolver.GameBuild.NamedInternalCallNotExecutable", name));
             return new(slot, pointer - image.PreferredImageBase, registration.EntryRva, registration.Entry,
                 registration.LoopRva, registration.Loop, registration.KeysRva, registration.Keys);
         }
@@ -493,7 +493,7 @@ namespace StarRailUnlocker.Core
 
         public static ulong DecodeSlotRva(ReadOnlySpan<byte> code, ulong entryRva)
         {
-            if (!ForwarderShape(code)) throw new InvalidDataException("Unsupported padded IL2CPP forwarder");
+            if (!ForwarderShape(code)) throw new InvalidDataException(L10n.T("Resolver.GameBuild.UnsupportedPaddedForwarder"));
             return RelativeTarget(checked(entryRva + 7), BitConverter.ToInt32(code.Slice(3, 4)));
         }
 
@@ -511,10 +511,10 @@ namespace StarRailUnlocker.Core
                     catch (InvalidDataException) { continue; }
                     if (slot % 8 != 0 || !image.IsWritableRva(slot, 8)) continue;
                     result.Add(new(entry, slot, chunk.Bytes.AsSpan(i, 16).ToArray()));
-                    if (result.Count > 200000) throw new NotSupportedException("Too many IL2CPP forwarder candidates for bounded verification");
+                    if (result.Count > 200000) throw new NotSupportedException(L10n.T("Resolver.GameBuild.TooManyForwarderCandidates"));
                 }
             }
-            if (result.Count == 0) throw new NotSupportedException("未找到受支持的 IL2CPP 指针缓存转发器");
+            if (result.Count == 0) throw new NotSupportedException(L10n.T("Resolver.GameBuild.SupportedForwarderNotFound"));
             return result;
         }
 
@@ -523,29 +523,29 @@ namespace StarRailUnlocker.Core
             var assembly = TargetProcess.FindModule(proc.Pid, "GameAssembly.dll");
             var unity = TargetProcess.FindModule(proc.Pid, "UnityPlayer.dll");
             if (assembly.Base == 0 || unity.Base == 0)
-                throw new InvalidOperationException("游戏尚未加载 GameAssembly.dll 与 UnityPlayer.dll");
+                throw new InvalidOperationException(L10n.T("Resolver.GameBuild.ModulesNotLoaded"));
             var assemblyImage = new PeImage(assembly.Path);
             var unityImage = new PeImage(unity.Path);
             if (assembly.Size != assemblyImage.SizeOfImage || unity.Size != unityImage.SizeOfImage)
-                throw new InvalidOperationException("已加载模块大小与磁盘 PE 不一致");
+                throw new InvalidOperationException(L10n.T("Resolver.GameBuild.LoadedModuleSizeMismatch"));
             var registration = FindRegistration(unityImage);
-            void VerifyRange(ulong rva, byte[] expected, string description)
+            void VerifyRange(ulong rva, byte[] expected, string error)
             {
                 var live = proc.Read(checked(unity.Base + rva), expected.Length);
                 if (live == null || !live.AsSpan().SequenceEqual(expected))
-                    throw new InvalidOperationException("Live " + description + " differs from the structurally resolved file");
+                    throw new InvalidOperationException(error);
             }
-            VerifyRange(registration.EntryRva, registration.Entry, "internal-call registration entry");
-            VerifyRange(registration.LoopRva, registration.Loop, "internal-call registration loop");
-            VerifyRange(registration.KeysRva, registration.Keys, "internal-call name-key array");
+            VerifyRange(registration.EntryRva, registration.Entry, L10n.T("Resolver.GameBuild.LiveRegistrationEntryMismatch"));
+            VerifyRange(registration.LoopRva, registration.Loop, L10n.T("Resolver.GameBuild.LiveRegistrationLoopMismatch"));
+            VerifyRange(registration.KeysRva, registration.Keys, L10n.T("Resolver.GameBuild.LiveRegistrationKeysMismatch"));
             ulong Target(string name)
             {
                 var native = registration.Targets[name];
                 ulong target = checked(unity.Base + native.Rva);
                 if (proc.ReadUInt64(checked(unity.Base + native.TableEntry)) != target)
-                    throw new InvalidOperationException("Live native registration pointer changed: " + name);
-                VerifyRange(native.Rva, unityImage.ReadRva(native.Rva, 32), "native accessor " + name);
-                log?.Invoke($"已定位 {name} → UnityPlayer+0x{native.Rva:X}");
+                    throw new InvalidOperationException(L10n.T("Resolver.GameBuild.LiveRegistrationPointerChanged", name));
+                VerifyRange(native.Rva, unityImage.ReadRva(native.Rva, 32), L10n.T("Resolver.GameBuild.LiveNativeAccessorMismatch", name));
+                log?.Invoke(L10n.T("Resolver.GameBuild.NamedTargetLocated", name, native.Rva));
                 return target;
             }
             var result = new ResolvedGameBuild
@@ -555,7 +555,7 @@ namespace StarRailUnlocker.Core
                 CameraSetterTarget = Target(Names[0]), CameraGetterTarget = Target(Names[1]),
                 FrameSetterTarget = Target(Names[2]), FrameGetterTarget = Target(Names[3]),
             };
-            log?.Invoke($"已通过结构校验；注册入口位于 UnityPlayer+0x{registration.EntryRva:X}，相机缓存将在需要时解析");
+            log?.Invoke(L10n.T("Resolver.GameBuild.StructureVerified", registration.EntryRva));
             return result;
         }
     }

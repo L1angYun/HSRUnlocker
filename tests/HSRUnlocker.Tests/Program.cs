@@ -28,6 +28,9 @@ internal static class Program
         try
         {
             Check(OperatingSystem.IsWindows() && Environment.Is64BitProcess, "portable suite runs in an x64 Windows test process");
+            LocalizationVerification.Run(Check);
+            // Keep existing diagnostic assertions independent of the Windows display language.
+            L10n.SetLanguage("en-US");
             MobileLaunchVerification.Run(Check, Array.Empty<string>());
             MobileEntryVerification.Run(Check);
             MobileUnwindVerification.Run(Check);

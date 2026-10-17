@@ -121,9 +121,7 @@ namespace StarRailUnlocker.Core
             if (!readOnly) access |= Native.PROCESS_VM_WRITE | Native.PROCESS_VM_OPERATION | 0x0002;
             Handle = Native.OpenProcess(access, false, pid);
             if (Handle == IntPtr.Zero)
-                throw new InvalidOperationException(
-                    "无法打开目标进程（错误 " + Marshal.GetLastWin32Error() +
-                    "）。请以管理员身份运行 HSRUnlocker。");
+                throw new InvalidOperationException(L10n.T("Runtime.Interop.ProcessOpenFailed", Marshal.GetLastWin32Error()));
         }
 
         // ------------------------------------------------------------------ memory
@@ -147,7 +145,7 @@ namespace StarRailUnlocker.Core
         public ulong ReadUInt64(ulong address)
         {
             var b = Read(address, 8);
-            if (b == null) throw new InvalidOperationException($"Cannot read pointer at 0x{address:X}");
+            if (b == null) throw new InvalidOperationException(L10n.T("Runtime.Interop.PointerReadFailed", address));
             return BitConverter.ToUInt64(b, 0);
         }
 
@@ -203,17 +201,17 @@ namespace StarRailUnlocker.Core
         public bool CompareExchangePointer(ulong slot, ulong expected, ulong replacement, out ulong observed,
             bool rollbackOnAbandon = false)
         {
-            if (slot % 8 != 0) throw new ArgumentException("Pointer slot must be aligned", nameof(slot));
+            if (slot % 8 != 0) throw new ArgumentException(L10n.T("Runtime.Interop.PointerUnaligned"), nameof(slot));
             observed = 0;
             if (_pendingExchange != null)
             {
                 if (_pendingExchange.Slot != slot || _pendingExchange.Expected != expected || _pendingExchange.Replacement != replacement)
-                    throw new InvalidOperationException("A previous pointer exchange must be reconciled before another operation");
+                    throw new InvalidOperationException(L10n.T("Runtime.Interop.PointerPreviousPending"));
             }
             else
             {
                 ulong page = Allocate(0x2000);
-                if (page == 0) throw new InvalidOperationException("Cannot allocate compare/exchange helper");
+                if (page == 0) throw new InvalidOperationException(L10n.T("Runtime.Interop.ExchangeAllocateFailed"));
                 try
                 {
                     var args = new byte[32];
@@ -225,24 +223,24 @@ namespace StarRailUnlocker.Core
                         0xF0,0x49,0x0F,0xB1,0x11, 0x48,0x89,0x41,0x18, 0x31,0xC0,0xC3 };
                     if (!WriteData(page, args) || !WriteData(page + 0x1000, code)
                         || !MakeExecutable(page + 0x1000, 0x1000))
-                        throw new InvalidOperationException("Cannot prepare compare/exchange helper");
+                        throw new InvalidOperationException(L10n.T("Runtime.Interop.ExchangePrepareFailed"));
                     var thread = Native.CreateRemoteThread(Handle, IntPtr.Zero, UIntPtr.Zero,
                         (IntPtr)(long)(page + 0x1000), (IntPtr)(long)page, 0, out _);
                     if (thread == IntPtr.Zero)
-                        throw new InvalidOperationException("CreateRemoteThread failed (error " + Marshal.GetLastWin32Error() + ")");
+                        throw new InvalidOperationException(L10n.T("Runtime.Interop.RemoteThreadFailed", Marshal.GetLastWin32Error()));
                     _pendingExchange = new(page, thread, slot, expected, replacement, rollbackOnAbandon);
                 }
                 catch { Free(page); throw; }
             }
             var pending = _pendingExchange;
             if (Native.WaitForSingleObject(pending.Thread, 10000) != 0)
-                throw new InvalidOperationException("Pointer exchange still pending; ownership is unknown and its pages/handle were retained");
+                throw new InvalidOperationException(L10n.T("Runtime.Interop.ExchangePending"));
             try
             {
                 if (!Native.GetExitCodeThread(pending.Thread, out var code) || code != 0)
-                    throw new InvalidOperationException($"Pointer exchange helper failed (exit 0x{code:X}); no success is assumed");
+                    throw new InvalidOperationException(L10n.T("Runtime.Interop.ExchangeHelperFailed", code));
                 observed = ReadUInt64(pending.Page + 24);
-                if (observed == ulong.MaxValue) throw new InvalidOperationException("Pointer exchange result was not published");
+                if (observed == ulong.MaxValue) throw new InvalidOperationException(L10n.T("Runtime.Interop.ExchangeNotPublished"));
                 return observed == expected;
             }
             finally

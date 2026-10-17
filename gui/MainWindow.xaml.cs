@@ -47,22 +47,25 @@ namespace StarRailUnlocker
             _initializing = true;
             _config = UnlockConfig.Load();
             _config.Normalize();
+            L10n.SetLanguage(_config.Language);
+            App.WriteLog("Startup", L10n.T("App.Starting", AppVersion));
 
             try
             {
                 InitializeComponent();
-                Localise();
+                CreateFpsPresets();
+                ApplyLocalization();
                 ConfigureNumericControls();
 
                 if (!string.IsNullOrWhiteSpace(_config.ProcessPath) &&
                     !File.Exists(_config.ProcessPath))
                 {
-                    Log("配置中的游戏路径已失效，改为自动检测: " + _config.ProcessPath);
+                    Log(L10n.T("Ui.LogInvalidConfiguredPath", _config.ProcessPath));
                     _config.ProcessPath = string.Empty;
                 }
                 else if (!string.IsNullOrWhiteSpace(_config.ProcessPath))
                 {
-                    Log("配置中的游戏路径: " + _config.ProcessPath);
+                    Log(L10n.T("Ui.LogConfiguredPath", _config.ProcessPath));
                 }
 
                 PathBox.Text = _config.ProcessPath;
@@ -76,7 +79,7 @@ namespace StarRailUnlocker
                 GraphicsSourceBox.IsEnabled = _config.UseMobileUI;
                 StartMinimizedToggle.IsOn = _config.StartMinimized;
 
-                Log("配置文件: " + UnlockConfig.DefaultPath);
+                Log(L10n.T("Ui.LogConfigPath", UnlockConfig.DefaultPath));
                 if (string.IsNullOrWhiteSpace(_config.ProcessPath))
                     TryAutoDetectGame();
                 ConfigureWindow();
@@ -128,7 +131,7 @@ namespace StarRailUnlocker
                     _inTray = false;
                     Activate();
                 }, RequestStop, BeginCloseAsync);
-                if (!_tray.Add()) Log("托盘图标初始化失败，窗口保持可见");
+                if (!_tray.Add()) Log(L10n.T("Ui.LogTrayInitializationFailed"));
             }
             catch (Exception ex) { App.WriteLog("Tray initialization", ex); }
             _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
@@ -176,7 +179,7 @@ namespace StarRailUnlocker
                 _hidingToTray = true;
                 _tray.HideWindow();
                 _inTray = true;
-                Log("窗口已最小化到托盘；双击图标可恢复");
+                Log(L10n.T("Ui.LogHiddenToTray"));
             }
             catch (Exception ex) { Log(ex.Message); App.WriteLog("Hide to tray", ex); }
             finally { _hidingToTray = false; }
@@ -194,47 +197,9 @@ namespace StarRailUnlocker
                 if (attributes.Length > 0)
                     value = ((System.Reflection.AssemblyInformationalVersionAttribute)attributes[0]).InformationalVersion;
                 if (string.IsNullOrWhiteSpace(value))
-                    value = assembly.GetName().Version?.ToString() ?? "unknown";
+                    value = assembly.GetName().Version?.ToString() ?? L10n.T("Ui.UnknownVersion");
                 int build = value.IndexOf('+');
                 return build > 0 ? value[..build] : value;
-            }
-        }
-
-        /// <summary>Version, choices, and tooltips supplement the native XAML layout.</summary>
-        private void Localise()
-        {
-            Title = "HSRUnlocker " + AppVersion;
-            VersionText.Text = "Honkai: Star Rail · " + AppVersion;
-            PathBox.PlaceholderText = "选择 StarRail.exe";
-            ToolTipService.SetToolTip(AntiFadeToggle, "仅针对相机靠近或俯仰角引起的角色淡出；普通生成与剧情淡入淡出保持正常。可在游戏运行时开关，关闭后恢复。");
-            ToolTipService.SetToolTip(AutoStartToggle, "下次打开解锁器时自动启动所选客户端并应用设置");
-            ToolTipService.SetToolTip(StartMinimizedToggle, "下次打开解锁器时隐藏到托盘；双击托盘图标恢复");
-            ToolTipService.SetToolTip(MobileUiToggle, "仅在下次由工具启动游戏时应用移动 UI；附加到已运行客户端时不会改变界面");
-            ToolTipService.SetToolTip(GraphicsSourceBox, "选择移动 UI 启动时沿用的画质设置。默认根据客户端信息自动识别；国服与国际服的设置保存位置不同。");
-            ToolTipService.SetToolTip(FovSlider, "视野增量，单位为度，范围 −60 至 60");
-            ToolTipService.SetToolTip(FovBox, "FOV 增量，单位为度；0 为游戏原始视野，下一次镜头更新时应用");
-            ToolTipService.SetToolTip(FpsSlider, "目标帧率 10 至 480；游戏重设上限时自动恢复");
-            ToolTipService.SetToolTip(FpsBox, "目标帧率，单位为 FPS");
-            GraphicsAutoItem.Content = "自动（当前客户端）";
-            GraphicsChinaItem.Content = "沿用国服画质";
-            GraphicsGlobalItem.Content = "沿用国际服画质";
-            ToolTipService.SetToolTip(StartButton, "启动所选客户端并应用设置；该客户端已运行时直接附加");
-            ToolTipService.SetToolTip(AttachButton, "附加正在运行的游戏并应用设置");
-            for (int i = 0; i < FpsPresets.Length; i++)
-            {
-                int value = FpsPresets[i];
-                var button = new Microsoft.UI.Xaml.Controls.Primitives.ToggleButton
-                {
-                    Content = value.ToString(), Tag = value, MinWidth = 0,
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
-                    Padding = new Thickness(4, 6, 4, 6)
-                };
-                Grid.SetColumn(button, i);
-                Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(button, value + " FPS");
-                Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(button, "FpsPreset" + value);
-                ToolTipService.SetToolTip(button, value + " FPS");
-                button.Click += OnFpsPresetClick;
-                PresetPanel.Children.Add(button);
             }
         }
 
@@ -286,15 +251,15 @@ namespace StarRailUnlocker
             var games = FindRunningGames();
             if (games.Count == 1)
             {
-                SetDetectedGame(games[0].Pid, games[0].Path, "自动检测到正在运行的游戏");
+                SetDetectedGame(games[0].Pid, games[0].Path, "Ui.LogDetectedGame");
                 return;
             }
             if (games.Count > 1)
             {
-                Log("检测到多个游戏进程，可在附加时选择目标");
+                Log(L10n.T("Ui.LogMultipleGames"));
                 return;
             }
-            Log("未自动检测到游戏，请点「浏览」选择 StarRail.exe");
+            Log(L10n.T("Ui.LogNoAutoDetectedGame"));
         }
 
         /// <summary>Enumerates actual executable paths without inferring a channel from directory names.</summary>
@@ -313,7 +278,7 @@ namespace StarRailUnlocker
                         var (_, _, modulePath) = TargetProcess.FindMainModule(pid);
                         if (string.IsNullOrWhiteSpace(modulePath))
                         {
-                            Log($"pid {pid}: 无法枚举主模块路径（进程可能已退出或权限不足）");
+                            Log(L10n.T("Ui.LogModulePathUnavailable", pid));
                             continue;
                         }
 
@@ -324,54 +289,54 @@ namespace StarRailUnlocker
                         }
                         catch (Exception ex)
                         {
-                            Log($"pid {pid}: 主模块路径无效: {modulePath}");
+                            Log(L10n.T("Ui.LogModulePathInvalid", pid, modulePath));
                             App.WriteLog("FindMainModule / invalid path", ex);
                             continue;
                         }
 
                         if (!File.Exists(fullPath))
                         {
-                            Log($"pid {pid}: 主模块路径不可访问或文件已消失: {fullPath}");
+                            Log(L10n.T("Ui.LogModulePathInaccessible", pid, fullPath));
                             continue;
                         }
 
                         candidates.Add(new RunningGameCandidate { Pid = pid, Path = fullPath });
-                        Log($"发现 StarRail.exe pid {pid}: {fullPath}");
+                        Log(L10n.T("Ui.LogFoundGame", pid, fullPath));
                     }
                     catch (Exception ex)
                     {
-                        Log($"pid {pid}: 枚举主模块时出错");
+                        Log(L10n.T("Ui.LogModuleEnumerationFailed", pid));
                         App.WriteLog("FindMainModule / enumeration", ex);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Log("枚举 StarRail.exe 进程失败，无法安全附加");
+                Log(L10n.T("Ui.LogProcessEnumerationFailed"));
                 App.WriteLog("FindProcessIds", ex);
                 return candidates;
             }
 
             if (!foundProcess)
             {
-                Log("未找到正在运行的 StarRail.exe");
+                Log(L10n.T("Ui.LogNoRunningGame"));
                 return candidates;
             }
 
             if (candidates.Count == 0)
             {
-                Log("找到 StarRail.exe，但无法取得任何主模块路径；请确认管理员权限后重试");
+                Log(L10n.T("Ui.LogNoAccessibleGame"));
                 return candidates;
             }
             candidates.Sort((a, b) => a.Pid.CompareTo(b.Pid));
             return candidates;
         }
 
-        private void SetDetectedGame(uint pid, string path, string prefix)
+        private void SetDetectedGame(uint pid, string path, string messageKey)
         {
             PathBox.Text = path;
             _config.ProcessPath = path;
-            Log($"{prefix}: pid {pid}, {path}");
+            Log(L10n.T(messageKey, pid, path));
         }
 
         // ------------------------------------------------------------------ logging
@@ -433,7 +398,7 @@ namespace StarRailUnlocker
             _config.FovDelta = value;
             if (changed && _session != null)
             {
-                Log($"FOV 增量设为 {value:0.##}");
+                Log(L10n.T("Ui.LogFovChanged", value));
                 _session.ApplyFov();
             }
             RefreshPresentation();
@@ -465,19 +430,19 @@ namespace StarRailUnlocker
                 if (_closed || _closePending || file == null) return false;
                 if (!IsValidGamePath(file.Path))
                 {
-                    Log("请选择客户端目录中的 StarRail.exe");
+                    Log(L10n.T("Ui.LogChooseGameExecutable"));
                     return false;
                 }
                 PathBox.Text = file.Path;
                 _config.ProcessPath = file.Path;
-                _localError = null;
+                _localErrorKey = null;
                 _config.Save();
-                Log("游戏路径已设为: " + file.Path);
+                Log(L10n.T("Ui.LogGamePathSet", file.Path));
                 return true;
             }
             catch (Exception ex)
             {
-                if (!_closed && !_closePending) Log("选择游戏失败: " + ex.Message);
+                if (!_closed && !_closePending) Log(L10n.T("Ui.LogGamePickerFailed", ex.Message));
                 App.WriteLog("Game picker", ex);
                 return false;
             }
@@ -498,7 +463,7 @@ namespace StarRailUnlocker
                 if (_config.AutoStart)
                 {
                     if (IsValidGamePath(_config.ProcessPath)) LaunchSession(0, launchIfMissing: true);
-                    else Log("自启动已开启，但尚未选择有效游戏路径；请先选择 StarRail.exe");
+                    else Log(L10n.T("Ui.LogAutoStartNeedsPath"));
                 }
                 if (_config.StartMinimized) HideToTray(force: true);
                 _startupComplete = true;
@@ -517,10 +482,10 @@ namespace StarRailUnlocker
                 var dialog = new ContentDialog
                 {
                     XamlRoot = _dialogRoot,
-                    Title = "设置游戏路径",
-                    Content = "请选择客户端目录中的 StarRail.exe。",
-                    PrimaryButtonText = "选择 StarRail.exe",
-                    CloseButtonText = "稍后设置",
+                    Title = L10n.T("Ui.SetupTitle"),
+                    Content = new TextBlock { Text = L10n.T("Ui.SetupContent"), TextWrapping = TextWrapping.Wrap },
+                    PrimaryButtonText = L10n.T("Ui.ChooseExecutable"),
+                    CloseButtonText = L10n.T("Ui.SetupLater"),
                     DefaultButton = ContentDialogButton.Primary,
                 };
                 var result = await dialog.ShowAsync();
@@ -537,11 +502,11 @@ namespace StarRailUnlocker
             SyncConfig();
             if (_config.Save())
             {
-                Log("配置已保存: " + UnlockConfig.DefaultPath);
+                Log(L10n.T("Ui.LogConfigSaved", UnlockConfig.DefaultPath));
             }
             else
             {
-                Log("配置保存失败，请查看工具日志: " + UnlockConfig.LogPath);
+                Log(L10n.T("Ui.LogConfigSaveFailed", UnlockConfig.LogPath));
             }
         }
 
@@ -551,11 +516,11 @@ namespace StarRailUnlocker
             SyncConfig();
             if (!IsValidGamePath(_config.ProcessPath))
             {
-                Log("当前游戏路径无效，请选择 StarRail.exe");
+                Log(L10n.T("Ui.LogInvalidGamePath"));
                 if (!await ChooseGameAsync()) return;
             }
             if (_closed || _closePending) return;
-            Log("开始：查找或启动游戏…");
+            Log(L10n.T("Ui.LogStartingGame"));
             LaunchSession(0, launchIfMissing: true);
         }
 
@@ -566,13 +531,13 @@ namespace StarRailUnlocker
             var games = FindRunningGames();
             if (games.Count == 0)
             {
-                _localError = "未找到可附加的 StarRail.exe，请确认游戏已启动且权限可访问";
+                _localErrorKey = "Ui.NoAttachableGame";
                 RefreshPresentation();
                 return;
             }
             RunningGameCandidate selected = games.Count == 1 ? games[0] : await ChooseRunningGameAsync(games);
             if (selected == null || _closed || _closePending) return;
-            SetDetectedGame(selected.Pid, selected.Path, "附加到");
+            SetDetectedGame(selected.Pid, selected.Path, "Ui.LogAttachGame");
             LaunchSession(selected.Pid);
         }
 
@@ -587,21 +552,21 @@ namespace StarRailUnlocker
                 foreach (var game in games)
                 {
                     var text = new StackPanel { Spacing = 4, Margin = new Thickness(0, 6, 0, 6) };
-                    text.Children.Add(new TextBlock { Text = $"StarRail.exe · PID {game.Pid}", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+                    text.Children.Add(new TextBlock { Text = L10n.T("Ui.RunningGame", game.Pid), TextWrapping = TextWrapping.Wrap, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
                     text.Children.Add(new TextBlock { Text = game.Path, FontSize = 12, TextWrapping = TextWrapping.Wrap });
                     list.Items.Add(text);
                 }
                 var dialog = new ContentDialog
                 {
-                    XamlRoot = _dialogRoot, Title = "选择正在运行的游戏", Content = list,
-                    PrimaryButtonText = "附加", CloseButtonText = "取消", IsPrimaryButtonEnabled = false
+                    XamlRoot = _dialogRoot, Title = L10n.T("Ui.ChooseRunningGameTitle"), Content = list,
+                    PrimaryButtonText = L10n.T("Ui.Attach"), CloseButtonText = L10n.T("Ui.Cancel"), IsPrimaryButtonEnabled = false
                 };
                 list.SelectionChanged += (_, __) => dialog.IsPrimaryButtonEnabled = list.SelectedIndex >= 0;
                 var result = await dialog.ShowAsync();
                 return result == ContentDialogResult.Primary && list.SelectedIndex >= 0
                     ? games[list.SelectedIndex] : null;
             }
-            catch (Exception ex) { Log("选择进程失败：" + ex.Message); return null; }
+            catch (Exception ex) { Log(L10n.T("Ui.LogProcessPickerFailed", ex.Message)); return null; }
             finally { _dialogOpen = false; }
         }
 
@@ -611,7 +576,7 @@ namespace StarRailUnlocker
         {
             if (_closed || _closePending || _session?.IsRunning != true) return;
             _stoppingSession = true;
-            Log("停止中（将还原帧率、FOV 与反虚化设置）…");
+            Log(L10n.T("Ui.LogStopping"));
             _session?.Stop();
             RefreshPresentation();
         }
@@ -643,7 +608,7 @@ namespace StarRailUnlocker
             _exitTimer = null;
             _switchingSession = true;
             _stoppingSession = false;
-            _localError = null;
+            _localErrorKey = null;
             RefreshPresentation();
             var old = _session;
             if (old != null && _sessionHandler != null) old.Changed -= _sessionHandler;
@@ -665,7 +630,8 @@ namespace StarRailUnlocker
 
         private void OnSessionChanged(UnlockSession source, SessionState state, string message)
         {
-            if (message != null) App.WriteLog("Session", "[" + state + "] " + message);
+            string line = message == null ? null : L10n.T("Ui.LogSession", SessionStateText(state), message);
+            if (line != null) App.WriteLog("Session", line);
             DispatcherQueue.TryEnqueue(() =>
             {
                 if (_closed || _closePending || !ReferenceEquals(_session, source)) return;
@@ -684,7 +650,7 @@ namespace StarRailUnlocker
                     return;
                 }
                 // A null message refreshes feature snapshots without repeating diagnostics.
-                if (message != null) Log("[" + state + "] " + message, persist: false);
+                if (line != null) Log(line, persist: false);
                 RefreshPresentation();
             });
         }

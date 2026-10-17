@@ -30,7 +30,7 @@ namespace StarRailUnlocker
             _minimumWidth = minimumWidthDip; _minimumHeight = minimumHeightDip;
             _callback = OnMessage;
             if (!SetWindowSubclass(window, _callback, SubclassId, 0))
-                throw new InvalidOperationException("Cannot register the HSRUnlocker window sizing callback");
+                throw new InvalidOperationException(Core.L10n.T("App.WindowCallbackRegistrationFailed"));
         }
 
         internal static double ScaleForWindow(IntPtr window)

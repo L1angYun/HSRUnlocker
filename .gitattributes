@@ -7,3 +7,5 @@
 LICENSE text eol=lf
 *.png binary
 *.ico binary
+*.ttf binary
+*.pdf binary

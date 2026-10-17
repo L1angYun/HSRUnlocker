@@ -1,0 +1,44 @@
+{
+  "Config.Migrated": {
+    "zh-CN": "旧版配置已迁移到 {0}",
+    "en-US": "Migrated legacy settings to {0}",
+    "ja-JP": "旧設定を {0} に移行しました",
+    "ko-KR": "이전 설정을 {0}(으)로 이전했습니다"
+  },
+  "Config.MigrationSaveFailed": {
+    "zh-CN": "已读取旧版配置，但无法写入 {0}",
+    "en-US": "Loaded legacy settings but could not write {0}",
+    "ja-JP": "旧設定を読み込みましたが、{0} に保存できませんでした",
+    "ko-KR": "이전 설정을 불러왔지만 {0}에 저장할 수 없습니다"
+  },
+  "Config.SaveFailed": {
+    "zh-CN": "无法保存配置：{0}",
+    "en-US": "Could not save settings: {0}",
+    "ja-JP": "設定を保存できませんでした: {0}",
+    "ko-KR": "설정을 저장할 수 없습니다: {0}"
+  },
+  "Config.Empty": {
+    "zh-CN": "配置文件为空：{0}",
+    "en-US": "Settings file was empty: {0}",
+    "ja-JP": "設定ファイルが空です: {0}",
+    "ko-KR": "설정 파일이 비어 있습니다: {0}"
+  },
+  "Config.LoadFailed": {
+    "zh-CN": "无法读取配置：{0}",
+    "en-US": "Could not read settings: {0}",
+    "ja-JP": "設定を読み込めませんでした: {0}",
+    "ko-KR": "설정을 읽을 수 없습니다: {0}"
+  },
+  "App.WindowCallbackRegistrationFailed": {
+    "zh-CN": "无法注册 HSRUnlocker 窗口尺寸回调",
+    "en-US": "Cannot register the HSRUnlocker window sizing callback",
+    "ja-JP": "HSRUnlocker のウィンドウサイズコールバックを登録できません",
+    "ko-KR": "HSRUnlocker 창 크기 콜백을 등록할 수 없습니다"
+  },
+  "App.Starting": {
+    "zh-CN": "正在启动 HSRUnlocker {0}",
+    "en-US": "Starting HSRUnlocker {0}",
+    "ja-JP": "HSRUnlocker {0} を起動しています",
+    "ko-KR": "HSRUnlocker {0} 시작 중"
+  }
+}

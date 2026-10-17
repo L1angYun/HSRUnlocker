@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using StarRailUnlocker.Core;
 
 namespace StarRailUnlocker
 {
@@ -81,12 +82,12 @@ namespace StarRailUnlocker
             _callback = OnMessage;
             _taskbarCreated = RegisterWindowMessageW("TaskbarCreated");
             if (!SetWindowSubclass(window, _callback, Id, 0))
-                throw new InvalidOperationException("Cannot register the HSRUnlocker tray window callback");
+                throw new InvalidOperationException(L10n.T("Tray.RegisterCallbackFailed"));
             if (!SetPropW(window, WindowProperty, new IntPtr(1)))
             {
                 int error = Marshal.GetLastWin32Error();
                 RemoveWindowSubclass(window, _callback, Id);
-                throw new System.ComponentModel.Win32Exception(error, "Cannot register the HSRUnlocker main window");
+                throw new System.ComponentModel.Win32Exception(error, L10n.T("Tray.RegisterWindowFailed"));
             }
             _icon = LoadImageW(IntPtr.Zero, Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"),
                 1, 0, 0, 0x10 | 0x40); // IMAGE_ICON; LR_LOADFROMFILE | LR_DEFAULTSIZE, owned handle.
@@ -94,7 +95,7 @@ namespace StarRailUnlocker
             if (!_ownsIcon)
             {
                 int error = Marshal.GetLastWin32Error();
-                App.WriteLog("Tray icon", new System.ComponentModel.Win32Exception(error, "Cannot load Assets/AppIcon.ico; using the Windows fallback icon"));
+                App.WriteLog("Tray icon", new System.ComponentModel.Win32Exception(error, L10n.T("Tray.LoadIconFailed")));
                 _icon = LoadIconW(IntPtr.Zero, (IntPtr)32512);
             }
         }
@@ -117,10 +118,10 @@ namespace StarRailUnlocker
 
         public void HideWindow()
         {
-            if (!Add()) throw new InvalidOperationException("Cannot create the HSRUnlocker tray icon; window remains visible");
+            if (!Add()) throw new InvalidOperationException(L10n.T("Tray.CreateIconFailed"));
             ShowWindow(_window, 0);
             var balloon = Data(0x10);
-            balloon.Info = "工具已最小化到托盘，双击图标可恢复窗口。";
+            balloon.Info = L10n.T("Tray.HiddenBalloon");
             balloon.Title = "HSRUnlocker";
             balloon.InfoFlags = 1;
             Shell_NotifyIconW(1, ref balloon);
@@ -139,9 +140,9 @@ namespace StarRailUnlocker
             if (menu == IntPtr.Zero) return;
             try
             {
-                AppendMenuW(menu, 0, 1, "打开 HSRUnlocker");
-                AppendMenuW(menu, 0, 2, "停止并还原");
-                AppendMenuW(menu, 0, 3, "退出");
+                AppendMenuW(menu, 0, 1, L10n.T("Tray.Open"));
+                AppendMenuW(menu, 0, 2, L10n.T("Tray.StopRestore"));
+                AppendMenuW(menu, 0, 3, L10n.T("Tray.Exit"));
                 GetCursorPos(out var cursor);
                 SetForegroundWindow(_window);
                 uint selected = TrackPopupMenu(menu, 0x100 | 0x2, cursor.X, cursor.Y, 0, _window, IntPtr.Zero);

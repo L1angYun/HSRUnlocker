@@ -73,7 +73,8 @@ Write-Host ("  packages: {0}; copied texts: {1}; packages without embedded texts
     $notices.Packages, $notices.CopiedFiles, $notices.PackagesWithoutEmbeddedText) -ForegroundColor Cyan
 
 $required = @('HSRUnlocker.exe', 'HSRUnlocker.dll', 'HSRUnlocker.deps.json', 'HSRUnlocker.runtimeconfig.json',
-              'LICENSE', 'THIRD_PARTY_NOTICES.md', 'ThirdPartyNotices\manifest.json') + $resources
+              'LICENSE', 'THIRD_PARTY_NOTICES.md', 'ThirdPartyNotices\manifest.json',
+              'Assets\Fonts\MiSansVF.ttf', 'Assets\Fonts\MiSans-LICENSE.pdf', 'Assets\Fonts\NOTICE.md') + $resources
 $missing = @($required | Where-Object { -not (Test-Path -LiteralPath (Join-Path $OutDir $_) -PathType Leaf) })
 if ($missing.Count -gt 0) { throw "Deliverable incomplete; missing: $($missing -join ', ')" }
 

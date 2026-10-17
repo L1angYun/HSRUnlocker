@@ -8,12 +8,12 @@
     <Grid x:Name="LayoutRoot" SizeChanged="OnLayoutSizeChanged"
           Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.Resources>
-            <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Style x:Key="SectionTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource AppTextBlockStyle}">
                 <Setter Property="FontSize" Value="16" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="TextWrapping" Value="Wrap" />
             </Style>
-            <Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+            <Style x:Key="SecondaryTextStyle" TargetType="TextBlock" BasedOn="{StaticResource AppTextBlockStyle}">
                 <Setter Property="FontSize" Value="12" />
                 <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
                 <Setter Property="TextWrapping" Value="Wrap" />
@@ -55,8 +55,7 @@
                 <TextBlock x:Name="VersionText" Style="{StaticResource SecondaryTextStyle}" />
             </StackPanel>
             <Button Grid.Column="2" x:Name="SaveButton" Style="{StaticResource ToolButtonStyle}"
-                    Click="OnSaveClick" ToolTipService.ToolTip="保存配置"
-                    AutomationProperties.Name="保存配置">
+                    Click="OnSaveClick">
                 <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Save" /></Viewbox>
             </Button>
         </Grid>
@@ -72,9 +71,8 @@
                 <FontIcon x:Name="StatusIcon" Glyph="&#xE930;" FontSize="18" VerticalAlignment="Center"
                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                    <TextBlock x:Name="StateTitle" Text="就绪" FontWeight="SemiBold" TextWrapping="Wrap" />
-                    <TextBlock x:Name="StatusText" Text="尚未附加游戏"
-                               Style="{StaticResource SecondaryTextStyle}" />
+                    <TextBlock x:Name="StateTitle" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock x:Name="StatusText" Style="{StaticResource SecondaryTextStyle}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -84,19 +82,16 @@
             <StackPanel MaxWidth="1100" Padding="24,20,24,16" Spacing="24"
                         HorizontalAlignment="Stretch">
                 <StackPanel Spacing="8">
-                    <TextBlock x:Name="PathLabel" Text="客户端" FontWeight="SemiBold" />
+                    <TextBlock x:Name="PathLabel" FontWeight="SemiBold" TextWrapping="Wrap" />
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBox x:Name="PathBox" IsReadOnly="True" MinWidth="0"
-                                 AutomationProperties.Name="游戏路径"
                                  ToolTipService.ToolTip="{Binding Text, ElementName=PathBox}" />
                         <Button Grid.Column="1" x:Name="BrowseButton" Click="OnBrowseClick"
-                                Style="{StaticResource ToolButtonStyle}"
-                                AutomationProperties.Name="选择 StarRail.exe"
-                                ToolTipService.ToolTip="选择 StarRail.exe">
+                                Style="{StaticResource ToolButtonStyle}">
                             <Viewbox Width="16" Height="16"><SymbolIcon Symbol="OpenFile" /></Viewbox>
                         </Button>
                     </Grid>
@@ -114,15 +109,15 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel x:Name="DisplaySettings" Grid.ColumnSpan="3" Spacing="20">
-                        <TextBlock Text="画面与镜头" Style="{StaticResource SectionTitleStyle}" />
+                        <TextBlock x:Name="DisplaySectionTitle" Style="{StaticResource SectionTitleStyle}" />
                         <StackPanel Spacing="8">
                             <Grid ColumnSpacing="8">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="FpsLabel" Text="目标帧率" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="1" Text="FPS" Style="{StaticResource SecondaryTextStyle}"
+                                <TextBlock x:Name="FpsLabel" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" x:Name="FpsUnitText" Style="{StaticResource SecondaryTextStyle}"
                                            VerticalAlignment="Center" />
                             </Grid>
                             <Grid ColumnSpacing="14">
@@ -130,11 +125,9 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="118" />
                                 </Grid.ColumnDefinitions>
-                                <Slider x:Name="FpsSlider" ValueChanged="OnFpsSliderChanged"
-                                        AutomationProperties.Name="目标帧率滑块" />
+                                <Slider x:Name="FpsSlider" ValueChanged="OnFpsSliderChanged" />
                                 <NumberBox Grid.Column="1" x:Name="FpsBox" SpinButtonPlacementMode="Compact"
-                                           ValueChanged="OnFpsBoxChanged"
-                                           AutomationProperties.Name="目标帧率数值" />
+                                           ValueChanged="OnFpsBoxChanged" />
                             </Grid>
                             <Grid x:Name="PresetPanel" ColumnSpacing="6">
                                 <Grid.ColumnDefinitions>
@@ -155,10 +148,9 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="FovLabel" Text="FOV 增量" VerticalAlignment="Center" />
+                                <TextBlock x:Name="FovLabel" TextWrapping="Wrap" VerticalAlignment="Center" />
                                 <Button Grid.Column="1" x:Name="ResetFovButton" Click="OnResetFovClick"
-                                        Padding="4" Width="28" Height="28"
-                                        AutomationProperties.Name="重置 FOV" ToolTipService.ToolTip="重置 FOV 为 0">
+                                        Padding="4" Width="28" Height="28">
                                     <FontIcon Glyph="&#xE777;" FontSize="14" />
                                 </Button>
                             </Grid>
@@ -167,11 +159,9 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="118" />
                                 </Grid.ColumnDefinitions>
-                                <Slider x:Name="FovSlider" ValueChanged="OnFovSliderChanged"
-                                        AutomationProperties.Name="FOV 增量滑块" />
+                                <Slider x:Name="FovSlider" ValueChanged="OnFovSliderChanged" />
                                 <NumberBox Grid.Column="1" x:Name="FovBox" ValueChanged="OnFovBoxChanged"
-                                           SpinButtonPlacementMode="Compact"
-                                           AutomationProperties.Name="FOV 增量数值" />
+                                           SpinButtonPlacementMode="Compact" />
                             </Grid>
                             <TextBlock x:Name="FovStateText" Style="{StaticResource SecondaryTextStyle}" />
                         </StackPanel>
@@ -182,19 +172,18 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="4" VerticalAlignment="Center">
-                                <TextBlock Text="相机反虚化" />
+                                <TextBlock x:Name="AntiFadeLabel" TextWrapping="Wrap" />
                                 <TextBlock x:Name="AntiFadeStateText" Style="{StaticResource SecondaryTextStyle}" />
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" x:Name="AntiFadeToggle" Toggled="OnAntiFadeToggled"
-                                          Style="{StaticResource CompactSwitchStyle}"
-                                          AutomationProperties.Name="相机反虚化" />
+                                          Style="{StaticResource CompactSwitchStyle}" />
                         </Grid>
                     </StackPanel>
                     <Border x:Name="SettingsDivider" Grid.Column="1" Width="1" Visibility="Collapsed"
                             Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                     <StackPanel x:Name="StartupSettings" Grid.Row="1" Grid.ColumnSpan="3"
                                 Margin="0,28,0,0" Spacing="20">
-                        <TextBlock Text="启动设置" Style="{StaticResource SectionTitleStyle}" />
+                        <TextBlock x:Name="StartupSectionTitle" Style="{StaticResource SectionTitleStyle}" />
                         <StackPanel Spacing="12">
                             <Grid ColumnSpacing="16" MinHeight="40">
                                 <Grid.ColumnDefinitions>
@@ -202,16 +191,14 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Spacing="3" VerticalAlignment="Center">
-                                    <TextBlock Text="移动端 UI" />
-                                    <TextBlock Text="下次启动游戏" Style="{StaticResource SecondaryTextStyle}" />
+                                    <TextBlock x:Name="MobileUiLabel" TextWrapping="Wrap" />
+                                    <TextBlock x:Name="MobileUiHint" Style="{StaticResource SecondaryTextStyle}" />
                                 </StackPanel>
                                 <ToggleSwitch Grid.Column="1" x:Name="MobileUiToggle" Toggled="OnMobileUiToggled"
-                                              Style="{StaticResource CompactSwitchStyle}"
-                                              AutomationProperties.Name="移动端 UI" />
+                                              Style="{StaticResource CompactSwitchStyle}" />
                             </Grid>
-                            <ComboBox x:Name="GraphicsSourceBox" Header="画质设置来源" HorizontalAlignment="Stretch"
-                                      IsEnabled="False" SelectionChanged="OnGraphicsSourceChanged"
-                                      AutomationProperties.Name="移动 UI 画质设置来源">
+                            <ComboBox x:Name="GraphicsSourceBox" HorizontalAlignment="Stretch"
+                                      IsEnabled="False" SelectionChanged="OnGraphicsSourceChanged">
                                 <ComboBoxItem x:Name="GraphicsAutoItem" />
                                 <ComboBoxItem x:Name="GraphicsChinaItem" />
                                 <ComboBoxItem x:Name="GraphicsGlobalItem" />
@@ -223,24 +210,32 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="随工具启动游戏" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            <TextBlock x:Name="AutoStartLabel" TextWrapping="Wrap" VerticalAlignment="Center" />
                             <ToggleSwitch Grid.Column="1" x:Name="AutoStartToggle"
-                                          Style="{StaticResource CompactSwitchStyle}"
-                                          AutomationProperties.Name="随工具启动游戏" />
+                                          Style="{StaticResource CompactSwitchStyle}" />
                         </Grid>
                         <Grid ColumnSpacing="16" MinHeight="40">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="启动时收起到托盘" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            <TextBlock x:Name="StartMinimizedLabel" TextWrapping="Wrap" VerticalAlignment="Center" />
                             <ToggleSwitch Grid.Column="1" x:Name="StartMinimizedToggle"
-                                          Style="{StaticResource CompactSwitchStyle}"
-                                          AutomationProperties.Name="启动时收起到托盘" />
+                                          Style="{StaticResource CompactSwitchStyle}" />
                         </Grid>
+                        <ComboBox x:Name="LanguageBox" AutomationProperties.AutomationId="LanguageBox"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="OnLanguageChanged">
+                            <ComboBoxItem x:Name="LanguageAutoItem" Tag="auto" />
+                            <ComboBoxItem Tag="zh-CN" Content="简体中文" />
+                            <ComboBoxItem Tag="en-US" Content="English" />
+                            <ComboBoxItem Tag="ja-JP" Content="日本語" />
+                            <ComboBoxItem Tag="ko-KR" Content="한국어" />
+                        </ComboBox>
+                        <TextBlock x:Name="FontCreditText" Style="{StaticResource SecondaryTextStyle}" />
                     </StackPanel>
                 </Grid>
-                <Expander x:Name="LogExpander" Header="运行日志" HorizontalAlignment="Stretch"
+                <Expander x:Name="LogExpander" HorizontalAlignment="Stretch"
                           HorizontalContentAlignment="Stretch" IsExpanded="False" Expanding="OnLogExpanding">
                     <Grid RowSpacing="8">
                         <Grid.RowDefinitions>
@@ -248,19 +243,16 @@
                             <RowDefinition Height="180" />
                         </Grid.RowDefinitions>
                         <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
-                            <Button x:Name="CopyLogButton" Click="OnCopyLogClick" Style="{StaticResource ToolButtonStyle}"
-                                    AutomationProperties.Name="复制日志" ToolTipService.ToolTip="复制可见日志">
+                            <Button x:Name="CopyLogButton" Click="OnCopyLogClick" Style="{StaticResource ToolButtonStyle}">
                                 <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Copy" /></Viewbox>
                             </Button>
-                            <Button x:Name="ClearLogButton" Click="OnClearLogClick" Style="{StaticResource ToolButtonStyle}"
-                                    AutomationProperties.Name="清空可见日志" ToolTipService.ToolTip="清空可见日志">
+                            <Button x:Name="ClearLogButton" Click="OnClearLogClick" Style="{StaticResource ToolButtonStyle}">
                                 <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Clear" /></Viewbox>
                             </Button>
                         </StackPanel>
                         <ScrollViewer Grid.Row="1" x:Name="LogScroll" VerticalScrollBarVisibility="Auto">
-                            <TextBlock x:Name="LogText" FontFamily="Consolas" FontSize="12"
-                                       TextWrapping="Wrap" IsTextSelectionEnabled="True"
-                                       AutomationProperties.Name="运行日志内容" />
+                            <TextBlock x:Name="LogText" FontSize="12"
+                                       TextWrapping="Wrap" IsTextSelectionEnabled="True" />
                         </ScrollViewer>
                     </Grid>
                 </Expander>
@@ -276,23 +268,32 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="StartButton" Click="OnStartClick" HorizontalAlignment="Stretch"
-                        AutomationProperties.Name="启动游戏"
+                        MinWidth="0" HorizontalContentAlignment="Stretch" Padding="12,10"
                         Style="{StaticResource AccentButtonStyle}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
                         <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Play" /></Viewbox>
-                        <TextBlock Text="启动游戏" />
-                    </StackPanel>
+                        <TextBlock Grid.Column="1" x:Name="StartButtonText" TextWrapping="Wrap"
+                                   TextAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
                 </Button>
                 <Button Grid.Column="1" x:Name="AttachButton" Click="OnAttachClick" HorizontalAlignment="Stretch"
-                        AutomationProperties.Name="附加游戏">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        MinWidth="0" HorizontalContentAlignment="Stretch" Padding="12,10">
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
                         <FontIcon Glyph="&#xE71B;" FontSize="16" />
-                        <TextBlock Text="附加游戏" />
-                    </StackPanel>
+                        <TextBlock Grid.Column="1" x:Name="AttachButtonText" TextWrapping="Wrap"
+                                   TextAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
                 </Button>
                 <Button Grid.Column="2" x:Name="StopButton" Click="OnStopClick" IsEnabled="False"
-                        Style="{StaticResource ToolButtonStyle}"
-                        AutomationProperties.Name="停止并还原" ToolTipService.ToolTip="停止并还原帧率、FOV 和反虚化">
+                        Style="{StaticResource ToolButtonStyle}">
                     <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Stop" /></Viewbox>
                 </Button>
             </Grid>

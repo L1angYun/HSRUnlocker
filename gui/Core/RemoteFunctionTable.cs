@@ -37,13 +37,13 @@ namespace StarRailUnlocker.Core
             : this(process, codeAddress)
         {
             if (expectedCode == null || expectedCode.Length == 0 || expectedCode.Length > 0x1000)
-                throw new ArgumentException("A bounded complete generated function is required", nameof(expectedCode));
+                throw new ArgumentException(L10n.T("Resolver.FunctionTable.BoundedCompleteFunctionRequired"), nameof(expectedCode));
             // This owner accepts independent, handler-free version-1 unwind records only.
             if (unwindInfo == null || unwindInfo.Length < 4 || unwindInfo[0] != 1
                 || unwindInfo[1] > expectedCode.Length
                 || unwindInfo.Length != ((4 + unwindInfo[2] * 2 + 3) & ~3)
                 || unwindInfo.Length > TableOffset - UnwindOffset)
-                throw new ArgumentException("A bounded independent unwind record is required", nameof(unwindInfo));
+                throw new ArgumentException(L10n.T("Resolver.FunctionTable.BoundedIndependentUnwindRequired"), nameof(unwindInfo));
             _expectedCode = (byte[])expectedCode.Clone();
             _unwindInfo = (byte[])unwindInfo.Clone();
         }
@@ -53,10 +53,10 @@ namespace StarRailUnlocker.Core
             lock (_gate)
             {
                 if (_disposed) throw new ObjectDisposedException(nameof(RemoteFunctionTable));
-                if (!_process.IsAlive) throw new InvalidOperationException("Target exited before generated-code unwind registration");
+                if (!_process.IsAlive) throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.TargetExitedBeforeRegistration"));
                 if (IsRegistered) return;
                 if (_registrationUncertain)
-                    throw new InvalidOperationException("Generated-code unwind registration could not be confirmed; storage is retained and publication is refused");
+                    throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.RegistrationUnconfirmed"));
                 if (_thread == IntPtr.Zero)
                 {
                     Prepare();
@@ -66,28 +66,28 @@ namespace StarRailUnlocker.Core
                     {
                         int error = Marshal.GetLastWin32Error();
                         FreeUnregisteredStorage();
-                        throw new Win32Exception(error, "Cannot start generated-code unwind registration");
+                        throw new Win32Exception(error, L10n.T("Resolver.FunctionTable.CannotStartRegistration"));
                     }
                     // Even a timed-out thread may subsequently install a table covering the gateway.
                     MustRetainGateway = true;
                 }
                 if (Native.WaitForSingleObject(_thread, 10000) != 0)
-                    throw new InvalidOperationException("Generated-code unwind registration is pending; helper and code must be retained");
+                    throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.RegistrationPending"));
                 if (!Native.GetExitCodeThread(_thread, out uint result))
-                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot confirm generated-code unwind registration");
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Resolver.FunctionTable.CannotConfirmRegistration"));
                 Native.CloseHandle(_thread);
                 _thread = IntPtr.Zero;
                 if (result == 0)
                 {
                     MustRetainGateway = false;
                     FreeUnregisteredStorage();
-                    throw new InvalidOperationException("Target rejected the generated-code unwind table");
+                    throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.TableRejected"));
                 }
                 // An exception exit must not be mistaken for BOOLEAN success. Unknown upper EAX bits fail closed.
                 if (result != 1)
                 {
                     _registrationUncertain = true;
-                    throw new InvalidOperationException($"Generated-code unwind helper returned an uncertain result 0x{result:X}; storage is retained");
+                    throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.UncertainHelperResult", result));
                 }
                 IsRegistered = true;
             }
@@ -101,7 +101,7 @@ namespace StarRailUnlocker.Core
             if (_expectedCode != null)
             {
                 if (liveCode == null || !liveCode.AsSpan().SequenceEqual(_expectedCode))
-                    throw new InvalidOperationException("Generated code differs from its complete verified unwind template");
+                    throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.CodeTemplateMismatch"));
                 unwind = _unwindInfo;
             }
             else
@@ -109,14 +109,14 @@ namespace StarRailUnlocker.Core
                 byte[] branch = { 0x48, 0x39, 0xE4, 0x0F, 0x84 }; // CMP RSP,RSP; JE rel32.
                 if (liveCode == null || !liveCode.AsSpan(0, 10).SequenceEqual(Prologue)
                     || !liveCode.AsSpan(10, branch.Length).SequenceEqual(branch))
-                    throw new NotSupportedException("Only the complete verified fade gateway supports unwind registration");
+                    throw new NotSupportedException(L10n.T("Resolver.FunctionTable.VerifiedFadeGatewayRequired"));
                 // Descending instruction-end offsets: ALLOC_SMALL 0x50; PUSH RBX/RBP/RDI/RSI/R14.
                 unwind = new byte[] { 0x01,0x0A,0x06,0x00, 0x0A,0x92, 0x06,0x30, 0x05,0x50,
                     0x04,0x70, 0x03,0x60, 0x02,0xE0 };
             }
             ulong addFunctionTable = ResolveAddFunctionTable();
             _storage = _process.AllocateNear(_gateway, StorageSize);
-            if (_storage == 0) throw new InvalidOperationException("Cannot allocate generated-code unwind metadata");
+            if (_storage == 0) throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.CannotAllocateMetadata"));
             try
             {
                 ulong imageBase = Math.Min(_gateway, _storage);
@@ -136,13 +136,13 @@ namespace StarRailUnlocker.Core
                     || !_process.WriteData(_storage + HelperOffset, helper)
                     || !_process.WriteData(_storage + UnwindOffset, unwind)
                     || !_process.WriteData(_storage + TableOffset, table))
-                    throw new InvalidOperationException("Cannot initialize generated-code unwind registration");
+                    throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.CannotInitializeRegistration"));
                 CameraFadeResolver.Equal(_process, _storage, arguments);
                 CameraFadeResolver.Equal(_process, _storage + HelperOffset, helper);
                 CameraFadeResolver.Equal(_process, _storage + UnwindOffset, unwind);
                 CameraFadeResolver.Equal(_process, _storage + TableOffset, table);
                 if (!_process.MakeExecutable(_storage + HelperOffset, 0x1000))
-                    throw new InvalidOperationException("Cannot protect generated-code unwind metadata and helper");
+                    throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.CannotProtectMetadataAndHelper"));
             }
             catch { FreeUnregisteredStorage(); throw; }
         }
@@ -150,7 +150,7 @@ namespace StarRailUnlocker.Core
         private ulong ResolveAddFunctionTable()
         {
             IntPtr entry = GetProcAddress(GetModuleHandleW("ntdll.dll"), "RtlAddFunctionTable");
-            if (entry == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot resolve RtlAddFunctionTable");
+            if (entry == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Resolver.FunctionTable.CannotResolveSystemExport"));
             ulong address = unchecked((ulong)entry.ToInt64());
             using var current = Process.GetCurrentProcess();
             foreach (ProcessModule local in current.Modules)
@@ -163,20 +163,20 @@ namespace StarRailUnlocker.Core
                 if (remote.Base == 0 || remote.Size != disk.SizeOfImage
                     || !string.Equals(Path.GetFullPath(remote.Path), Path.GetFullPath(local.FileName), StringComparison.OrdinalIgnoreCase)
                     || !disk.IsExecutableRva(rva, 16))
-                    throw new InvalidOperationException("Target unwind registration module does not match the named system export");
+                    throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.SystemExportModuleMismatch"));
                 byte[] head = _process.Read(remote.Base, 4096);
                 if (head == null || BitConverter.ToUInt16(head, 0) != 0x5A4D)
-                    throw new InvalidOperationException("Cannot verify target unwind registration module");
+                    throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.CannotVerifyTargetModule"));
                 int pe = BitConverter.ToInt32(head, 0x3C);
                 if (pe < 0x40 || pe > head.Length - 264 || BitConverter.ToUInt32(head, pe) != 0x4550
                     || BitConverter.ToUInt16(head, pe + 4) != 0x8664
                     || BitConverter.ToUInt32(head, pe + 8) != disk.Timestamp
                     || BitConverter.ToUInt32(head, pe + 24 + 56) != disk.SizeOfImage)
-                    throw new InvalidOperationException("Target unwind registration module identity changed");
+                    throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.TargetModuleIdentityChanged"));
                 CameraFadeResolver.Equal(_process, checked(remote.Base + rva), disk.ReadRva(rva, 16));
                 return checked(remote.Base + rva);
             }
-            throw new InvalidOperationException("Cannot establish the owner of the named unwind registration export");
+            throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.CannotEstablishExportOwner"));
         }
 
         private void FreeUnregisteredStorage()

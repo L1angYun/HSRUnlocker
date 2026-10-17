@@ -31,7 +31,7 @@ namespace StarRailUnlocker.Core
             ArgumentNullException.ThrowIfNull(readLines);
             ArgumentNullException.ThrowIfNull(readRegistry);
             if (!Enum.IsDefined(source))
-                throw new InvalidOperationException("移动 UI 图形设置来源无效；请选择自动、国服或国际服");
+                throw new InvalidOperationException(L10n.T("Runtime.MobileSettings.InvalidSourceSelection"));
 
             MobileGraphicsSource resolved = source;
             if (source == MobileGraphicsSource.Auto)
@@ -43,13 +43,15 @@ namespace StarRailUnlocker.Core
             }
 
             string registryPath = RegistryPath(resolved);
-            log?.Invoke($"移动 UI 图形设置：{(source == MobileGraphicsSource.Auto ? "自动识别" : "手动选择")} " +
-                        $"{(resolved == MobileGraphicsSource.China ? "国服" : "国际服")}；只读 HKCU\\{registryPath}");
+            log?.Invoke(L10n.T(source == MobileGraphicsSource.Auto
+                ? (resolved == MobileGraphicsSource.China ? "Runtime.MobileSettings.AutoChina" : "Runtime.MobileSettings.AutoGlobal")
+                : (resolved == MobileGraphicsSource.China ? "Runtime.MobileSettings.ManualChina" : "Runtime.MobileSettings.ManualGlobal"),
+                registryPath));
             if (readRegistry(registryPath, GraphicsValueName) is not byte[] graphics || graphics.Length == 0)
-                throw new InvalidOperationException($"移动 UI 启动需要所选{(resolved == MobileGraphicsSource.China ? "国服" : "国际服")}的图形设置" +
-                    $"（HKCU\\{registryPath}）；请先用普通模式启动相应客户端，再启用移动 UI");
+                throw new InvalidOperationException(L10n.T(resolved == MobileGraphicsSource.China
+                    ? "Runtime.MobileSettings.GraphicsMissingChina" : "Runtime.MobileSettings.GraphicsMissingGlobal", registryPath));
 
-            log?.Invoke($"使用移动 UI 启动参数 CLOUD_WEB_TOUCH；图形设置 {graphics.Length} 字节，客户端效果待确认");
+            log?.Invoke(L10n.T("Runtime.MobileSettings.Arguments", graphics.Length));
             return new[] { "-platform_type", "CLOUD_WEB_TOUCH", "-graphics_setting", Convert.ToBase64String(graphics) };
         }
 
@@ -57,24 +59,24 @@ namespace StarRailUnlocker.Core
             IReadOnlyList<string> iniLines, IReadOnlyList<string> appInfoLines)
         {
             if (!Enum.IsDefined(requested))
-                throw new InvalidOperationException("移动 UI 图形设置来源无效");
+                throw new InvalidOperationException(L10n.T("Runtime.MobileSettings.InvalidSource"));
             // A manual choice is an explicit override; it does not consult another installation's files.
             if (requested != MobileGraphicsSource.Auto) return requested;
 
             MobileGraphicsSource channel = ReadChannelIdentity(iniLines);
             MobileGraphicsSource metadata = ReadAppIdentity(appInfoLines);
             if (channel != MobileGraphicsSource.Auto && metadata != MobileGraphicsSource.Auto && channel != metadata)
-                throw new InvalidOperationException("当前客户端 config.ini 与 app.info 的移动 UI 渠道信息冲突；请确认客户端或手动选择图形设置来源");
+                throw new InvalidOperationException(L10n.T("Runtime.MobileSettings.MetadataConflict"));
             if (channel != MobileGraphicsSource.Auto) return channel;
             if (metadata != MobileGraphicsSource.Auto) return metadata;
-            throw new InvalidOperationException("无法从当前客户端 config.ini（uapc）或 StarRail_Data/app.info 确认移动 UI 渠道；请手动选择国服或国际服图形设置来源");
+            throw new InvalidOperationException(L10n.T("Runtime.MobileSettings.SourceUnknown"));
         }
 
         internal static string RegistryPath(MobileGraphicsSource source) => source switch
         {
             MobileGraphicsSource.China => ChinaRegistryPath,
             MobileGraphicsSource.Global => GlobalRegistryPath,
-            _ => throw new InvalidOperationException("尚未确认移动 UI 图形设置渠道"),
+            _ => throw new InvalidOperationException(L10n.T("Runtime.MobileSettings.SourceUnresolved")),
         };
 
         private static MobileGraphicsSource ReadChannelIdentity(IReadOnlyList<string> lines)
@@ -91,7 +93,7 @@ namespace StarRailUnlocker.Core
                 if (value.Length == 0) continue;
                 MobileGraphicsSource next = ParseChannel(value);
                 if (result != MobileGraphicsSource.Auto && result != next)
-                    throw new InvalidOperationException("当前客户端 config.ini 包含互相冲突的 uapc 渠道；请确认客户端或手动选择图形设置来源");
+                    throw new InvalidOperationException(L10n.T("Runtime.MobileSettings.ChannelConflict"));
                 result = next;
             }
             return result;
@@ -113,7 +115,7 @@ namespace StarRailUnlocker.Core
                         global |= property.Name.Equals("hkrpg_global", StringComparison.OrdinalIgnoreCase);
                     }
                     if (china && global)
-                        throw new InvalidOperationException("当前客户端 uapc 同时包含国服和国际服渠道；请确认客户端或手动选择图形设置来源");
+                        throw new InvalidOperationException(L10n.T("Runtime.MobileSettings.ChannelAmbiguous"));
                     if (china) return MobileGraphicsSource.China;
                     if (global) return MobileGraphicsSource.Global;
                 }
@@ -122,7 +124,7 @@ namespace StarRailUnlocker.Core
             {
                 // Unknown or malformed launcher metadata must not imply a CN client.
             }
-            throw new InvalidOperationException("当前客户端 config.ini 的 uapc 渠道无法识别；请确认客户端或手动选择图形设置来源");
+            throw new InvalidOperationException(L10n.T("Runtime.MobileSettings.ChannelUnknown"));
         }
 
         private static MobileGraphicsSource ReadAppIdentity(IReadOnlyList<string> lines)
@@ -143,7 +145,7 @@ namespace StarRailUnlocker.Core
                     identity[1].Equals("Star Rail", StringComparison.OrdinalIgnoreCase))
                     return MobileGraphicsSource.Global;
             }
-            throw new InvalidOperationException("当前客户端 app.info 的公司/产品信息无法识别；请确认客户端或手动选择图形设置来源");
+            throw new InvalidOperationException(L10n.T("Runtime.MobileSettings.AppIdentityUnknown"));
         }
 
         private static string Clean(string value) => (value ?? string.Empty).Trim().TrimStart('\uFEFF').Trim();
@@ -176,7 +178,7 @@ namespace StarRailUnlocker.Core
                     length += count;
                 }
                 if (length > limit)
-                    throw new InvalidOperationException($"当前客户端 {Path.GetFileName(path)} 元数据超过 {limit} 字节；请确认客户端或手动选择图形设置来源");
+                    throw new InvalidOperationException(L10n.T("Runtime.MobileSettings.MetadataTooLarge", Path.GetFileName(path), limit));
 
                 using var content = new MemoryStream(bytes, 0, length, writable: false);
                 using var reader = new StreamReader(content, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
