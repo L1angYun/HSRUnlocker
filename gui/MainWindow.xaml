@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="StarRailUnlocker.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="HSRUnlocker">
+
+    <Grid x:Name="LayoutRoot" SizeChanged="OnLayoutSizeChanged"
+          Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.Resources>
+            <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="ToolButtonStyle" TargetType="Button">
+                <Setter Property="Width" Value="36" />
+                <Setter Property="Height" Value="36" />
+                <Setter Property="Padding" Value="6" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="CornerRadius" Value="6" />
+            </Style>
+            <Style x:Key="CompactSwitchStyle" TargetType="ToggleSwitch">
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="OnContent" Value="" />
+                <Setter Property="OffContent" Value="" />
+                <Setter Property="HorizontalAlignment" Value="Right" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Padding="24,18,24,16" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Image Source="Assets/AppIcon.png" Width="40" Height="40"
+                   AutomationProperties.Name="HSRUnlocker" />
+            <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                <TextBlock Text="HSRUnlocker" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock x:Name="VersionText" Style="{StaticResource SecondaryTextStyle}" />
+            </StackPanel>
+            <Button Grid.Column="2" x:Name="SaveButton" Style="{StaticResource ToolButtonStyle}"
+                    Click="OnSaveClick" ToolTipService.ToolTip="保存配置"
+                    AutomationProperties.Name="保存配置">
+                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Save" /></Viewbox>
+            </Button>
+        </Grid>
+
+        <Border Grid.Row="1" Padding="24,12" BorderThickness="0,1,0,1"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                Background="{ThemeResource LayerFillColorAltBrush}">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <FontIcon x:Name="StatusIcon" Glyph="&#xE930;" FontSize="18" VerticalAlignment="Center"
+                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock x:Name="StateTitle" Text="就绪" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock x:Name="StatusText" Text="尚未附加游戏"
+                               Style="{StaticResource SecondaryTextStyle}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="2" x:Name="SettingsScroll" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel MaxWidth="1100" Padding="24,20,24,16" Spacing="24"
+                        HorizontalAlignment="Stretch">
+                <StackPanel Spacing="8">
+                    <TextBlock x:Name="PathLabel" Text="客户端" FontWeight="SemiBold" />
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="PathBox" IsReadOnly="True" MinWidth="0"
+                                 AutomationProperties.Name="游戏路径"
+                                 ToolTipService.ToolTip="{Binding Text, ElementName=PathBox}" />
+                        <Button Grid.Column="1" x:Name="BrowseButton" Click="OnBrowseClick"
+                                Style="{StaticResource ToolButtonStyle}"
+                                AutomationProperties.Name="选择 StarRail.exe"
+                                ToolTipService.ToolTip="选择 StarRail.exe">
+                            <Viewbox Width="16" Height="16"><SymbolIcon Symbol="OpenFile" /></Viewbox>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+
+                <Grid ColumnSpacing="0" RowSpacing="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="0.8*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel x:Name="DisplaySettings" Grid.ColumnSpan="3" Spacing="20">
+                        <TextBlock Text="画面与镜头" Style="{StaticResource SectionTitleStyle}" />
+                        <StackPanel Spacing="8">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="FpsLabel" Text="目标帧率" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="FPS" Style="{StaticResource SecondaryTextStyle}"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                            <Grid ColumnSpacing="14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="118" />
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="FpsSlider" ValueChanged="OnFpsSliderChanged"
+                                        AutomationProperties.Name="目标帧率滑块" />
+                                <NumberBox Grid.Column="1" x:Name="FpsBox" SpinButtonPlacementMode="Compact"
+                                           ValueChanged="OnFpsBoxChanged"
+                                           AutomationProperties.Name="目标帧率数值" />
+                            </Grid>
+                            <Grid x:Name="PresetPanel" ColumnSpacing="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                            </Grid>
+                            <TextBlock x:Name="FpsStateText" Style="{StaticResource SecondaryTextStyle}" />
+                        </StackPanel>
+                        <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                        <StackPanel Spacing="8">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="FovLabel" Text="FOV 增量" VerticalAlignment="Center" />
+                                <Button Grid.Column="1" x:Name="ResetFovButton" Click="OnResetFovClick"
+                                        Padding="4" Width="28" Height="28"
+                                        AutomationProperties.Name="重置 FOV" ToolTipService.ToolTip="重置 FOV 为 0">
+                                    <FontIcon Glyph="&#xE777;" FontSize="14" />
+                                </Button>
+                            </Grid>
+                            <Grid ColumnSpacing="14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="118" />
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="FovSlider" ValueChanged="OnFovSliderChanged"
+                                        AutomationProperties.Name="FOV 增量滑块" />
+                                <NumberBox Grid.Column="1" x:Name="FovBox" ValueChanged="OnFovBoxChanged"
+                                           SpinButtonPlacementMode="Compact"
+                                           AutomationProperties.Name="FOV 增量数值" />
+                            </Grid>
+                            <TextBlock x:Name="FovStateText" Style="{StaticResource SecondaryTextStyle}" />
+                        </StackPanel>
+                        <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="相机反虚化" />
+                                <TextBlock x:Name="AntiFadeStateText" Style="{StaticResource SecondaryTextStyle}" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" x:Name="AntiFadeToggle" Toggled="OnAntiFadeToggled"
+                                          Style="{StaticResource CompactSwitchStyle}"
+                                          AutomationProperties.Name="相机反虚化" />
+                        </Grid>
+                    </StackPanel>
+                    <Border x:Name="SettingsDivider" Grid.Column="1" Width="1" Visibility="Collapsed"
+                            Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                    <StackPanel x:Name="StartupSettings" Grid.Row="1" Grid.ColumnSpan="3"
+                                Margin="0,28,0,0" Spacing="20">
+                        <TextBlock Text="启动设置" Style="{StaticResource SectionTitleStyle}" />
+                        <StackPanel Spacing="12">
+                            <Grid ColumnSpacing="16" MinHeight="40">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="3" VerticalAlignment="Center">
+                                    <TextBlock Text="移动端 UI" />
+                                    <TextBlock Text="下次启动游戏" Style="{StaticResource SecondaryTextStyle}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" x:Name="MobileUiToggle" Toggled="OnMobileUiToggled"
+                                              Style="{StaticResource CompactSwitchStyle}"
+                                              AutomationProperties.Name="移动端 UI" />
+                            </Grid>
+                            <ComboBox x:Name="GraphicsSourceBox" Header="画质设置来源" HorizontalAlignment="Stretch"
+                                      IsEnabled="False" SelectionChanged="OnGraphicsSourceChanged"
+                                      AutomationProperties.Name="移动 UI 画质设置来源">
+                                <ComboBoxItem x:Name="GraphicsAutoItem" />
+                                <ComboBoxItem x:Name="GraphicsChinaItem" />
+                                <ComboBoxItem x:Name="GraphicsGlobalItem" />
+                            </ComboBox>
+                        </StackPanel>
+                        <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                        <Grid ColumnSpacing="16" MinHeight="40">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="随工具启动游戏" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" x:Name="AutoStartToggle"
+                                          Style="{StaticResource CompactSwitchStyle}"
+                                          AutomationProperties.Name="随工具启动游戏" />
+                        </Grid>
+                        <Grid ColumnSpacing="16" MinHeight="40">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="启动时收起到托盘" TextWrapping="Wrap" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" x:Name="StartMinimizedToggle"
+                                          Style="{StaticResource CompactSwitchStyle}"
+                                          AutomationProperties.Name="启动时收起到托盘" />
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+                <Expander x:Name="LogExpander" Header="运行日志" HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch" IsExpanded="False" Expanding="OnLogExpanding">
+                    <Grid RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="180" />
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                            <Button x:Name="CopyLogButton" Click="OnCopyLogClick" Style="{StaticResource ToolButtonStyle}"
+                                    AutomationProperties.Name="复制日志" ToolTipService.ToolTip="复制可见日志">
+                                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Copy" /></Viewbox>
+                            </Button>
+                            <Button x:Name="ClearLogButton" Click="OnClearLogClick" Style="{StaticResource ToolButtonStyle}"
+                                    AutomationProperties.Name="清空可见日志" ToolTipService.ToolTip="清空可见日志">
+                                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Clear" /></Viewbox>
+                            </Button>
+                        </StackPanel>
+                        <ScrollViewer Grid.Row="1" x:Name="LogScroll" VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="LogText" FontFamily="Consolas" FontSize="12"
+                                       TextWrapping="Wrap" IsTextSelectionEnabled="True"
+                                       AutomationProperties.Name="运行日志内容" />
+                        </ScrollViewer>
+                    </Grid>
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
+        <Border Grid.Row="3" BorderThickness="0,1,0,0" Padding="24,14"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                Background="{ThemeResource LayerFillColorAltBrush}">
+            <Grid MaxWidth="1052" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="StartButton" Click="OnStartClick" HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="启动游戏"
+                        Style="{StaticResource AccentButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Play" /></Viewbox>
+                        <TextBlock Text="启动游戏" />
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="1" x:Name="AttachButton" Click="OnAttachClick" HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="附加游戏">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE71B;" FontSize="16" />
+                        <TextBlock Text="附加游戏" />
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="2" x:Name="StopButton" Click="OnStopClick" IsEnabled="False"
+                        Style="{StaticResource ToolButtonStyle}"
+                        AutomationProperties.Name="停止并还原" ToolTipService.ToolTip="停止并还原帧率、FOV 和反虚化">
+                    <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Stop" /></Viewbox>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

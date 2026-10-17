@@ -1,0 +1,39 @@
+# 构建输出
+[Bb]in/
+[Oo]bj/
+artifacts/
+*.user
+*.suo
+.vs/
+
+# 本机与私有内容：绝不提交
+settings.json
+hsr_config.json
+*.log
+*.dmp
+*.zip
+*.7z
+*.nupkg
+.packages/
+packages/
+*.pfx
+*.snk
+
+# Runtime binaries, client assets, and private verification material.
+*.dll
+*.exe
+*.pdb
+*.sys
+*.asi
+*.assets
+*.bundle
+*.unity3d
+*.resource
+*.resS
+*.pak
+/verification/
+/research/
+/private/
+/private-backups/
+/exports/
+/dumps/

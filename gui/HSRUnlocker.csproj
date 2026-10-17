@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.22621.0</TargetPlatformMinVersion>
+    <RootNamespace>StarRailUnlocker</RootNamespace>
+    <AssemblyName>HSRUnlocker</AssemblyName>
+    <Product>HSRUnlocker</Product>
+    <Version>0.1.1-beta</Version>
+    <AssemblyVersion>0.1.1.0</AssemblyVersion>
+    <FileVersion>0.1.1.0</FileVersion>
+    <InformationalVersion>0.1.1-beta</InformationalVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4654" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\AppIcon.png;Assets\AppIcon.ico" />
+    <Content Include="Assets\AppIcon.png;Assets\AppIcon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!--
+    `dotnet publish` was dropping the compiled XAML resources (App.xbf, MainWindow.xbf,
+    *.pri), producing an app that died at startup with "XAML parsing failed" even though
+    the bin output ran fine.  They already flow through the publish pipeline as items, so
+    the fix is to mark them for the publish directory rather than adding new items
+    (adding items caused NETSDK1152 duplicate-output errors).
+  -->
+  <Target Name="CopyCompiledXamlToPublish"
+          AfterTargets="MarkupCompilePass2;GeneratePriFile"
+          BeforeTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <None Update="@(None)" Condition="'%(Extension)' == '.xbf' or '%(Extension)' == '.pri'">
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </None>
+      <Content Update="@(Content)" Condition="'%(Extension)' == '.xbf' or '%(Extension)' == '.pri'">
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <_ResourceToPublish Include="@(None);@(Content)"
+                          Condition="'%(Extension)' == '.xbf' or '%(Extension)' == '.pri'" />
+      <ResolvedFileToPublish Include="@(_ResourceToPublish)"
+                             Condition="'%(Extension)' == '.xbf' or '%(Extension)' == '.pri'">
+        <RelativePath>%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+
+</Project>
