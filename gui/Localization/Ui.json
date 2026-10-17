@@ -533,6 +533,30 @@
     "ja-JP": "後で設定",
     "ko-KR": "나중에 설정"
   },
+  "Ui.DetectedClients": {
+    "zh-CN": "检测到的游戏客户端",
+    "en-US": "Detected game clients",
+    "ja-JP": "検出されたゲームクライアント",
+    "ko-KR": "감지된 게임 클라이언트"
+  },
+  "Ui.MultipleClients": {
+    "zh-CN": "检测到多个游戏路径，请选择要使用的客户端。",
+    "en-US": "Multiple game paths were found. Choose the client to use.",
+    "ja-JP": "複数のゲームパスが見つかりました。使用するクライアントを選択してください。",
+    "ko-KR": "여러 게임 경로를 찾았습니다. 사용할 클라이언트를 선택하세요."
+  },
+  "Ui.UseSelectedClient": {
+    "zh-CN": "使用所选",
+    "en-US": "Use selected",
+    "ja-JP": "選択",
+    "ko-KR": "선택"
+  },
+  "Ui.Browse": {
+    "zh-CN": "浏览…",
+    "en-US": "Browse…",
+    "ja-JP": "参照…",
+    "ko-KR": "찾아보기…"
+  },
   "Ui.RunningGame": {
     "zh-CN": "StarRail.exe · PID {0}",
     "en-US": "StarRail.exe · PID {0}",
@@ -587,23 +611,17 @@
     "ja-JP": "ウィンドウをシステムトレイに格納しました。アイコンをダブルクリックすると再表示します。",
     "ko-KR": "창을 시스템 트레이로 최소화했습니다. 아이콘을 두 번 클릭하면 다시 표시됩니다."
   },
-  "Ui.LogDetectedGame": {
-    "zh-CN": "自动检测到正在运行的游戏: PID {0}, {1}",
-    "en-US": "Automatically detected a running game: PID {0}, {1}",
-    "ja-JP": "実行中のゲームを自動検出しました: PID {0}, {1}",
-    "ko-KR": "실행 중인 게임을 자동 감지했습니다: PID {0}, {1}"
+  "Ui.LogInstalledGame": {
+    "zh-CN": "自动检测到已安装的游戏: {0}",
+    "en-US": "Automatically detected an installed game: {0}",
+    "ja-JP": "インストール済みのゲームを自動検出しました: {0}",
+    "ko-KR": "설치된 게임을 자동 감지했습니다: {0}"
   },
   "Ui.LogAttachGame": {
     "zh-CN": "附加到游戏: PID {0}, {1}",
     "en-US": "Attaching to game: PID {0}, {1}",
     "ja-JP": "ゲームに接続します: PID {0}, {1}",
     "ko-KR": "게임에 연결합니다: PID {0}, {1}"
-  },
-  "Ui.LogMultipleGames": {
-    "zh-CN": "检测到多个游戏进程，可在附加时选择目标",
-    "en-US": "Multiple game processes detected. Choose a target when attaching.",
-    "ja-JP": "複数のゲームプロセスを検出しました。接続時に対象を選択できます。",
-    "ko-KR": "여러 게임 프로세스를 감지했습니다. 연결할 때 대상을 선택하세요."
   },
   "Ui.LogNoAutoDetectedGame": {
     "zh-CN": "未自动检测到游戏，请选择 StarRail.exe",

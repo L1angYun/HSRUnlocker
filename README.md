@@ -20,10 +20,10 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 | FOV 调整 | 视野增量范围为 −60° 至 +60°，支持滑块、数值输入和一键归零。 |
 | 移动端 UI | 启动游戏时启用触控界面，可沿用客户端已保存的画质设置。 |
 | 相机反虚化（实验性） | 关闭相机靠近或俯仰视角引起的角色淡出，支持运行时开关。 |
-| 启动与附加 | 从工具启动游戏，或附加到已运行的游戏进程。 |
+| 启动与附加 | 首次启动自动检测已安装的客户端；从工具启动游戏，或附加到已运行的游戏进程。 |
 | 托盘与配置 | 最小化到托盘、单实例、自动保存设置，可选择随工具启动游戏、随游戏退出工具。 |
 | 多语言 | 简体中文、English、日本語、한국어；默认跟随系统，可手动切换并保存。 |
-| 版本更新 | 启动时或手动检查 GitHub 正式发布版本，支持下载安装包、校验、升级并重启。自动检查可关闭。 |
+| 版本更新 | 启动时或手动检查 GitHub 正式发布版本，发现新版弹窗提示，支持下载安装包、校验、升级并重启。自动检查可关闭。 |
 | 安装与卸载 | 安装程序提供安装目录选择、快捷方式、升级及卸载。 |
 
 程序使用动态寻址，游戏更新后仍可能需要适配。已验证的客户端与功能范围见[验证记录](docs/VALIDATION.md)。
@@ -37,7 +37,7 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 ### 使用方法
 
 1. 从 Releases 下载 `HSRUnlocker-版本号-win-x64-Setup.exe`，安装后使用快捷方式运行。
-2. 选择游戏客户端的 `StarRail.exe`。
+2. 首次启动会自动查找已安装的 `StarRail.exe`。找到一个时自动保存；多个时选择客户端；未找到时手动选择。
 3. 设置目标帧率、FOV 和所需开关。
 4. 点击「启动游戏」，或用「附加游戏」连接已运行的客户端。
 5. 点击「停止并还原」恢复帧率、FOV 与反虚化修改。
@@ -48,9 +48,13 @@ FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双�
 
 「游戏退出时关闭工具」默认开启；关闭后可在同一窗口再次启动或附加游戏。正常退出工具时仍会先完成还原。
 
-「版本更新」可手动检查新版，也可关闭启动时的自动检查。发现新版后点击「下载并更新」，工具会下载并校验安装包，完成还原、退出后安装新版并重启。下载可取消；下载或校验失败不会替换当前程序。
+「版本更新」可手动检查新版，也可关闭启动时的自动检查。发现新版会弹窗，可立即更新、查看发布说明或稍后处理；同次运行对同一版本只提示一次。在托盘中时等恢复窗口后提示。工具会下载并校验安装包，完成还原、退出后安装新版并重启。下载可取消；下载或校验失败不会替换当前程序。
+
+自动查找读取启动器和 Windows 安装记录，也会检查正在运行的客户端，不按文件夹名称判断版本。手动移动游戏后若安装记录失效，可直接选择实际的 `StarRail.exe`。
 
 配置和日志保存在 `%LOCALAPPDATA%\HSRUnlocker\`，升级与卸载保留这些文件。升级或卸载前请正常退出工具。
+
+安装目录中的 DLL、XAML 和语言资源是随包附带的 .NET 与 WinUI 运行组件。请保留完整目录，通过快捷方式启动即可。
 
 「界面语言」位于启动设置中，切换后立即更新界面与托盘。已经产生的日志保留原语言，新的提示使用当前语言。
 
@@ -101,10 +105,10 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 | FOV adjustment | Apply an offset from −60° to +60° using the slider or numeric input, with a reset button. |
 | Mobile UI | Enable the touch interface when launching the game and reuse saved graphics settings. |
 | Camera anti-fade (experimental) | Disable character fading caused by camera proximity or elevation; can be toggled while playing. |
-| Launch and attach | Launch the game through the tool or attach to an existing game process. |
+| Launch and attach | Detect installed clients on first launch, launch the game through the tool, or attach to an existing game process. |
 | Tray and settings | Minimize to tray, single-instance behavior, saved preferences, optional game launch with the tool, and optional tool exit with the game. |
 | Languages | Simplified Chinese, English, Japanese, and Korean. Follows the system by default, with a saved manual choice. |
-| Updates | Check stable GitHub releases at startup or manually, download and verify the installer, then upgrade and restart. Startup checks can be disabled. |
+| Updates | Check stable GitHub releases at startup or manually, show a new-version prompt, download and verify the installer, then upgrade and restart. Startup checks can be disabled. |
 | Installation | An installer with a selectable directory, shortcuts, upgrades, and uninstallation. |
 
 Addresses are resolved dynamically, but game updates may still require compatibility changes. See the [validation record](docs/VALIDATION.md) for tested clients and feature coverage.
@@ -118,7 +122,7 @@ Addresses are resolved dynamically, but game updates may still require compatibi
 ### Usage
 
 1. Download `HSRUnlocker-version-win-x64-Setup.exe` from Releases, install it, and use its shortcut.
-2. Select the game client's `StarRail.exe`.
+2. The first launch searches for installed `StarRail.exe` clients. A single match is saved automatically; choose between multiple matches or browse manually if none are found.
 3. Set the target FPS, FOV offset, and desired options.
 4. Click Launch game, or Attach to game for a running client.
 5. Click Stop and restore to restore FPS, FOV, and anti-fade changes.
@@ -129,9 +133,13 @@ FOV changes apply on the next camera update. Minimizing moves the tool to the tr
 
 Close tool when the game exits is enabled by default. Turn it off to launch or attach again from the same window. Normal tool shutdown still completes restoration before closing.
 
-The Updates section offers a manual check and an optional startup check. Click Download and update when a newer release is available. The tool downloads and verifies the installer, finishes restoration, exits, installs the update, and restarts. Downloads can be cancelled; download or verification failures leave the current application in place.
+The Updates section offers a manual check and an optional startup check. A newer release opens a prompt to update, view release notes, or continue later, once per version in the same run. While in the tray, the prompt waits until the window is restored. The tool downloads and verifies the installer, finishes restoration, exits, installs the update, and restarts. Downloads can be cancelled; download or verification failures leave the current application in place.
+
+Automatic discovery reads launcher and Windows installation records and checks running clients, without inferring versions from folder names. If moving a game leaves stale installation records, browse to its actual `StarRail.exe`.
 
 Settings and logs are stored in `%LOCALAPPDATA%\HSRUnlocker\` and retained during upgrades and uninstallation. Close the tool normally before upgrading or uninstalling.
+
+The DLLs, compiled XAML, and language resources in the installation directory are bundled .NET and WinUI runtime components. Keep the directory intact and launch the tool using its shortcut.
 
 The language selector is in the startup settings. Changes immediately update the interface and tray. Existing log entries retain their original language; new messages use the current selection.
 

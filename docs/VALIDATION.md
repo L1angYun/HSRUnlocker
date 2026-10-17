@@ -1,8 +1,8 @@
 # 验证范围 / Validation Scope
 
-更新日期：2026-10-17。本页记录当前功能的验证范围，不将构建成功、合成测试通过与游戏内效果视为同一个结论，也不保证所有场景均适用。
+更新日期：2026-10-18。本页记录当前功能的验证范围，不将构建成功、合成测试通过与游戏内效果视为同一个结论，也不保证所有场景均适用。
 
-Updated October 17, 2026. Build results, synthetic tests, and observed in-game behavior are separate conclusions. These checks do not establish compatibility with every scene or environment.
+Updated October 18, 2026. Build results, synthetic tests, and observed in-game behavior are separate conclusions. These checks do not establish compatibility with every scene or environment.
 
 ## 功能验证 / Functional Checks
 
@@ -37,6 +37,10 @@ The native WinUI 3 interface was checked on Windows 11 at 150% display scaling, 
 
 The 1.1.2 numeric-control fix was checked in a separate native WinUI window that reads this version's FPS/FOV row XAML and uses the same WinUI dependency and MiSans font. At 150% scaling, the old floating spin controls remained after scrolling. With inline buttons, both scroll checks had no floating overlay, all four native stepping checks passed, and numeric and negative-decimal display checks passed at row widths of 300 and 540 DIP. These checks did not launch the application or a game or read live settings.
 
+1.2.0 的首次设置与更新弹窗使用独立原生 WinUI 窗口，直接链接本版本的弹窗代码、提示队列、语言资源、App.xaml 和 MiSans。四种语言、520/980 DIP 窗口宽度下的 32 张渲染图及 508 项原生断言通过，覆盖多客户端选择、按钮完整显示、字体、文本边界、稍后处理、重复版本抑制，以及设置、选文件和托盘状态下的更新提示延后。安装、发布说明和文件选择使用记录调用的替身；未实际下载安装、打开浏览器、修改配置或启动正式应用。
+
+The 1.2.0 first-run and update dialogs were checked in a separate native WinUI window linking this revision's dialog code, prompt queue, localization, App.xaml, and MiSans. All 508 native assertions passed, with 32 rendered images across four languages and 520/980 DIP window widths. Checks covered client selection, complete button labels, fonts, text bounds, dismissal, same-version suppression, and deferral during setup, file picking, and tray hiding. Installer, release-note, and picker actions used recording substitutes; no real download, installation, browser action, configuration write, or application launch occurred.
+
 ## 安装与更新 / Installation and Updates
 
 1.1.0 自包含发布及 Inno Setup 安装程序编译通过。安装包解出 **551 个应用文件**，逐文件 SHA-256 与发布目录一致，无缺失、多余或 PDB 文件；四种安装语言、编译 XAML、.NET 与 Windows App SDK 运行组件、MiSans 和许可通知均已检查。
@@ -57,9 +61,9 @@ This run did not execute the installer or update helper, trigger UAC, read live 
 
 ## 合成测试 / Synthetic Tests
 
-2026-10-17 的 1.1.2 测试运行通过 **508 项检查**。具体数量以对应源码版本的运行输出为准。
+2026-10-18 的 1.2.0 测试运行通过 **540 项检查**。具体数量以对应源码版本的运行输出为准。
 
-The October 17, 2026 run for 1.1.2 passed **508 checks**. The output for the corresponding source revision is authoritative.
+The October 18, 2026 run for 1.2.0 passed **540 checks**. The output for the corresponding source revision is authoritative.
 
 `tests/HSRUnlocker.Tests` 使用合成 PE、固定测试数据、临时目录和自有内存，不读取已安装游戏、真实设置或注册表，不联网，也不启动游戏。原生调用与展开测试会执行本项目自行编写的合成机器码，并使用一个有界的同程序集测试子进程。
 
@@ -72,6 +76,10 @@ Coverage includes parsing and scanning, dynamic resolution, rejection of invalid
 1.1.0 另覆盖旧配置默认值、新开关的保存与克隆、正式版本比较、固定仓库与安装包选择、响应大小和超时边界、下载进度、损坏或截断数据拒绝、取消与占用文件清理，以及安装保护的原生句柄生命周期。
 
 Additional 1.1.0 coverage includes legacy preference defaults, persistence and cloning of the new switches, stable version ordering, fixed repository and installer selection, response size and timeout bounds, download progress, rejection of corrupt or truncated data, cancellation and locked-file cleanup, and native handle lifetime for the installer guard.
+
+1.2.0 新增 20 项安装路径检测和 12 项更新提示队列检查。安装检测使用自编注册表与文件读取数据，覆盖启动器记录、旧安装信息、自定义与多语言目录、重复和失效路径、访问失败及读取上限，不读取真实安装记录。首次启动的完整实机发现流程未在正式应用中运行。
+
+Version 1.2.0 adds 20 installation-discovery and 12 update-prompt queue checks. Discovery uses authored registry and file-read data for launcher records, legacy installations, custom multilingual directories, duplicate and stale paths, access failures, and read limits, without reading live installation records. Complete first-run discovery was not executed in the production application.
 
 `tests/Packaging.Tests.ps1` 的 **20 项打包检查**使用临时自编 NuGet 包，覆盖许可与通知原样复制、框架下载依赖、中文路径、隐私清单和越界路径拒绝，不读取真实游戏或配置。
 

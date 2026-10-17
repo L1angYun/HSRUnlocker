@@ -61,7 +61,7 @@ namespace StarRailUnlocker
             if (_closed || StateTitle == null) return;
             var session = _session;
             bool running = session?.IsRunning == true;
-            bool blocked = _closePending || _switchingSession;
+            bool blocked = _closePending || _switchingSession || _setupInProgress;
             bool restoring = running && (_stoppingSession ||
                 session.State is SessionState.Failed or SessionState.GameExited);
             if (!running) _stoppingSession = false;

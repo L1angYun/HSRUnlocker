@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using StarRailUnlocker.Core;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -28,6 +29,7 @@ namespace StarRailUnlocker
         private bool _started, _closed, _hidingToTray, _inTray;
         private bool _closePending, _closeCompleted, _switchingSession, _stoppingSession;
         private bool _startupComplete, _setupInProgress, _dialogOpen, _pickingGame;
+        private IReadOnlyList<string> _detectedGamePaths = Array.Empty<string>();
         private XamlRoot _dialogRoot;
         private Action<SessionState, string> _sessionHandler;
         private DispatcherTimer _exitTimer;
@@ -83,8 +85,6 @@ namespace StarRailUnlocker
                 CheckForUpdatesToggle.IsOn = _config.CheckForUpdates;
 
                 Log(L10n.T("Ui.LogConfigPath", UnlockConfig.DefaultPath));
-                if (string.IsNullOrWhiteSpace(_config.ProcessPath))
-                    TryAutoDetectGame();
                 ConfigureWindow();
                 RefreshPresentation();
             }
@@ -110,6 +110,11 @@ namespace StarRailUnlocker
                 args.Cancel = true;
                 BeginCloseAsync();
             };
+            Activated += (_, args) =>
+            {
+                if (args.WindowActivationState != WindowActivationState.Deactivated)
+                    QueueUpdatePrompt();
+            };
             Closed += (_, __) =>
             {
                 _closed = true;
@@ -134,6 +139,7 @@ namespace StarRailUnlocker
                     if (_closed || _closePending) return;
                     _inTray = false;
                     Activate();
+                    QueueUpdatePrompt();
                 }, RequestStop, BeginCloseAsync);
                 if (!_tray.Add()) Log(L10n.T("Ui.LogTrayInitializationFailed"));
             }
@@ -145,6 +151,7 @@ namespace StarRailUnlocker
             _refreshTimer.Tick += (_, __) => RefreshPresentation();
             _refreshTimer.Start();
             if (_config.CheckForUpdates) _ = CheckUpdatesAsync();
+            RefreshPresentation();
             var rootElement = (FrameworkElement)Content;
             if (rootElement.IsLoaded)
             {
@@ -287,22 +294,6 @@ namespace StarRailUnlocker
         }
 
         // ------------------------------------------------------------ game discovery
-        private void TryAutoDetectGame()
-        {
-            var games = FindRunningGames();
-            if (games.Count == 1)
-            {
-                SetDetectedGame(games[0].Pid, games[0].Path, "Ui.LogDetectedGame");
-                return;
-            }
-            if (games.Count > 1)
-            {
-                Log(L10n.T("Ui.LogMultipleGames"));
-                return;
-            }
-            Log(L10n.T("Ui.LogNoAutoDetectedGame"));
-        }
-
         /// <summary>Enumerates actual executable paths without inferring a channel from directory names.</summary>
         private List<RunningGameCandidate> FindRunningGames()
         {
@@ -490,6 +481,7 @@ namespace StarRailUnlocker
             finally
             {
                 _pickingGame = false;
+                QueueUpdatePrompt();
             }
         }
 
@@ -498,6 +490,24 @@ namespace StarRailUnlocker
             if (_closed || _closePending || _startupComplete) return;
             try
             {
+                if (!IsValidGamePath(_config.ProcessPath))
+                {
+                    var installed = await System.Threading.Tasks.Task.Run(GameInstallationDiscovery.FindInstalled);
+                    if (_closed || _closePending) return;
+                    var paths = new SortedSet<string>(installed, StringComparer.OrdinalIgnoreCase);
+                    foreach (var game in FindRunningGames()) paths.Add(game.Path);
+                    _detectedGamePaths = paths.ToArray();
+                    if (_detectedGamePaths.Count == 1 && !IsValidGamePath(_config.ProcessPath))
+                    {
+                        string detected = _detectedGamePaths[0];
+                        if (IsValidGamePath(detected))
+                        {
+                            PathBox.Text = _config.ProcessPath = detected;
+                            Log(L10n.T("Ui.LogInstalledGame", detected));
+                            if (!_config.Save()) Log(L10n.T("Ui.LogConfigSaveFailed", UnlockConfig.LogPath));
+                        }
+                    }
+                }
                 if (!IsValidGamePath(_config.ProcessPath)) await ShowSetupAsync();
                 if (_closed || _closePending) return;
                 _setupInProgress = false;
@@ -507,35 +517,15 @@ namespace StarRailUnlocker
                     else Log(L10n.T("Ui.LogAutoStartNeedsPath"));
                 }
                 if (_config.StartMinimized) HideToTray(force: true);
-                _startupComplete = true;
             }
             catch (Exception ex) { App.WriteLog("Startup dialogs", ex); }
-            finally { _setupInProgress = false; }
-        }
-
-        private async System.Threading.Tasks.Task ShowSetupAsync()
-        {
-            if (_closed || _closePending || _dialogOpen || _dialogRoot == null) return;
-            _setupInProgress = true;
-            _dialogOpen = true;
-            try
+            finally
             {
-                var dialog = new ContentDialog
-                {
-                    XamlRoot = _dialogRoot,
-                    Title = L10n.T("Ui.SetupTitle"),
-                    Content = new TextBlock { Text = L10n.T("Ui.SetupContent"), TextWrapping = TextWrapping.Wrap },
-                    PrimaryButtonText = L10n.T("Ui.ChooseExecutable"),
-                    CloseButtonText = L10n.T("Ui.SetupLater"),
-                    DefaultButton = ContentDialogButton.Primary,
-                };
-                var result = await dialog.ShowAsync();
-                if (_closed || _closePending) return;
-                if (result == ContentDialogResult.Primary)
-                    await ChooseGameAsync();
+                _setupInProgress = false;
+                _startupComplete = true;
+                RefreshPresentation();
+                QueueUpdatePrompt();
             }
-            catch (Exception ex) { App.WriteLog("First-run setup", ex); }
-            finally { _dialogOpen = false; _setupInProgress = false; }
         }
 
         private void OnSaveClick(object sender, RoutedEventArgs e)
@@ -608,7 +598,7 @@ namespace StarRailUnlocker
                     ? games[list.SelectedIndex] : null;
             }
             catch (Exception ex) { Log(L10n.T("Ui.LogProcessPickerFailed", ex.Message)); return null; }
-            finally { _dialogOpen = false; }
+            finally { _dialogOpen = false; QueueUpdatePrompt(); }
         }
 
         private void OnStopClick(object sender, RoutedEventArgs e) => RequestStop();

@@ -25,6 +25,7 @@ namespace StarRailUnlocker
         private CancellationTokenSource _downloadCancellation;
         private PreparedUpdateInstall _preparedUpdate;
         private UpdateCheckResult _updateResult;
+        private readonly UpdatePromptQueue _updatePrompts = new();
         private string _updateStatusKey = "Updates.NotChecked";
         private bool _checkingForUpdates, _openingRelease, _downloadingUpdate;
         private double _updateProgress;
@@ -50,6 +51,7 @@ namespace StarRailUnlocker
                 var result = await _updateChecker.CheckAsync(AppVersion, token);
                 if (_closed || _closePending) return;
                 _updateResult = result;
+                _updatePrompts.Offer(result);
                 _updateStatusKey = result.IsNewer
                     ? result.Installer != null ? "Updates.Available" : "Updates.NoInstaller"
                     : "Updates.Current";
@@ -77,10 +79,13 @@ namespace StarRailUnlocker
             {
                 _checkingForUpdates = false;
                 if (!_closed && !_closePending) RefreshUpdatePresentation();
+                QueueUpdatePrompt();
             }
         }
 
-        private async void OnApplyUpdateClick(object sender, RoutedEventArgs e)
+        private async void OnApplyUpdateClick(object sender, RoutedEventArgs e) => await ApplyUpdateAsync();
+
+        private async Task ApplyUpdateAsync()
         {
             if (_closed || _closePending || _downloadingUpdate || _checkingForUpdates ||
                 _updateResult?.IsNewer != true || _updateResult.Installer == null) return;
@@ -142,7 +147,9 @@ namespace StarRailUnlocker
 
         private void OnCancelUpdateClick(object sender, RoutedEventArgs e) => _downloadCancellation?.Cancel();
 
-        private async void OnOpenReleaseClick(object sender, RoutedEventArgs e)
+        private async void OnOpenReleaseClick(object sender, RoutedEventArgs e) => await OpenReleaseAsync();
+
+        private async Task OpenReleaseAsync()
         {
             if (_closed || _closePending || _openingRelease || _downloadingUpdate ||
                 _updateResult?.IsNewer != true) return;

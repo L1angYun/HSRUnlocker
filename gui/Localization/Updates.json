@@ -137,6 +137,36 @@
     "ja-JP": "新バージョン {0} が利用できます。",
     "ko-KR": "새 버전 {0}을(를) 사용할 수 있습니다."
   },
+  "Updates.PromptTitle": {
+    "zh-CN": "发现新版本 {0}",
+    "en-US": "Version {0} is available",
+    "ja-JP": "新バージョン {0} が利用できます",
+    "ko-KR": "새 버전 {0} 사용 가능"
+  },
+  "Updates.PromptContent": {
+    "zh-CN": "HSRUnlocker {0} 已发布。现在下载并更新吗？",
+    "en-US": "HSRUnlocker {0} has been released. Download and update now?",
+    "ja-JP": "HSRUnlocker {0} がリリースされました。今すぐダウンロードして更新しますか？",
+    "ko-KR": "HSRUnlocker {0}이(가) 출시되었습니다. 지금 다운로드하여 업데이트할까요?"
+  },
+  "Updates.Later": {
+    "zh-CN": "稍后",
+    "en-US": "Later",
+    "ja-JP": "後で",
+    "ko-KR": "나중에"
+  },
+  "Updates.PromptInstall": {
+    "zh-CN": "立即更新",
+    "en-US": "Update now",
+    "ja-JP": "今すぐ更新",
+    "ko-KR": "지금 업데이트"
+  },
+  "Updates.PromptNotes": {
+    "zh-CN": "发布说明",
+    "en-US": "Release notes",
+    "ja-JP": "更新内容",
+    "ko-KR": "업데이트 내용"
+  },
   "Updates.Current": {
     "zh-CN": "当前版本 {0} 已是最新。",
     "en-US": "Your version {0} is up to date.",
