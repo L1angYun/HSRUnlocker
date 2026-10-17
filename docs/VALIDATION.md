@@ -47,6 +47,10 @@ The 1.2.0 first-run and update dialogs were checked in a separate native WinUI w
 
 The 1.1.0 self-contained publish and Inno Setup installer compiled successfully. All **551 application files** extracted from the installer matched the publish directory by SHA-256, with no missing, extra, or PDB files. Checks covered the four installer languages, compiled XAML, .NET and Windows App SDK runtime components, MiSans, and license notices.
 
+1.2.1 改为依赖共享运行时的发布方式，应用目录包含 **83 个文件**，其中根目录 53 个文件；不再随应用捆绑 .NET 和 Windows App Runtime。安装程序检测已有兼容运行时，缺少时使用固定微软 HTTPS 地址下载，验证 SHA-256 后安装并重新检测，依赖就绪后才替换应用文件。旧版清理使用 468 个明确文件路径，要求相同 AppId、安装目录和应用标识，并拒绝重解析路径；不递归删除目录或卸载共享运行时。
+
+Version 1.2.1 uses a framework-dependent publish with **83 application files**, including 53 at the root, without bundling .NET or Windows App Runtime. Setup detects compatible installed runtimes and downloads missing prerequisites from pinned Microsoft HTTPS URLs, verifies SHA-256, installs, and rechecks them before replacing application files. Legacy cleanup uses 468 explicit file paths, requires matching AppId, installation directory, and application markers, and rejects reparse paths. It does not recursively delete directories or uninstall shared runtimes.
+
 更新检查、下载、长度与 SHA-256 校验、取消、失败清理和交接命令边界使用自编 HTTP 响应与临时文件验证。安装保护使用本测试自建的随机全局互斥体，验证可见性、多个持有者及最后关闭后的释放；未使用真实应用的互斥体。
 
 Update checks, downloads, length and SHA-256 verification, cancellation, failure cleanup, and handoff command boundaries used authored HTTP responses and temporary files. Installer-guard checks used an owned, randomly named global mutex to verify visibility, multiple holders, and release after the final close; they did not use the application's actual mutex.
@@ -85,13 +89,20 @@ Version 1.2.0 adds 20 installation-discovery and 12 update-prompt queue checks. 
 
 The **20 packaging checks** in `tests/Packaging.Tests.ps1` use temporary authored NuGet packages. They cover verbatim license and notice copying, framework download dependencies, Unicode paths, manifest privacy, and rejection of unsafe paths, without reading a game or live settings.
 
+1.2.1 的 **39 项安装元数据检查**覆盖微软地址与哈希、SDK 版本匹配、依赖式发布、x64 引导 DLL、旧版文件清单及越界路径拒绝。另通过 **33 项运行时流程**和 **80 项升级清理**原生 Pascal 检查，直接包含安装器中的实际策略代码，使用自编的检测、下载、执行、注册表和文件属性替身。覆盖取消、校验失败、进程失败、安装后重检、重启及重试保护、安装归属和路径保护；不执行生产安装包或微软运行时安装器，不读取真实安装注册表。
+
+Version 1.2.1 adds **39 installer metadata checks** for Microsoft URLs and hashes, SDK identity, framework-dependent publishing, x64 bootstrap DLLs, the legacy inventory, and unsafe paths. **33 runtime-workflow** and **80 upgrade-cleanup** native Pascal checks include the installer's actual policy code with authored detection, download, execution, registry, and file-attribute substitutes. Coverage includes cancellation, integrity failures, process failures, post-install detection, restart and retry gates, ownership, and path protection. These checks do not execute the production installer or Microsoft runtime installers or read live installation registry data.
+
 ## 本地复现 / Local Checks
 
 ```powershell
 dotnet run --project .\tests\HSRUnlocker.Tests\HSRUnlocker.Tests.csproj -c Release
 powershell -NoProfile -File .\tests\Packaging.Tests.ps1
+powershell -NoProfile -File .\tests\InstallerMetadata.Tests.ps1
 powershell -NoProfile -File .\build.ps1 -OutDir .\artifacts\win-x64
 # Inno Setup 7.1+
+powershell -NoProfile -File .\tests\Installer.Tests.ps1
+powershell -NoProfile -File .\tests\LegacyCleanup.Tests.ps1
 powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 ```
 

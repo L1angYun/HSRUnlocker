@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "dotnet": {
+    "version": "8.0.32",
+    "minimumVersion": "8.0.0",
+    "architecture": "x64",
+    "url": "https://builds.dotnet.microsoft.com/dotnet/Runtime/8.0.32/dotnet-runtime-8.0.32-win-x64.exe",
+    "sha256": "4fbc22376fa60c8255946920fe0d1b93ee526b6956f8b9c9ce6743cf67e08b43",
+    "bytes": 28622264
+  },
+  "windowsAppRuntime": {
+    "version": "2.5.1",
+    "architecture": "x64",
+    "url": "https://download.microsoft.com/download/de664922-b046-432f-bb2a-54aec3c5f1f6/WindowsAppRuntimeInstall-x64.exe",
+    "sha256": "931a421e8dc3e6e67724806cb67fecdbb88dfe323f0170842eb4a4b4b149f1e2",
+    "bytes": 120199480
+  }
+}

@@ -7,6 +7,13 @@
 #ifndef PublishDir
   #error Pass PublishDir from build-installer.ps1.
 #endif
+#ifndef LegacyRuntimeDeleteScript
+  #error Pass LegacyRuntimeDeleteScript from build-installer.ps1.
+#endif
+
+#include LegacyRuntimeDeleteScript
+#include "LegacyRuntimeCleanup.iss"
+#include "RuntimeDependencies.iss"
 
 [Setup]
 AppId={{928328BA-7DAB-4F7F-9E3D-CC87061C2460}
@@ -24,6 +31,7 @@ DisableDirPage=no
 DisableProgramGroupPage=yes
 DisableWelcomePage=no
 PrivilegesRequired=admin
+SetupArchitecture=x64
 ArchitecturesAllowed=x64os
 ArchitecturesInstallIn64BitMode=x64os
 MinVersion=10.0.22621
@@ -64,5 +72,5 @@ Filename: "{app}\HSRUnlocker.exe"; WorkingDir: "{app}"; Flags: nowait runasorigi
 [Code]
 function IsUpdaterInstall: Boolean;
 begin
-  Result := ExpandConstant('{param:HSRUPDATE|0}') = '1';
+  Result := (ExpandConstant('{param:HSRUPDATE|0}') = '1') and RuntimeCanLaunchApplication;
 end;

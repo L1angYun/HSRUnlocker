@@ -31,7 +31,7 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 ### 运行要求
 
 - Windows 11 22H2（22621）或更高版本，x64。
-- 官方安装包包含 .NET 8 x64 和 Windows App SDK 运行组件，无需另行安装。
+- 安装程序会检测 .NET 8 x64 和 Windows App Runtime，缺少时联网下载并安装微软官方组件；已有兼容版本时直接复用。
 - 管理员权限。
 
 ### 使用方法
@@ -54,7 +54,7 @@ FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双�
 
 配置和日志保存在 `%LOCALAPPDATA%\HSRUnlocker\`，升级与卸载保留这些文件。升级或卸载前请正常退出工具。
 
-安装目录中的 DLL、XAML 和语言资源是随包附带的 .NET 与 WinUI 运行组件。请保留完整目录，通过快捷方式启动即可。
+安装目录保留应用所需的 DLL、XAML、字体与许可文件；.NET 和 Windows App Runtime 使用系统中的共享安装。升级时会清理已识别旧版中的随附运行库，不卸载共享运行时。请保留应用目录完整，通过快捷方式启动。
 
 「界面语言」位于启动设置中，切换后立即更新界面与托盘。已经产生的日志保留原语言，新的提示使用当前语言。
 
@@ -79,7 +79,7 @@ powershell -NoProfile -File .\build.ps1 -OutDir .\artifacts\win-x64
 powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 ```
 
-脚本会执行自包含发布，再生成安装程序；可用 `-CompilerPath` 指定 `ISCC.exe`。安装脚本位于 `installer\HSRUnlocker.iss`。
+脚本会发布依赖共享运行时的应用，再生成安装程序；可用 `-CompilerPath` 指定 `ISCC.exe`。安装脚本位于 `installer\HSRUnlocker.iss`，固定的微软运行时下载地址与 SHA-256 位于 `installer\runtime-dependencies.json`。安装前完成依赖检查、下载校验和安装；失败时不覆盖现有应用文件，要求重启时需重启后再次安装。
 
 构建同时生成 `update.json`，其中的安装包大小与 SHA-256 来自实际成品。发布时请将该文件与安装包一起上传到同一个正式 Release，供 GitHub API 限流时检查更新使用。
 
@@ -116,7 +116,7 @@ Addresses are resolved dynamically, but game updates may still require compatibi
 ### Requirements
 
 - Windows 11 22H2 (build 22621) or later, x64.
-- The official installer includes the .NET 8 x64 and Windows App SDK runtime components.
+- Setup detects .NET 8 x64 and Windows App Runtime, downloading and installing Microsoft's official components when missing. Compatible installed runtimes are reused.
 - Administrator privileges.
 
 ### Usage
@@ -139,7 +139,7 @@ Automatic discovery reads launcher and Windows installation records and checks r
 
 Settings and logs are stored in `%LOCALAPPDATA%\HSRUnlocker\` and retained during upgrades and uninstallation. Close the tool normally before upgrading or uninstalling.
 
-The DLLs, compiled XAML, and language resources in the installation directory are bundled .NET and WinUI runtime components. Keep the directory intact and launch the tool using its shortcut.
+The installation directory retains application DLLs, compiled XAML, fonts, and licenses. .NET and Windows App Runtime use shared system installations. Upgrades clean up previously bundled runtime files in recognized older installations without uninstalling shared runtimes. Keep the application directory intact and launch the tool using its shortcut.
 
 The language selector is in the startup settings. Changes immediately update the interface and tray. Existing log entries retain their original language; new messages use the current selection.
 
@@ -164,7 +164,7 @@ To build the installer, install Inno Setup 7.1 or later and run:
 powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 ```
 
-The script performs a self-contained publish and compiles the installer. Use `-CompilerPath` to select `ISCC.exe`. The installer definition is in `installer\HSRUnlocker.iss`.
+The script publishes a framework-dependent application and compiles the installer. Use `-CompilerPath` to select `ISCC.exe`. The installer definition is in `installer\HSRUnlocker.iss`; pinned Microsoft runtime URLs and SHA-256 hashes are in `installer\runtime-dependencies.json`. Prerequisites are checked, verified, and installed before application files are replaced. Failures leave existing application files intact; a requested restart requires rebooting and running Setup again.
 
 The build also generates `update.json` using the actual installer's size and SHA-256. Upload it alongside the installer in the same stable release so update checks can continue when the GitHub API is rate limited.
 

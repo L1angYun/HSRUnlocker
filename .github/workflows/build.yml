@@ -28,3 +28,6 @@ jobs:
 
       - name: Test dependency notice packaging
         run: powershell -NoProfile -File .\tests\Packaging.Tests.ps1
+
+      - name: Test installer metadata and cleanup inventory
+        run: powershell -NoProfile -File .\tests\InstallerMetadata.Tests.ps1

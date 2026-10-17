@@ -1,4 +1,4 @@
-# Publish a fresh self-contained app and compile an installer with a local Inno Setup.
+# Publish a framework-dependent app and compile an online-prerequisite installer.
 # This script never downloads tools or launches the app, game, or generated installer.
 [CmdletBinding()]
 param(
@@ -11,6 +11,7 @@ $ErrorActionPreference = 'Stop'
 $repo = $PSScriptRoot
 $project = Join-Path $repo 'gui\HSRUnlocker.csproj'
 $definition = Join-Path $repo 'installer\HSRUnlocker.iss'
+. (Join-Path $repo 'scripts\InstallerRuntime.ps1')
 
 function Assert-NoReparsePoint([string]$Path) {
     $current = [IO.Path]::GetFullPath($Path)
@@ -96,8 +97,9 @@ try {
 finally { $reader.Dispose() }
 $versionNodes = @($document.SelectNodes('/Project/PropertyGroup/Version'))
 $fileVersionNodes = @($document.SelectNodes('/Project/PropertyGroup/FileVersion'))
-if ($versionNodes.Count -ne 1 -or $fileVersionNodes.Count -ne 1) {
-    throw 'The project must declare exactly one Version and FileVersion.'
+$sdkNodes = @($document.SelectNodes('/Project/ItemGroup/PackageReference[@Include="Microsoft.WindowsAppSDK"]/@Version'))
+if ($versionNodes.Count -ne 1 -or $fileVersionNodes.Count -ne 1 -or $sdkNodes.Count -ne 1) {
+    throw 'The project must declare exactly one Version, FileVersion, and Windows App SDK version.'
 }
 $appVersion = $versionNodes[0].InnerText.Trim()
 $fileVersion = $fileVersionNodes[0].InnerText.Trim()
@@ -106,8 +108,14 @@ if ($appVersion -notmatch '^\d+\.\d+\.\d+$' -or $fileVersion -notmatch '^\d+\.\d
     throw 'The installer requires a stable numeric project Version and matching FileVersion.'
 }
 $outputName = "HSRUnlocker-$appVersion-win-x64-Setup"
+$runtimes = Read-InstallerRuntimeManifest (Join-Path $repo 'installer\runtime-dependencies.json') $sdkNodes[0].Value
+$sdkVersion = [version]$runtimes.windowsAppRuntime.version
+$majorMinor = '$' + (([uint32]$sdkVersion.Major -shl 16) + [uint32]$sdkVersion.Minor).ToString('X8')
+$minimumVersion = '$' + ([uint64]$sdkVersion.Major * 281474976710656 +
+    [uint64]$sdkVersion.Minor * 4294967296 + [uint64]$sdkVersion.Build * 65536).ToString('X16')
 
-& (Join-Path $repo 'build.ps1') -Project $project -OutDir $PublishDir -SelfContained
+& (Join-Path $repo 'build.ps1') -Project $project -OutDir $PublishDir
+Assert-FrameworkDependentPayload $PublishDir
 
 foreach ($binary in @('HSRUnlocker.exe', 'HSRUnlocker.dll')) {
     $info = (Get-Item -LiteralPath (Join-Path $PublishDir $binary)).VersionInfo
@@ -138,9 +146,19 @@ foreach ($item in Get-ChildItem -LiteralPath $PublishDir -Recurse -Force) {
 Assert-EmptyDirectory $OutDir 'Output directory'
 $arguments = @('--quiet-progress', '--no-ide-signtools', "--define=AppVersion=$appVersion",
                "--define=AppFileVersion=$fileVersion", "--define=PublishDir=$PublishDir",
+               "--define=DotNetRuntimeUrl=$($runtimes.dotnet.url)",
+               "--define=DotNetRuntimeSha256=$($runtimes.dotnet.sha256)",
+               "--define=WinAppRuntimeUrl=$($runtimes.windowsAppRuntime.url)",
+               "--define=WinAppRuntimeSha256=$($runtimes.windowsAppRuntime.sha256)",
+               "--define=WinAppRuntimeMajorMinor=$majorMinor", "--define=WinAppRuntimeMinVersion=$minimumVersion",
                "--output-dir=$OutDir", "--output-filename=$outputName", $definition)
-& $CompilerPath @arguments
-if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation failed with exit code $LASTEXITCODE." }
+$cleanupScript = [IO.Path]::GetTempFileName()
+try {
+    Write-LegacyRuntimeDeleteScript (Join-Path $repo 'installer\legacy-runtime-files.json') $PublishDir $cleanupScript
+    & $CompilerPath "--define=LegacyRuntimeDeleteScript=$cleanupScript" @arguments
+    if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation failed with exit code $LASTEXITCODE." }
+}
+finally { Remove-Item -LiteralPath $cleanupScript -ErrorAction SilentlyContinue }
 $installer = Join-Path $OutDir ($outputName + '.exe')
 if (-not (Test-Path -LiteralPath $installer -PathType Leaf) -or
     (Get-Item -LiteralPath $installer).Length -le 0) {
