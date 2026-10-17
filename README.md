@@ -77,6 +77,8 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 
 脚本会执行自包含发布，再生成安装程序；可用 `-CompilerPath` 指定 `ISCC.exe`。安装脚本位于 `installer\HSRUnlocker.iss`。
 
+构建同时生成 `update.json`，其中的安装包大小与 SHA-256 来自实际成品。发布时请将该文件与安装包一起上传到同一个正式 Release，供 GitHub API 限流时检查更新使用。
+
 ### 关于 Vibe Coding
 
 本项目采用 **Vibe Coding** 方式开发：AI 参与功能拆解、界面设计、代码、测试和文档编写。这不是一个全部手写的项目，也不会将 AI 生成内容包装成经过独立专业审计的成果。
@@ -155,6 +157,8 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 ```
 
 The script performs a self-contained publish and compiles the installer. Use `-CompilerPath` to select `ISCC.exe`. The installer definition is in `installer\HSRUnlocker.iss`.
+
+The build also generates `update.json` using the actual installer's size and SHA-256. Upload it alongside the installer in the same stable release so update checks can continue when the GitHub API is rate limited.
 
 ### About Vibe Coding
 

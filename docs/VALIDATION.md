@@ -43,15 +43,19 @@ The 1.1.0 self-contained publish and Inno Setup installer compiled successfully.
 
 Update checks, downloads, length and SHA-256 verification, cancellation, failure cleanup, and handoff command boundaries used authored HTTP responses and temporary files. Installer-guard checks used an owned, randomly named global mutex to verify visibility, multiple holders, and release after the final close; they did not use the application's actual mutex.
 
+1.1.1 新增 50 项检查，覆盖明确限流时的同仓库发布清单后备、限流期限记忆、可信 HTTPS 跳转、取消、超时、异常清单拒绝及签名下载地址的日志脱敏。另以真实匿名请求复现 API 返回 403、额度为零，而同一网络的正式发布资产可返回 200；这些联网观察与不联网的合成测试分开记录。
+
+Version 1.1.1 adds 50 checks for same-repository release-manifest fallback on explicit rate limits, remembered retry deadlines, trusted HTTPS redirects, cancellation, timeouts, rejection of invalid manifests, and withholding signed download URLs from logs. Separate live anonymous requests reproduced an API 403 with no remaining quota while a stable release asset returned 200 on the same network. These network observations are distinct from the offline synthetic suite.
+
 本轮未运行安装包或更新助手，未触发 UAC，也未访问真实配置或启动游戏。生产环境的受保护下载目录、助手就绪握手、安装目录沿用、跨用户会话升级保护、卸载和升级后重启尚未进行完整运行验证。新增更新区、退出开关及调度器倒计时通过编译和代码审查，未完成原生界面操作复查。
 
 This run did not execute the installer or update helper, trigger UAC, read live settings, or launch a game. The production protected download directory, helper readiness handshake, reuse of an existing installation directory, upgrade protection across user sessions, uninstallation, and restart after upgrading have not been exercised end to end. The new update controls, exit switch, and dispatcher countdown passed compilation and code review, without a native UI interaction recheck.
 
 ## 合成测试 / Synthetic Tests
 
-2026-10-17 的 1.1.0 测试运行通过 **458 项检查**。具体数量以对应源码版本的运行输出为准。
+2026-10-17 的 1.1.1 测试运行通过 **508 项检查**。具体数量以对应源码版本的运行输出为准。
 
-The October 17, 2026 run for 1.1.0 passed **458 checks**. The output for the corresponding source revision is authoritative.
+The October 17, 2026 run for 1.1.1 passed **508 checks**. The output for the corresponding source revision is authoritative.
 
 `tests/HSRUnlocker.Tests` 使用合成 PE、固定测试数据、临时目录和自有内存，不读取已安装游戏、真实设置或注册表，不联网，也不启动游戏。原生调用与展开测试会执行本项目自行编写的合成机器码，并使用一个有界的同程序集测试子进程。
 

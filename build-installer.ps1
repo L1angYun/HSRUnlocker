@@ -151,6 +151,19 @@ if ([version]$installerInfo.FileVersion -ne [version]$fileVersion) {
     throw 'The generated installer version does not match the application.'
 }
 $hash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+$updateManifest = [ordered]@{
+    tag_name = "v$appVersion"
+    draft = $false
+    prerelease = $false
+    assets = @([ordered]@{
+        name = [IO.Path]::GetFileName($installer)
+        size = (Get-Item -LiteralPath $installer).Length
+        digest = 'sha256:' + $hash
+    })
+}
+$manifestPath = Join-Path $OutDir 'update.json'
+[IO.File]::WriteAllText($manifestPath, ($updateManifest | ConvertTo-Json -Depth 4),
+    (New-Object Text.UTF8Encoding($false)))
 Write-Host "OK: installer $installer" -ForegroundColor Green
 Write-Host "SHA256: $hash"
-[pscustomobject]@{ Installer = $installer; PublishDirectory = $PublishDir; Version = $appVersion; SHA256 = $hash }
+[pscustomobject]@{ Installer = $installer; UpdateManifest = $manifestPath; PublishDirectory = $PublishDir; Version = $appVersion; SHA256 = $hash }

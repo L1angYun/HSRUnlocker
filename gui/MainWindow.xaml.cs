@@ -45,6 +45,7 @@ namespace StarRailUnlocker
             // loaded settings immutable until all controls have their supported ranges and
             // values; otherwise a control's default value can overwrite TargetFramerate.
             _initializing = true;
+            _updateChecker = new UpdateChecker(_updateHttp);
             _config = UnlockConfig.Load();
             _config.Normalize();
             L10n.SetLanguage(_config.Language);

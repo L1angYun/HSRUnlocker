@@ -20,6 +20,7 @@ namespace StarRailUnlocker
             UseCookies = false,
             UseDefaultCredentials = false
         }) { Timeout = Timeout.InfiniteTimeSpan };
+        private readonly UpdateChecker _updateChecker;
         private CancellationTokenSource _updateCancellation = new();
         private CancellationTokenSource _downloadCancellation;
         private PreparedUpdateInstall _preparedUpdate;
@@ -46,7 +47,7 @@ namespace StarRailUnlocker
             CancellationToken token = _updateCancellation.Token;
             try
             {
-                var result = await new UpdateChecker(_updateHttp).CheckAsync(AppVersion, token);
+                var result = await _updateChecker.CheckAsync(AppVersion, token);
                 if (_closed || _closePending) return;
                 _updateResult = result;
                 _updateStatusKey = result.IsNewer
@@ -54,6 +55,18 @@ namespace StarRailUnlocker
                     : "Updates.Current";
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+            catch (UpdateRateLimitException ex)
+            {
+                if (_closed || _closePending) return;
+                _updateStatusKey = "Updates.RateLimited";
+                App.WriteLog("Update check", ex);
+            }
+            catch (OperationCanceledException ex)
+            {
+                if (_closed || _closePending) return;
+                _updateStatusKey = "Updates.TimedOut";
+                App.WriteLog("Update check", ex);
+            }
             catch (Exception ex)
             {
                 if (_closed || _closePending) return;

@@ -149,6 +149,18 @@
     "ja-JP": "更新を確認できませんでした。接続を確認して再試行してください。",
     "ko-KR": "업데이트를 확인하지 못했습니다. 네트워크 연결을 확인하고 다시 시도해 주세요."
   },
+  "Updates.RateLimited": {
+    "zh-CN": "GitHub 访问受限，备用更新信息也未能获取。请稍后重试。",
+    "en-US": "GitHub's request limit was reached and fallback update information is unavailable. Try again later.",
+    "ja-JP": "GitHub のリクエスト制限に達し、代替の更新情報も取得できませんでした。後で再試行してください。",
+    "ko-KR": "GitHub 요청 한도에 도달했으며 대체 업데이트 정보도 가져오지 못했습니다. 나중에 다시 시도해 주세요."
+  },
+  "Updates.TimedOut": {
+    "zh-CN": "检查更新超时，请稍后重试。",
+    "en-US": "The update check timed out. Try again later.",
+    "ja-JP": "更新の確認がタイムアウトしました。後で再試行してください。",
+    "ko-KR": "업데이트 확인 시간이 초과되었습니다. 나중에 다시 시도해 주세요."
+  },
   "Updates.OpenFailed": {
     "zh-CN": "无法打开下载页，请重试。",
     "en-US": "Could not open the download page. Please try again.",
