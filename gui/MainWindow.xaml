@@ -123,10 +123,10 @@
                             <Grid ColumnSpacing="14">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="118" />
+                                    <ColumnDefinition Width="200" />
                                 </Grid.ColumnDefinitions>
                                 <Slider x:Name="FpsSlider" ValueChanged="OnFpsSliderChanged" />
-                                <NumberBox Grid.Column="1" x:Name="FpsBox" SpinButtonPlacementMode="Compact"
+                                <NumberBox Grid.Column="1" x:Name="FpsBox" SpinButtonPlacementMode="Inline"
                                            ValueChanged="OnFpsBoxChanged" />
                             </Grid>
                             <Grid x:Name="PresetPanel" ColumnSpacing="6">
@@ -157,11 +157,11 @@
                             <Grid ColumnSpacing="14">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="118" />
+                                    <ColumnDefinition Width="200" />
                                 </Grid.ColumnDefinitions>
                                 <Slider x:Name="FovSlider" ValueChanged="OnFovSliderChanged" />
                                 <NumberBox Grid.Column="1" x:Name="FovBox" ValueChanged="OnFovBoxChanged"
-                                           SpinButtonPlacementMode="Compact" />
+                                           SpinButtonPlacementMode="Inline" />
                             </Grid>
                             <TextBlock x:Name="FovStateText" Style="{StaticResource SecondaryTextStyle}" />
                         </StackPanel>
