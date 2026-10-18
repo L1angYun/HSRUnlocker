@@ -247,9 +247,16 @@ namespace StarRailUnlocker.Core
             try
             {
                 Uri uri = ManifestUri;
+                string expectedTag = null;
                 for (int redirects = 0; ; redirects++)
                 {
-                    ValidateManifestUri(uri);
+                    string tag = ValidateManifestUri(uri);
+                    if (tag != null)
+                    {
+                        if (expectedTag != null && tag != expectedTag)
+                            throw new InvalidDataException("The release metadata redirect changed the observed release tag.");
+                        expectedTag = tag;
+                    }
                     using var request = MetadataRequest(uri, false);
                     using HttpResponseMessage response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
                         .ConfigureAwait(false);
@@ -264,7 +271,7 @@ namespace StarRailUnlocker.Core
                         continue;
                     }
                     response.EnsureSuccessStatusCode();
-                    return await ReadReleaseAsync(response, current, token, preference: preference).ConfigureAwait(false);
+                    return await ReadReleaseAsync(response, current, token, expectedTag: expectedTag, preference: preference).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) when (callerToken.IsCancellationRequested) { throw; }
@@ -300,21 +307,24 @@ namespace StarRailUnlocker.Core
                 throw new InvalidDataException("The release metadata response followed an unexpected URI.");
         }
 
-        private static void ValidateManifestUri(Uri uri)
+        private static string ValidateManifestUri(Uri uri)
         {
             if (!uri.IsAbsoluteUri || uri.Scheme != Uri.UriSchemeHttps || uri.Port != 443
                 || uri.UserInfo.Length != 0 || uri.Fragment.Length != 0)
                 throw new InvalidDataException("The release metadata location is not a trusted HTTPS endpoint.");
-            if (uri.Host.Equals("release-assets.githubusercontent.com", StringComparison.OrdinalIgnoreCase)) return;
+            if (uri.Host.Equals("release-assets.githubusercontent.com", StringComparison.OrdinalIgnoreCase)) return null;
             if (uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) && uri.Query.Length == 0)
             {
-                if (uri.AbsolutePath == "/L1angYun/HSRUnlocker/releases/latest/download/update.json") return;
+                if (uri.AbsolutePath == "/L1angYun/HSRUnlocker/releases/latest/download/update.json") return null;
                 const string prefix = "/L1angYun/HSRUnlocker/releases/download/";
                 const string suffix = "/update.json";
                 string path = uri.AbsolutePath;
                 if (path.Length > prefix.Length + suffix.Length
-                    && path.StartsWith(prefix, StringComparison.Ordinal) && path.EndsWith(suffix, StringComparison.Ordinal)
-                    && TryVersion(path.Substring(prefix.Length, path.Length - prefix.Length - suffix.Length), out _)) return;
+                    && path.StartsWith(prefix, StringComparison.Ordinal) && path.EndsWith(suffix, StringComparison.Ordinal))
+                {
+                    string tag = path.Substring(prefix.Length, path.Length - prefix.Length - suffix.Length);
+                    if (TryVersion(tag, out _)) return tag;
+                }
             }
             throw new InvalidDataException("The release metadata location is outside the trusted repository endpoints.");
         }

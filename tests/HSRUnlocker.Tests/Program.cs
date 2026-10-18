@@ -19,10 +19,12 @@ internal static class Program
         {
             Console.WriteLine("Run without arguments for Windows x64 own-process, synthetic PE, mobile-fixture, suspended-unwind and reversible native-entry child-fixture tests. No installed game or live settings are accessed.");
             Console.WriteLine("Use --config for the owned-temporary-directory settings storage checks only.");
+            Console.WriteLine("Use --update-check for fake-HTTP update metadata checks only.");
             return 0;
         }
         bool configOnly = args.SequenceEqual(new[] { "--config" });
-        if (args.Length != 0 && !configOnly)
+        bool updateCheckOnly = args.SequenceEqual(new[] { "--update-check" });
+        if (args.Length != 0 && !configOnly && !updateCheckOnly)
         {
             Console.Error.WriteLine("Unsupported arguments. This portable suite has no live, launch, disk-client or automatic process-selection mode.");
             return 2;
@@ -30,6 +32,23 @@ internal static class Program
         try
         {
             Check(OperatingSystem.IsWindows() && Environment.Is64BitProcess, "portable suite runs in an x64 Windows test process");
+            if (updateCheckOnly)
+            {
+                int failures = 0;
+                void CheckUpdate(bool value, string description)
+                {
+                    if (value) Check(value, description);
+                    else
+                    {
+                        failures++;
+                        Console.WriteLine("FAIL: " + description);
+                    }
+                }
+                UpdateVerification.Run(CheckUpdate);
+                UpdateMirrorCheckVerification.Run(CheckUpdate);
+                Console.WriteLine($"UPDATE CHECK VERIFICATION: {Checks.Count} checks passed; {failures} failed; only fake HTTP metadata fixtures were used.");
+                return failures == 0 ? 0 : 1;
+            }
             ConfigStorageVerification.Run(Check);
             if (configOnly)
             {

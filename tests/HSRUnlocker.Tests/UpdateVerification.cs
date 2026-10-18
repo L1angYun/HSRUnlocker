@@ -30,6 +30,7 @@ internal static class UpdateVerification
                 "an exhausted anonymous API quota still detects the accessible first-party release");
         }
         await VerifyRateLimitFallbackAsync(check);
+        await VerifyFallbackTagBindingAsync(check);
 
         const string digest = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
         string asset = "{\"name\":\"HSRUnlocker-1.2.3-win-x64-Setup.exe\",\"size\":12345,\"digest\":\"sha256:" + digest +
@@ -187,6 +188,96 @@ internal static class UpdateVerification
             catch (OperationCanceledException) { canceled = true; }
             check(canceled && timer.Elapsed < TimeSpan.FromSeconds(20),
                 "update checker bounds a stalled request independently of the caller's HttpClient timeout");
+        }
+    }
+
+    private static async Task VerifyFallbackTagBindingAsync(Action<bool, string> check)
+    {
+        const string api = "https://api.github.com/repos/L1angYun/HSRUnlocker/releases/latest";
+        const string latest = "https://github.com/L1angYun/HSRUnlocker/releases/latest/download/update.json";
+        const string tagged = "https://github.com/L1angYun/HSRUnlocker/releases/download/v1.2.3/update.json";
+        const string unprefixed = "https://github.com/L1angYun/HSRUnlocker/releases/download/1.2.3/update.json";
+        const string fourParts = "https://github.com/L1angYun/HSRUnlocker/releases/download/v1.2.3.0/update.json";
+        const string otherTag = "https://github.com/L1angYun/HSRUnlocker/releases/download/v1.2.4/update.json";
+        const string signed = "https://release-assets.githubusercontent.com/opaque-object?sig=fixture-private-signature";
+        const string hash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        foreach (var sample in new (string Name, string[] Hops, string BodyTag, bool Accept, int Requests)[]
+        {
+            ("direct latest remains compatible", new[] { latest }, "v1.2.3", true, 2),
+            ("opaque CDN without an observed tag remains compatible", new[] { latest, signed }, "v1.2.3", true, 3),
+            ("a matching tagged body is accepted", new[] { latest, tagged }, "v1.2.3", true, 3),
+            ("a matching unprefixed tagged body is accepted", new[] { latest, unprefixed, signed }, "1.2.3", true, 4),
+            ("a matching four-part tagged body is accepted", new[] { latest, fourParts, signed }, "v1.2.3.0", true, 4),
+            ("repeated identical tagged hops are accepted", new[] { latest, tagged, tagged, signed }, "v1.2.3", true, 5),
+            ("a concrete tag observed after an opaque CDN is retained", new[] { latest, signed, tagged }, "v1.2.3", true, 4),
+            ("a tagged response rejects a different body tag", new[] { latest, tagged }, "v1.2.4", false, 3),
+            ("an observed tag binds the eventual CDN body", new[] { latest, tagged, signed }, "v1.2.4", false, 4),
+            ("an intervening latest hop cannot clear the observed tag", new[] { latest, tagged, signed, latest }, "v1.2.4", false, 5),
+            ("a body cannot drop the observed v prefix", new[] { latest, tagged, signed }, "1.2.3", false, 4),
+            ("a body cannot add an unobserved v prefix", new[] { latest, unprefixed, signed }, "v1.2.3", false, 4),
+            ("numeric version equality cannot substitute a four-part body tag", new[] { latest, tagged, signed }, "v1.2.3.0", false, 4),
+            ("a conflicting tagged hop is rejected before its request", new[] { latest, tagged, otherTag }, "v1.2.4", false, 3),
+            ("an opaque CDN cannot hide a later conflicting tagged hop", new[] { latest, tagged, signed, otherTag }, "v1.2.4", false, 4),
+            ("a tagged hop cannot drop the v prefix", new[] { latest, tagged, unprefixed }, "1.2.3", false, 3),
+            ("a tagged hop cannot add the v prefix", new[] { latest, unprefixed, tagged }, "v1.2.3", false, 3),
+            ("numeric version equality cannot substitute a four-part tagged hop", new[] { latest, tagged, fourParts }, "v1.2.3.0", false, 3)
+        })
+        {
+            var requests = new List<string>();
+            int hop = 0;
+            string version = sample.BodyTag.TrimStart('v');
+            string body = Release(sample.BodyTag, "\"assets\":[{\"name\":\"HSRUnlocker-" + version
+                + "-win-x64-Setup.exe\",\"size\":12,\"digest\":\"sha256:" + hash + "\"}],");
+            using var client = Client(request =>
+            {
+                string uri = request.RequestUri.AbsoluteUri;
+                requests.Add(uri);
+                if (requests.Count == 1 && uri == api) return Quota(HttpStatusCode.Forbidden);
+                if (hop >= sample.Hops.Length || uri != sample.Hops[hop])
+                    throw new InvalidOperationException("Unexpected fallback tag-binding fixture request: " + uri);
+                return ++hop < sample.Hops.Length ? Redirect(sample.Hops[hop]) : Json(body);
+            });
+            UpdateCheckResult result = null;
+            UpdateRateLimitException error = null;
+            try { result = await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub); }
+            catch (UpdateRateLimitException failure) { error = failure; }
+            bool outcome = sample.Accept
+                ? error == null && result?.IsNewer == true && result.Version == version
+                    && result.ReleaseUri.AbsoluteUri == "https://github.com/L1angYun/HSRUnlocker/releases/tag/" + sample.BodyTag
+                    && result.Installer?.Sha256 == hash && result.Installer.Size == 12
+                    && result.Installer.Preference == UpdateSourcePreference.GitHub
+                    && result.Installer.DownloadUri.AbsoluteUri == "https://github.com/L1angYun/HSRUnlocker/releases/download/"
+                        + sample.BodyTag + "/HSRUnlocker-" + version + "-win-x64-Setup.exe"
+                : result == null && error?.InnerException is InvalidDataException
+                    && !error.ToString().Contains("fixture-private-signature", StringComparison.Ordinal);
+            check(outcome && requests.SequenceEqual(new[] { api }.Concat(sample.Hops.Take(sample.Requests - 1))),
+                "fallback tag binding: " + sample.Name);
+        }
+
+        const string giteeList = "https://gitee.com/api/v5/repos/liangyun_Liu/HSRUnlocker/releases?direction=desc&per_page=100";
+        const string giteeManifest = "https://gitee.com/liangyun_Liu/HSRUnlocker/releases/download/v1.2.3/update.json";
+        foreach (bool validGitHub in new[] { false, true })
+        {
+            var requests = new List<string>();
+            using var client = Client(request =>
+            {
+                string uri = request.RequestUri.AbsoluteUri;
+                requests.Add(uri);
+                if (uri == api) return Quota(HttpStatusCode.Forbidden);
+                if (uri == latest) return Redirect(tagged);
+                if (uri == tagged) return Json(Release(validGitHub ? "v1.2.3" : "v9.0.0"));
+                if (uri == giteeList) return validGitHub ? new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+                    : Json("[{\"tag_name\":\"v1.2.3\",\"prerelease\":false,\"assets\":[{\"name\":\"update.json\"}]}]");
+                if (uri == giteeManifest) return Json(Release("v1.2.3"));
+                throw new InvalidOperationException("Unexpected independent-source fixture request: " + uri);
+            });
+            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync("1.1.0");
+            check(result.IsNewer && result.Version == "1.2.3"
+                && result.ReleaseUri.Host == (validGitHub ? "github.com" : "gitee.com")
+                && requests.SequenceEqual(validGitHub ? new[] { api, latest, tagged, giteeList }
+                    : new[] { api, latest, tagged, giteeList, giteeManifest }),
+                validGitHub ? "a matching GitHub fallback remains usable when Gitee is unavailable"
+                    : "a mismatched GitHub fallback cannot outrank the independently verified Gitee release");
         }
     }
 
