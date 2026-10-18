@@ -25,7 +25,7 @@ internal static class UpdateVerification
             return Json(Release("v1.2.3"));
         }))
         {
-            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync("1.1.0");
+            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub);
             check(result.IsNewer && result.Version == "1.2.3" && quotaRequests == 2,
                 "an exhausted anonymous API quota still detects the accessible first-party release");
         }
@@ -36,7 +36,7 @@ internal static class UpdateVerification
             "\",\"browser_download_url\":\"https://attacker.invalid/payload\"}";
         using (var client = Client(_ => Json(Release("v1.2.3", "\"assets\":[" + asset + "],"))))
         {
-            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync("1.1.0");
+            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub);
             check(result.Installer != null, "latest release exposes its matching hashed Windows installer");
             check(result.Installer.Version == "1.2.3" && result.Installer.FileName == "HSRUnlocker-1.2.3-win-x64-Setup.exe"
                 && result.Installer.Size == 12345 && result.Installer.Sha256 == digest,
@@ -46,7 +46,7 @@ internal static class UpdateVerification
                 "installer URL is built from the official repository instead of remote arbitrary URLs");
         }
         using (var client = Client(_ => Json(Release("v1.0.0", "\"assets\":[{\"name\":\"HSRUnlocker-1.0.0-win-x64.zip\"}],"))))
-            check((await new UpdateChecker(client).CheckAsync("1.1.0")).Installer == null,
+            check((await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub)).Installer == null,
                 "older ZIP-only releases remain checkable without offering self-update");
 
         foreach (string invalidAsset in new[]
@@ -81,7 +81,7 @@ internal static class UpdateVerification
         })
         {
             using var client = Client(_ => Json(Release(sample.Tag)));
-            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync(sample.Current);
+            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync(sample.Current, UpdateSourcePreference.GitHub);
             check(result.IsNewer == sample.Newer, $"release {sample.Tag} compares numerically with {sample.Current}");
             check(result.Version == sample.Tag.TrimStart('v'), $"release {sample.Tag} exposes its numeric display version");
         }
@@ -101,7 +101,7 @@ internal static class UpdateVerification
             return Json(Release("v1.2.3", "\"html_url\":\"https://attacker.invalid/payload\","));
         }))
         {
-            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync("1.1.0");
+            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub);
             check(result.ReleaseUri.AbsoluteUri == "https://github.com/L1angYun/HSRUnlocker/releases/tag/v1.2.3",
                 "release link is constructed from the trusted repository and validated tag");
             check(client.DefaultRequestHeaders.Count() == 0, "update checking preserves shared client default headers");
@@ -133,7 +133,7 @@ internal static class UpdateVerification
         {
             using var client = Client(_ => new HttpResponseMessage(status) { Content = new StringContent("{}") });
             bool rejected = false;
-            try { await new UpdateChecker(client).CheckAsync("1.1.0"); }
+            try { await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub); }
             catch (HttpRequestException ex) { rejected = ex.StatusCode == status; }
             check(rejected, $"HTTP {(int)status} fails with its HTTP status preserved");
         }
@@ -146,7 +146,7 @@ internal static class UpdateVerification
         }))
         {
             bool rejected = false;
-            try { await new UpdateChecker(client).CheckAsync("1.1.0"); }
+            try { await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub); }
             catch (InvalidDataException) { rejected = true; }
             check(rejected, "oversize streamed response is rejected even without trusting declared length");
         }
@@ -160,7 +160,7 @@ internal static class UpdateVerification
         })))
         {
             bool canceled = false;
-            try { await new UpdateChecker(client).CheckAsync("1.1.0", cancellation.Token); }
+            try { await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub, cancellation.Token); }
             catch (OperationCanceledException) { canceled = true; }
             check(canceled, "in-flight caller cancellation propagates through the HTTP request");
         }
@@ -170,7 +170,7 @@ internal static class UpdateVerification
         {
             cancellation.Cancel();
             bool canceled = false;
-            try { await new UpdateChecker(client).CheckAsync("1.1.0", cancellation.Token); }
+            try { await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub, cancellation.Token); }
             catch (OperationCanceledException) { canceled = true; }
             check(canceled, "already canceled update checks do not send requests");
         }
@@ -183,7 +183,7 @@ internal static class UpdateVerification
         {
             var timer = System.Diagnostics.Stopwatch.StartNew();
             bool canceled = false;
-            try { await new UpdateChecker(client).CheckAsync("1.1.0"); }
+            try { await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub); }
             catch (OperationCanceledException) { canceled = true; }
             check(canceled && timer.Elapsed < TimeSpan.FromSeconds(20),
                 "update checker bounds a stalled request independently of the caller's HttpClient timeout");
@@ -211,7 +211,7 @@ internal static class UpdateVerification
             return response;
         }))
         {
-            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync("1.1.0");
+            UpdateCheckResult result = await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub);
             check(calls == 4 && result.Installer?.Sha256 == new string('a', 64)
                 && result.Installer.DownloadUri.AbsoluteUri ==
                     "https://github.com/L1angYun/HSRUnlocker/releases/download/v1.2.3/HSRUnlocker-1.2.3-win-x64-Setup.exe",
@@ -235,11 +235,11 @@ internal static class UpdateVerification
         }))
         {
             var checker = new UpdateChecker(client, () => now);
-            await checker.CheckAsync("1.1.0");
-            await checker.CheckAsync("1.1.0");
+            await checker.CheckAsync("1.1.0", UpdateSourcePreference.GitHub);
+            await checker.CheckAsync("1.1.0", UpdateSourcePreference.GitHub);
             check(apiCalls == 1 && manifestCalls == 2, "same-instance checks bypass the exhausted API until its retry/reset deadline");
             now = now.AddMinutes(4);
-            await checker.CheckAsync("1.1.0");
+            await checker.CheckAsync("1.1.0", UpdateSourcePreference.GitHub);
             check(apiCalls == 2 && manifestCalls == 2, "API checks resume after the stored quota cooldown expires");
         }
 
@@ -275,7 +275,7 @@ internal static class UpdateVerification
             response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.FromSeconds(60));
             return response;
         }))
-            check((await new UpdateChecker(client).CheckAsync("1.1.0")).IsNewer && secondaryCalls == 2,
+            check((await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub)).IsNewer && secondaryCalls == 2,
                 "a secondary-limit 403 with Retry-After also uses the first-party manifest");
 
         int ordinaryCalls = 0;
@@ -286,7 +286,7 @@ internal static class UpdateVerification
         }))
         {
             bool preserved = false;
-            try { await new UpdateChecker(client).CheckAsync("1.1.0"); }
+            try { await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub); }
             catch (HttpRequestException error) { preserved = error.StatusCode == HttpStatusCode.Forbidden && error is not UpdateRateLimitException; }
             check(preserved && ordinaryCalls == 1, "an ordinary 403 without quota headers preserves its status without attempting fallback");
         }
@@ -357,7 +357,7 @@ internal static class UpdateVerification
                 check((await RateFailure(new UpdateChecker(client)))?.InnerException is InvalidDataException && requests == 7,
                     "a sixth metadata redirect fails after at most five manually followed hops");
             else
-                check((await new UpdateChecker(client).CheckAsync("1.1.0")).IsNewer && requests == 7,
+                check((await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub)).IsNewer && requests == 7,
                     "five trusted HTTPS metadata redirects are allowed");
         }
 
@@ -384,7 +384,7 @@ internal static class UpdateVerification
                 return response;
             });
             bool rejected = false;
-            try { await new UpdateChecker(client).CheckAsync("1.1.0"); }
+            try { await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub); }
             catch (InvalidDataException) { rejected = true; }
             check(rejected && requests == 1, "an unexpected API response URI is rejected before trusting its quota headers");
         }
@@ -424,7 +424,7 @@ internal static class UpdateVerification
                 throw new InvalidOperationException("Unreachable fixture branch.");
             }));
             bool canceled = false;
-            try { await new UpdateChecker(client).CheckAsync("1.1.0", cancellation.Token); }
+            try { await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub, cancellation.Token); }
             catch (OperationCanceledException) { canceled = true; }
             check(canceled && requests == 2, "caller cancellation during quota fallback propagates without being wrapped as a rate-limit error");
         }
@@ -470,7 +470,7 @@ internal static class UpdateVerification
 
     private static async Task<UpdateRateLimitException> RateFailure(UpdateChecker checker)
     {
-        try { await checker.CheckAsync("1.1.0"); }
+        try { await checker.CheckAsync("1.1.0", UpdateSourcePreference.GitHub); }
         catch (UpdateRateLimitException error) { return error; }
         return null;
     }
@@ -490,7 +490,7 @@ internal static class UpdateVerification
     {
         using var client = Client(_ => Json(body));
         bool rejected = false;
-        try { await new UpdateChecker(client).CheckAsync("1.1.0"); }
+        try { await new UpdateChecker(client).CheckAsync("1.1.0", UpdateSourcePreference.GitHub); }
         catch (InvalidDataException) { rejected = true; }
         check(rejected, description);
     }

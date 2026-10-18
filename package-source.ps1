@@ -16,7 +16,7 @@ $include = @(
     'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CONTRIBUTING.md', 'SECURITY.md',
     'global.json', 'build.ps1', 'build-installer.ps1', 'installer\HSRUnlocker.iss',
     'package-source.ps1', '.gitignore', '.gitattributes', '.editorconfig',
-    'docs\VALIDATION.md', '.github\workflows\build.yml',
+    '.github\workflows\build.yml',
     'scripts\Copy-ThirdPartyNotices.ps1', 'tests\Packaging.Tests.ps1',
     'scripts\InstallerRuntime.ps1', 'installer\runtime-dependencies.json', 'installer\legacy-runtime-files.json',
     'installer\RuntimeDependencies.iss', 'installer\RuntimeState.iss',

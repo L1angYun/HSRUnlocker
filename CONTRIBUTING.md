@@ -16,7 +16,7 @@ powershell -NoProfile -File .\tests\Packaging.Tests.ps1
 
 - 生产代码不得依赖固定目标函数地址、固定静态量地址或版本特定 RVA。目标应由结构与运行时校验动态确定。
 - 无法唯一确定目标时应拒绝操作并给出明确错误，不猜测，也不按安装目录名称判断兼容性。
-- 功能变化应同步更新 [README.md](README.md) 与 [docs/VALIDATION.md](docs/VALIDATION.md)，如实区分构建结果、合成测试和实际功能观察。
+- 功能变化应同步更新 [README.md](README.md)，如实区分构建结果、合成测试和实际功能观察。
 - 默认测试应能在未安装游戏的机器上运行，只使用自编合成数据、自有内存和临时目录，不读取真实设置或注册表，不联网、不启动游戏。
 - 用户可见文案使用 `L10n.T`，资源位于 `gui/Localization/*.json`。新增文案同时提供 `zh-CN`、`en-US`、`ja-JP`、`ko-KR`，保留各语言一致的格式参数；路径、协议标识和模块名不翻译。
 
@@ -49,7 +49,7 @@ powershell -NoProfile -File .\tests\Packaging.Tests.ps1
 
 - Production code must not depend on fixed target-function addresses, static-data addresses, or version-specific RVAs. Resolve targets through structural analysis and runtime validation.
 - Refuse an operation with a clear error when a target cannot be identified uniquely. Do not guess or infer compatibility from installation-directory names.
-- Update [README.md](README.md) and [docs/VALIDATION.md](docs/VALIDATION.md) when behavior changes. Distinguish build results, synthetic tests, and observed behavior in the intended environment.
+- Update [README.md](README.md) when behavior changes. Distinguish build results, synthetic tests, and observed behavior in the intended environment.
 - Default tests must run without an installed game, using only authored synthetic data, owned memory, and temporary directories. They must not read live settings or the registry, access the network, or launch a game.
 - Use `L10n.T` for user-visible messages, with resources in `gui/Localization/*.json`. Add `zh-CN`, `en-US`, `ja-JP`, and `ko-KR` translations with matching format arguments. Do not translate paths, protocol identifiers, or module names.
 

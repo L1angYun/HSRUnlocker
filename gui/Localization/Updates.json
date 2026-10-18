@@ -23,6 +23,36 @@
     "ja-JP": "アップデート",
     "ko-KR": "업데이트"
   },
+  "Updates.Source": {
+    "zh-CN": "更新来源",
+    "en-US": "Update source",
+    "ja-JP": "更新元",
+    "ko-KR": "업데이트 소스"
+  },
+  "Updates.SourceTip": {
+    "zh-CN": "选择检查和下载更新的来源。自动模式同时检查 GitHub 和 Gitee。",
+    "en-US": "Choose where to check for and download updates. Auto checks GitHub and Gitee together.",
+    "ja-JP": "更新の確認とダウンロードに使用する配信元を選択します。自動では GitHub と Gitee を同時に確認します。",
+    "ko-KR": "업데이트를 확인하고 다운로드할 소스를 선택합니다. 자동 모드에서는 GitHub와 Gitee를 동시에 확인합니다."
+  },
+  "Updates.SourceAuto": {
+    "zh-CN": "自动",
+    "en-US": "Auto",
+    "ja-JP": "自動",
+    "ko-KR": "자동"
+  },
+  "Updates.SourceGitHub": {
+    "zh-CN": "GitHub",
+    "en-US": "GitHub",
+    "ja-JP": "GitHub",
+    "ko-KR": "GitHub"
+  },
+  "Updates.SourceGitee": {
+    "zh-CN": "Gitee",
+    "en-US": "Gitee",
+    "ja-JP": "Gitee",
+    "ko-KR": "Gitee"
+  },
   "Updates.CheckOnStartup": {
     "zh-CN": "启动时检查更新",
     "en-US": "Check for updates on startup",
@@ -30,10 +60,10 @@
     "ko-KR": "시작 시 업데이트 확인"
   },
   "Updates.CheckOnStartupTip": {
-    "zh-CN": "启动时连接 GitHub 检查正式发布版本，也可手动检查。",
-    "en-US": "Connect to GitHub at startup to check stable releases. You can also check manually.",
-    "ja-JP": "起動時に GitHub で安定版の更新を確認します。手動でも確認できます。",
-    "ko-KR": "시작 시 GitHub에 연결하여 정식 버전을 확인합니다. 수동으로 확인할 수도 있습니다."
+    "zh-CN": "启动时通过所选更新来源检查正式发布版本，也可手动检查。",
+    "en-US": "Use the selected update source at startup to check stable releases. You can also check manually.",
+    "ja-JP": "起動時に選択した更新元で安定版の更新を確認します。手動でも確認できます。",
+    "ko-KR": "시작 시 선택한 업데이트 소스에서 정식 버전을 확인합니다. 수동으로 확인할 수도 있습니다."
   },
   "Updates.CheckNow": {
     "zh-CN": "检查更新",

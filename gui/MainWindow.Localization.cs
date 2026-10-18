@@ -70,6 +70,13 @@ namespace StarRailUnlocker
                 SafeAreaOriginalItem.Content = L10n.T("Ui.SafeAreaOriginal");
                 SafeAreaCustomItem.Content = L10n.T("Ui.SafeAreaCustom");
                 SafeAreaModeBox.SelectedIndex = safeAreaModeIndex;
+                int updateSourceIndex = UpdateSourceBox.SelectedIndex;
+                UpdateSourceBox.SelectedItem = null;
+                UpdateSourceBox.Header = WrappedText("Updates.Source");
+                UpdateSourceAutoItem.Content = L10n.T("Updates.SourceAuto");
+                UpdateSourceGitHubItem.Content = L10n.T("Updates.SourceGitHub");
+                UpdateSourceGiteeItem.Content = L10n.T("Updates.SourceGitee");
+                UpdateSourceBox.SelectedIndex = updateSourceIndex;
                 SafeAreaHorizontalBox.Header = WrappedText("Ui.SafeAreaHorizontal");
                 LogExpander.Header = WrappedText("Ui.RuntimeLog");
                 LanguageBox.SelectedItem = null;
@@ -101,6 +108,7 @@ namespace StarRailUnlocker
                 LocalizeControl(StartMinimizedToggle, "Ui.StartMinimized", "Ui.StartMinimizedTip");
                 LocalizeControl(ExitWithGameToggle, "Updates.ExitWithGame", "Updates.ExitWithGameTip");
                 LocalizeControl(CheckForUpdatesToggle, "Updates.CheckOnStartup", "Updates.CheckOnStartupTip");
+                LocalizeControl(UpdateSourceBox, "Updates.Source", "Updates.SourceTip");
                 LocalizeControl(CheckUpdatesButton, "Updates.CheckNow", "Updates.CheckNow");
                 LocalizeControl(OpenReleaseButton, "Updates.OpenRelease", "Updates.OpenRelease");
                 LocalizeControl(ApplyUpdateButton, "Updates.Install", "Updates.InstallTip");

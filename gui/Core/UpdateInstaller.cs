@@ -135,47 +135,28 @@ namespace StarRailUnlocker.Core
             try
             {
                 progress?.Report(0);
-                using var request = new HttpRequestMessage(HttpMethod.Get, package.DownloadUri);
-                request.Headers.UserAgent.ParseAdd("HSRUnlocker-UpdateInstaller/1.1");
-                using HttpResponseMessage response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
-                    .ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                Uri finalUri = response.RequestMessage?.RequestUri;
-                if (finalUri != null && finalUri.Scheme != Uri.UriSchemeHttps)
-                    throw new InvalidDataException("The installer download did not remain on HTTPS.");
-                long? declaredLength = response.Content.Headers.ContentLength;
-                if (declaredLength.HasValue && declaredLength.Value != package.Size)
-                    throw new InvalidDataException("The installer response length does not match the release asset.");
-
-                using (Stream source = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false))
-                using (FileStream destination = CreateDownloadFile(staged))
-                using (IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
+                Uri[] locations = UpdateSources.DownloadLocations(package);
+                int lastPercent = 0;
+                for (int attempt = 0; ; attempt++)
                 {
-                    byte[] buffer = new byte[65536];
-                    long total = 0;
-                    int lastPercent = 0;
-                    while (true)
+                    try
                     {
-                        int count = await source.ReadAsync(buffer.AsMemory(), token).ConfigureAwait(false);
-                        if (count == 0) break;
-                        if (count > package.Size - total)
-                            throw new InvalidDataException("The installer download exceeds the release asset size.");
-                        await destination.WriteAsync(buffer.AsMemory(0, count), token).ConfigureAwait(false);
-                        hash.AppendData(buffer, 0, count);
-                        total += count;
-                        int percent = Math.Min(99, (int)(total * 100 / package.Size));
-                        if (percent > lastPercent)
+                        await DownloadAttemptAsync(staged, locations[attempt], percent =>
                         {
+                            if (percent <= lastPercent) return;
                             lastPercent = percent;
                             progress?.Report(percent / 100.0);
-                        }
+                        }, token).ConfigureAwait(false);
+                        break;
                     }
-                    token.ThrowIfCancellationRequested();
-                    if (total != package.Size
-                        || !CryptographicOperations.FixedTimeEquals(hash.GetHashAndReset(), Convert.FromHexString(package.Sha256)))
-                        throw new InvalidDataException("The installer download failed its size or SHA256 verification.");
-                    await destination.FlushAsync(token).ConfigureAwait(false);
-                    destination.Flush(true);
+                    catch (RemoteDownloadException error)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        if (attempt + 1 >= locations.Length)
+                            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(error.Failure).Throw();
+                        RejectReparseAncestors(staged.DirectoryPath);
+                        File.Delete(Path.Combine(staged.DirectoryPath, "download.bin"));
+                    }
                 }
                 token.ThrowIfCancellationRequested();
                 File.Move(Path.Combine(staged.DirectoryPath, "download.bin"), staged.FilePath);
@@ -185,8 +166,68 @@ namespace StarRailUnlocker.Core
             catch
             {
                 staged.Dispose();
+                cancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
+        }
+
+        private async Task DownloadAttemptAsync(StagedUpdate staged, Uri uri, Action<int> report, CancellationToken token)
+        {
+            UpdatePackage package = staged.Package;
+            bool gitee = uri.Host == "gitee.com";
+            string tag = uri.Segments[^2].TrimEnd('/');
+            using HttpResponseMessage response = await ReadRemoteAsync(
+                readToken => UpdateSources.GetFileAsync(client, uri, package.FileName, gitee, readToken, tag), token).ConfigureAwait(false);
+            long? declaredLength = response.Content.Headers.ContentLength;
+            if (declaredLength.HasValue && declaredLength.Value != package.Size)
+                throw new InvalidDataException("The installer response length does not match the release asset.");
+
+            using Stream source = await ReadRemoteAsync(
+                readToken => response.Content.ReadAsStreamAsync(readToken), token).ConfigureAwait(false);
+            using FileStream destination = CreateDownloadFile(staged);
+            using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            byte[] buffer = new byte[65536];
+            long total = 0;
+            while (true)
+            {
+                int count = await ReadRemoteAsync(
+                    readToken => source.ReadAsync(buffer.AsMemory(), readToken).AsTask(), token).ConfigureAwait(false);
+                if (count == 0) break;
+                if (count > package.Size - total)
+                    throw new InvalidDataException("The installer download exceeds the release asset size.");
+                await destination.WriteAsync(buffer.AsMemory(0, count), token).ConfigureAwait(false);
+                hash.AppendData(buffer, 0, count);
+                total += count;
+                report(Math.Min(99, (int)(total * 100 / package.Size)));
+            }
+            token.ThrowIfCancellationRequested();
+            if (total != package.Size
+                || !CryptographicOperations.FixedTimeEquals(hash.GetHashAndReset(), Convert.FromHexString(package.Sha256)))
+                throw new InvalidDataException("The installer download failed its size or SHA256 verification.");
+            await destination.FlushAsync(token).ConfigureAwait(false);
+            destination.Flush(true);
+        }
+
+        // Only remote operations enter this boundary. Local staging failures never trigger provider retry.
+        private static async Task<T> ReadRemoteAsync<T>(Func<CancellationToken, Task<T>> read, CancellationToken token)
+        {
+            using var idle = CancellationTokenSource.CreateLinkedTokenSource(token);
+            idle.CancelAfter(TimeSpan.FromSeconds(8));
+            try { return await read(idle.Token).ConfigureAwait(false); }
+            catch (Exception error) when (UpdateSources.IsProtocolLengthFailure(error))
+            {
+                throw new InvalidDataException("The installer response ended before its declared length.");
+            }
+            catch (Exception error) when (UpdateSources.IsTransportFailure(error) && !token.IsCancellationRequested)
+            {
+                throw new RemoteDownloadException(UpdateSources.SafeFailure(error));
+            }
+        }
+
+        private sealed class RemoteDownloadException : Exception
+        {
+            internal Exception Failure { get; }
+            internal RemoteDownloadException(Exception failure) : base("The remote installer request failed.") => Failure = failure;
         }
 
         public async Task<PreparedUpdateInstall> PrepareInstallAsync(StagedUpdate staged, string localizedError,
@@ -252,11 +293,7 @@ namespace StarRailUnlocker.Core
                 || package.Sha256 == null || !Regex.IsMatch(package.Sha256, @"\A[0-9a-fA-F]{64}\z", RegexOptions.CultureInvariant)
                 || package.DownloadUri == null || !package.DownloadUri.IsAbsoluteUri)
                 throw new ArgumentException("The installer package metadata is invalid.", nameof(package));
-            string releasePrefix = "https://github.com/L1angYun/HSRUnlocker/releases/download/";
-            string plain = releasePrefix + package.Version + "/" + package.FileName;
-            string prefixed = releasePrefix + "v" + package.Version + "/" + package.FileName;
-            if (package.DownloadUri.AbsoluteUri != plain && package.DownloadUri.AbsoluteUri != prefixed)
-                throw new ArgumentException("The installer package does not use the official release URL.", nameof(package));
+            _ = UpdateSources.DownloadLocations(package);
         }
 
         private StagedUpdate CreateStaging(UpdatePackage package)

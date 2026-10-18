@@ -23,10 +23,10 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 | 启动与附加 | 首次启动自动检测客户端，可随时重新扫描，通过下拉列表切换已记住的路径；从工具启动游戏，或附加到已运行的游戏进程。 |
 | 托盘与配置 | 最小化到托盘、单实例、自动保存设置，可选择随工具启动游戏、随游戏退出工具。 |
 | 多语言 | 简体中文、English、日本語、한국어；默认跟随系统，可手动切换并保存。 |
-| 版本更新 | 启动时或手动检查 GitHub 正式发布版本，发现新版弹窗提示，支持下载安装包、校验、升级并重启。自动检查可关闭。 |
+| 版本更新 | GitHub / Gitee 并行检查并自动选源，也可固定更新源；发现新版弹窗提示，支持下载安装包、校验、升级并重启。自动检查可关闭。 |
 | 安装与卸载 | 安装程序提供安装目录选择、快捷方式、升级及卸载。 |
 
-程序使用动态寻址，游戏更新后仍可能需要适配。已验证的客户端与功能范围见[验证记录](docs/VALIDATION.md)。
+程序使用动态寻址，游戏更新后仍可能需要适配。
 
 ### 运行要求
 
@@ -36,7 +36,7 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 
 ### 使用方法
 
-1. 从 Releases 下载 `HSRUnlocker-版本号-win-x64-Setup.exe`，安装后使用快捷方式运行。
+1. 从 [GitHub Releases](https://github.com/L1angYun/HSRUnlocker/releases) 或 [Gitee Releases](https://gitee.com/liangyun_Liu/HSRUnlocker/releases) 下载 `HSRUnlocker-版本号-win-x64-Setup.exe`，安装后使用快捷方式运行。
 2. 首次启动会自动查找已安装的 `StarRail.exe`。找到一个时自动保存；多个时选择客户端；未找到时手动选择。
 3. 设置目标帧率、FOV 和所需开关。
 4. 点击「启动游戏」，或用「附加游戏」连接已运行的客户端。
@@ -51,6 +51,8 @@ FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双�
 「游戏退出时关闭工具」默认开启；关闭后可在同一窗口再次启动或附加游戏。正常退出工具时仍会先完成还原。
 
 「版本更新」可手动检查新版，也可关闭启动时的自动检查。发现新版会弹窗，可立即更新、查看发布说明或稍后处理；同次运行对同一版本只提示一次。在托盘中时等恢复窗口后提示。工具会下载并校验安装包，完成还原、退出后安装新版并重启。下载可取消；下载或校验失败不会替换当前程序。
+
+「更新源」默认「自动」，同时查询 GitHub 和 Gitee，在短暂的结果收集窗口内优先选择较新版本，同版本优先使用响应快的源，直接从选定源下载安装包。自动模式下网络故障可尝试另一个源，但不会跳过大小和 SHA-256 校验；同版本的校验信息冲突时停止更新。也可固定为 GitHub 或 Gitee，此时不会跨站切换。Gitee 同步发布可能稍晚，手动固定该源时以其已发布版本为准。
 
 自动查找读取启动器和 Windows 安装记录，也会检查正在运行的客户端，不按文件夹名称判断版本。手动移动游戏后若安装记录失效，可直接选择实际的 `StarRail.exe`。
 
@@ -85,7 +87,7 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 
 脚本会发布依赖共享运行时的应用，再生成安装程序；可用 `-CompilerPath` 指定 `ISCC.exe`。安装脚本位于 `installer\HSRUnlocker.iss`，固定的微软运行时下载地址与 SHA-256 位于 `installer\runtime-dependencies.json`。安装前完成依赖检查、下载校验和安装；失败时不覆盖现有应用文件，要求重启时需重启后再次安装。
 
-构建同时生成 `update.json`，其中的安装包大小与 SHA-256 来自实际成品。发布时请将该文件与安装包一起上传到同一个正式 Release，供 GitHub API 限流时检查更新使用。
+构建同时生成 `update.json`，其中的安装包大小与 SHA-256 来自实际成品。发布时，将安装包、源码 ZIP、`SHA256SUMS.txt` 和 `update.json` 上传到同一版本的正式 Release；GitHub 与 Gitee 使用相同文件。Gitee 的源码同步不代替 Release 附件发布，附件应先上传并核对，最后上传 `update.json`。客户端无需登录或提供令牌。
 
 ### 关于 Vibe Coding
 
@@ -93,7 +95,7 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 
 对这种开发方式的担忧有其理由。AI 可能遗漏边界条件、引入安全问题，生成的测试也可能重复实现中的错误假设。本工具需要管理员权限并修改进程内存，不能用“AI 写的”推卸责任，也不能把“测试通过”当作安全保证。
 
-请根据具体实现和可复现的行为评价这个项目，而不是把开发方式当作质量背书。源码和验证范围公开，欢迎针对正确性、权限使用、稳定性或测试覆盖提出问题和 Pull Request。是否接受这种开发方式、是否运行本工具，由你根据自己的审查与风险判断决定。
+请根据具体实现和可复现的行为评价这个项目，而不是把开发方式当作质量背书。源码和测试代码公开，欢迎针对正确性、权限使用、稳定性或测试覆盖提出问题和 Pull Request。是否接受这种开发方式、是否运行本工具，由你根据自己的审查与风险判断决定。
 
 ### 免责声明
 
@@ -112,10 +114,10 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 | Launch and attach | Detect clients on first launch, rescan on demand, switch remembered paths from a dropdown, launch the game, or attach to an existing process. |
 | Tray and settings | Minimize to tray, single-instance behavior, saved preferences, optional game launch with the tool, and optional tool exit with the game. |
 | Languages | Simplified Chinese, English, Japanese, and Korean. Follows the system by default, with a saved manual choice. |
-| Updates | Check stable GitHub releases at startup or manually, show a new-version prompt, download and verify the installer, then upgrade and restart. Startup checks can be disabled. |
+| Updates | Check GitHub and Gitee in parallel with automatic source selection or a fixed provider, show a new-version prompt, verify the installer, then upgrade and restart. Startup checks can be disabled. |
 | Installation | An installer with a selectable directory, shortcuts, upgrades, and uninstallation. |
 
-Addresses are resolved dynamically, but game updates may still require compatibility changes. See the [validation record](docs/VALIDATION.md) for tested clients and feature coverage.
+Addresses are resolved dynamically, but game updates may still require compatibility changes.
 
 ### Requirements
 
@@ -125,7 +127,7 @@ Addresses are resolved dynamically, but game updates may still require compatibi
 
 ### Usage
 
-1. Download `HSRUnlocker-version-win-x64-Setup.exe` from Releases, install it, and use its shortcut.
+1. Download `HSRUnlocker-version-win-x64-Setup.exe` from [GitHub Releases](https://github.com/L1angYun/HSRUnlocker/releases) or [Gitee Releases](https://gitee.com/liangyun_Liu/HSRUnlocker/releases), install it, and use its shortcut.
 2. The first launch searches for installed `StarRail.exe` clients. A single match is saved automatically; choose between multiple matches or browse manually if none are found.
 3. Set the target FPS, FOV offset, and desired options.
 4. Click Launch game, or Attach to game for a running client.
@@ -140,6 +142,8 @@ FOV changes apply on the next camera update. Minimizing moves the tool to the tr
 Close tool when the game exits is enabled by default. Turn it off to launch or attach again from the same window. Normal tool shutdown still completes restoration before closing.
 
 The Updates section offers a manual check and an optional startup check. A newer release opens a prompt to update, view release notes, or continue later, once per version in the same run. While in the tray, the prompt waits until the window is restored. The tool downloads and verifies the installer, finishes restoration, exits, installs the update, and restarts. Downloads can be cancelled; download or verification failures leave the current application in place.
+
+Update source defaults to Auto. Both providers are queried in parallel; within a short result-collection window, a newer release takes priority, followed by the faster source for equal versions. Downloads start directly from that source. Auto may retry the other provider after a network failure, but never bypasses size or SHA-256 checks; conflicting integrity metadata for the same version stops the update. Choosing GitHub or Gitee fixes that provider without cross-provider retries. Gitee publication may lag behind GitHub, so a fixed Gitee choice uses the versions already published there.
 
 Automatic discovery reads launcher and Windows installation records and checks running clients, without inferring versions from folder names. If moving a game leaves stale installation records, browse to its actual `StarRail.exe`.
 
@@ -174,7 +178,7 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 
 The script publishes a framework-dependent application and compiles the installer. Use `-CompilerPath` to select `ISCC.exe`. The installer definition is in `installer\HSRUnlocker.iss`; pinned Microsoft runtime URLs and SHA-256 hashes are in `installer\runtime-dependencies.json`. Prerequisites are checked, verified, and installed before application files are replaced. Failures leave existing application files intact; a requested restart requires rebooting and running Setup again.
 
-The build also generates `update.json` using the actual installer's size and SHA-256. Upload it alongside the installer in the same stable release so update checks can continue when the GitHub API is rate limited.
+The build also generates `update.json` using the actual installer's size and SHA-256. Upload the installer, source ZIP, `SHA256SUMS.txt`, and `update.json` to the same stable release, using identical files on GitHub and Gitee. Source synchronization does not publish Gitee release attachments. Upload and verify the other attachments before publishing `update.json` last. Clients do not need to sign in or supply a token.
 
 ### About Vibe Coding
 
@@ -182,7 +186,7 @@ This project uses **Vibe Coding**: AI contributes to feature planning, UI design
 
 Concerns about this approach are reasonable. AI can miss edge cases, introduce security problems, and generate tests that repeat the implementation's incorrect assumptions. This tool runs with administrator privileges and modifies process memory. "AI wrote it" does not excuse defects, and passing tests does not establish safety.
 
-Judge the project by its implementation and reproducible behavior, not by treating its development method as a quality endorsement. The source and validation scope are public. Reports and pull requests addressing correctness, privileges, stability, or test coverage are welcome. Whether to accept this development approach or run the tool is your decision, based on your own review and assessment of the risks.
+Judge the project by its implementation and reproducible behavior, not by treating its development method as a quality endorsement. The source and test code are public. Reports and pull requests addressing correctness, privileges, stability, or test coverage are welcome. Whether to accept this development approach or run the tool is your decision, based on your own review and assessment of the risks.
 
 ### Disclaimer
 

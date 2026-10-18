@@ -31,9 +31,12 @@ internal static class Program
             MappedImageVerification.Run(Check);
             SuspendedUnwindVerification.Run(Check);
             PreferencesVerification.Run(Check);
+            UpdatePreferenceVerification.Run(Check);
             GameClientPathsVerification.Run(Check);
             GameDiscoveryVerification.Run(Check);
             LocalizationVerification.Run(Check);
+            UpdateMirrorCheckVerification.Run(Check);
+            UpdateMirrorDownloadVerification.Run(Check);
             UpdateVerification.Run(Check);
             UpdatePromptVerification.Run(Check);
             UpdateInstallVerification.Run(Check);

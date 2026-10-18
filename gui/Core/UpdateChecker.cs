@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -42,14 +43,17 @@ namespace StarRailUnlocker.Core
         public Uri DownloadUri { get; }
         public long Size { get; }
         public string Sha256 { get; }
+        internal UpdateSourcePreference Preference { get; }
 
-        internal UpdatePackage(string version, string fileName, Uri downloadUri, long size, string sha256)
+        internal UpdatePackage(string version, string fileName, Uri downloadUri, long size, string sha256,
+            UpdateSourcePreference preference = UpdateSourcePreference.Auto)
         {
             Version = version;
             FileName = fileName;
             DownloadUri = downloadUri;
             Size = size;
             Sha256 = sha256;
+            Preference = preference;
         }
     }
 
@@ -73,18 +77,112 @@ namespace StarRailUnlocker.Core
             this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
         }
 
-        public async Task<UpdateCheckResult> CheckAsync(string currentVersion, CancellationToken cancellationToken = default)
+        public Task<UpdateCheckResult> CheckAsync(string currentVersion, CancellationToken cancellationToken = default) =>
+            CheckAsync(currentVersion, UpdateSourcePreference.Auto, cancellationToken);
+
+        public async Task<UpdateCheckResult> CheckAsync(string currentVersion, UpdateSourcePreference preference,
+            CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (!Enum.IsDefined(preference)) throw new ArgumentOutOfRangeException(nameof(preference));
             if (!TryVersion(currentVersion, out Version current))
                 throw new ArgumentException("The current version must be a stable numeric version.", nameof(currentVersion));
 
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeout.CancelAfter(TimeSpan.FromSeconds(10));
-            CancellationToken token = timeout.Token;
+            using var pending = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            Task<SourceResult> github = preference != UpdateSourcePreference.Gitee
+                ? CheckSourceAsync(false, current, preference, cancellationToken, pending.Token) : null;
+            Task<SourceResult> gitee = preference != UpdateSourcePreference.GitHub
+                ? CheckSourceAsync(true, current, preference, cancellationToken, pending.Token) : null;
+            UpdateCheckResult selected;
+            try
+            {
+                if (github == null || gitee == null)
+                {
+                    SourceResult single = await (github ?? gitee).ConfigureAwait(false);
+                    selected = Select(single, null);
+                }
+                else
+                {
+                    Task<SourceResult> first = await Task.WhenAny(github, gitee).ConfigureAwait(false);
+                    Task<SourceResult> other = first == github ? gitee : github;
+                    SourceResult completed = await first.ConfigureAwait(false);
+                    if (completed.Result == null)
+                        selected = Select(completed, await other.ConfigureAwait(false));
+                    else
+                    {
+                        using var collection = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                        Task window = Task.Delay(TimeSpan.FromSeconds(1), collection.Token);
+                        await Task.WhenAny(other, window).ConfigureAwait(false);
+                        collection.Cancel();
+                        selected = Select(completed, other.IsCompleted ? await other.ConfigureAwait(false) : null);
+                    }
+                }
+            }
+            finally
+            {
+                pending.Cancel();
+                if (github != null && gitee != null) await Task.WhenAll(github, gitee).ConfigureAwait(false);
+                else await (github ?? gitee).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            return selected;
+        }
+
+        private async Task<SourceResult> CheckSourceAsync(bool gitee, Version current, UpdateSourcePreference preference,
+            CancellationToken callerToken, CancellationToken pendingToken)
+        {
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(pendingToken);
+            deadline.CancelAfter(TimeSpan.FromSeconds(gitee ? 8 : 5));
+            try
+            {
+                UpdateCheckResult result = gitee
+                    ? await ReadGiteeAsync(current, deadline.Token, preference).ConfigureAwait(false)
+                    : await ReadGitHubAsync(current, callerToken, deadline.Token, preference).ConfigureAwait(false);
+                return new SourceResult(result, null);
+            }
+            catch (Exception error) when (error is HttpRequestException || error is IOException || error is InvalidDataException
+                || error is OperationCanceledException || error is UriFormatException)
+            {
+                return new SourceResult(null, UpdateSources.SafeFailure(error));
+            }
+        }
+
+        private static UpdateCheckResult Select(SourceResult first, SourceResult second)
+        {
+            if (first.Result == null && second?.Result == null)
+            {
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(first.Error).Throw();
+            }
+            if (first.Result == null) return second.Result;
+            if (second?.Result == null) return first.Result;
+            UpdateCheckResult a = first.Result, b = second.Result;
+            TryVersion(a.Version, out Version av);
+            TryVersion(b.Version, out Version bv);
+            if (av != bv) return av > bv ? a : b;
+            if (a.Installer != null && b.Installer != null
+                && (a.Installer.Size != b.Installer.Size
+                    || !a.Installer.Sha256.Equals(b.Installer.Sha256, StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidDataException("The official sources disagree on installer integrity.");
+            if (a.Installer == null && b.Installer != null) return b;
+            if (b.Installer == null && a.Installer != null) return a;
+            return first.CompletedAt <= second.CompletedAt ? a : b;
+        }
+
+        private sealed class SourceResult
+        {
+            internal UpdateCheckResult Result { get; }
+            internal Exception Error { get; }
+            internal long CompletedAt { get; } = System.Diagnostics.Stopwatch.GetTimestamp();
+            internal SourceResult(UpdateCheckResult result, Exception error) { Result = result; Error = error; }
+        }
+
+        private async Task<UpdateCheckResult> ReadGitHubAsync(Version current, CancellationToken cancellationToken,
+            CancellationToken token, UpdateSourcePreference preference)
+        {
             RateLimitState limited = Volatile.Read(ref rateLimit);
             if (limited != null && limited.RetryAt > clock())
-                return await ReadFallbackAsync(current, limited, cancellationToken, token).ConfigureAwait(false);
+                return await ReadFallbackAsync(current, limited, cancellationToken, token, preference).ConfigureAwait(false);
 
             using (var request = MetadataRequest(ApiUri, true))
             using (HttpResponseMessage response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
@@ -95,15 +193,56 @@ namespace StarRailUnlocker.Core
                 if (limited == null)
                 {
                     response.EnsureSuccessStatusCode();
-                    return await ReadReleaseAsync(response, current, token).ConfigureAwait(false);
+                    return await ReadReleaseAsync(response, current, token, preference: preference).ConfigureAwait(false);
                 }
                 Volatile.Write(ref rateLimit, limited);
             }
-            return await ReadFallbackAsync(current, limited, cancellationToken, token).ConfigureAwait(false);
+            return await ReadFallbackAsync(current, limited, cancellationToken, token, preference).ConfigureAwait(false);
+        }
+
+        private async Task<UpdateCheckResult> ReadGiteeAsync(Version current, CancellationToken token,
+            UpdateSourcePreference preference)
+        {
+            using var request = MetadataRequest(UpdateSources.GiteeReleases, false);
+            using HttpResponseMessage response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
+                .ConfigureAwait(false);
+            UpdateSources.ValidateResponse(response, UpdateSources.GiteeReleases);
+            response.EnsureSuccessStatusCode();
+            using JsonDocument document = await ReadDocumentAsync(response, token).ConfigureAwait(false);
+            if (document.RootElement.ValueKind != JsonValueKind.Array || document.RootElement.GetArrayLength() > 100)
+                throw new InvalidDataException("The mirror release list is invalid.");
+            string tag = null;
+            Version latest = null;
+            var versions = new HashSet<Version>();
+            foreach (JsonElement release in document.RootElement.EnumerateArray())
+            {
+                if (release.ValueKind != JsonValueKind.Object
+                    || !release.TryGetProperty("prerelease", out JsonElement prerelease) || prerelease.ValueKind != JsonValueKind.False
+                    || !release.TryGetProperty("tag_name", out JsonElement name) || name.ValueKind != JsonValueKind.String
+                    || !TryVersion(name.GetString(), out Version candidate)
+                    || !release.TryGetProperty("assets", out JsonElement assets) || assets.ValueKind != JsonValueKind.Array) continue;
+                if (!versions.Add(candidate))
+                    throw new InvalidDataException("The mirror has ambiguous release versions.");
+                int manifests = 0;
+                foreach (JsonElement asset in assets.EnumerateArray())
+                    if (asset.ValueKind == JsonValueKind.Object && asset.TryGetProperty("name", out JsonElement file)
+                        && file.ValueKind == JsonValueKind.String && file.GetString() == "update.json") manifests++;
+                if (manifests > 1) throw new InvalidDataException("The mirror has ambiguous update manifests.");
+                if (manifests == 0) continue;
+                if (latest == null || candidate > latest)
+                {
+                    latest = candidate;
+                    tag = name.GetString();
+                }
+            }
+            if (tag == null) throw new HttpRequestException("No complete stable mirror release is available.", null, HttpStatusCode.NotFound);
+            using HttpResponseMessage manifest = await UpdateSources.GetFileAsync(client,
+                UpdateSources.FileUri(tag, "update.json", true), "update.json", true, token, tag).ConfigureAwait(false);
+            return await ReadReleaseAsync(manifest, current, token, true, tag, preference).ConfigureAwait(false);
         }
 
         private async Task<UpdateCheckResult> ReadFallbackAsync(Version current, RateLimitState limited,
-            CancellationToken callerToken, CancellationToken token)
+            CancellationToken callerToken, CancellationToken token, UpdateSourcePreference preference)
         {
             try
             {
@@ -125,7 +264,7 @@ namespace StarRailUnlocker.Core
                         continue;
                     }
                     response.EnsureSuccessStatusCode();
-                    return await ReadReleaseAsync(response, current, token).ConfigureAwait(false);
+                    return await ReadReleaseAsync(response, current, token, preference: preference).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) when (callerToken.IsCancellationRequested) { throw; }
@@ -221,7 +360,7 @@ namespace StarRailUnlocker.Core
             }
         }
 
-        private static async Task<UpdateCheckResult> ReadReleaseAsync(HttpResponseMessage response, Version current, CancellationToken token)
+        private static async Task<JsonDocument> ReadDocumentAsync(HttpResponseMessage response, CancellationToken token)
         {
             if (response.Content.Headers.ContentLength > MaximumResponseBytes)
                 throw new InvalidDataException("The release response exceeds the allowed size.");
@@ -238,9 +377,16 @@ namespace StarRailUnlocker.Core
                 body.Write(buffer, 0, count);
             }
 
-            try
+            try { return JsonDocument.Parse(body.ToArray()); }
+            catch (JsonException ex) { throw new InvalidDataException("The release response is not valid JSON.", ex); }
+        }
+
+        private static async Task<UpdateCheckResult> ReadReleaseAsync(HttpResponseMessage response, Version current,
+            CancellationToken token, bool gitee = false, string expectedTag = null,
+            UpdateSourcePreference preference = UpdateSourcePreference.Auto)
+        {
+            using JsonDocument document = await ReadDocumentAsync(response, token).ConfigureAwait(false);
             {
-                using JsonDocument document = JsonDocument.Parse(body.ToArray());
                 JsonElement root = document.RootElement;
                 if (root.ValueKind != JsonValueKind.Object
                     || !root.TryGetProperty("draft", out JsonElement draft) || draft.ValueKind != JsonValueKind.False
@@ -249,21 +395,18 @@ namespace StarRailUnlocker.Core
                     throw new InvalidDataException("The release response does not describe a stable release.");
 
                 string tag = tagValue.GetString();
-                if (!TryVersion(tag, out Version latest))
+                if (!TryVersion(tag, out Version latest) || (expectedTag != null && tag != expectedTag))
                     throw new InvalidDataException("The release tag is not a stable numeric version.");
                 token.ThrowIfCancellationRequested();
                 string displayVersion = tag[0] == 'v' ? tag.Substring(1) : tag;
-                UpdatePackage installer = ReadInstaller(root, tag, displayVersion);
+                UpdatePackage installer = ReadInstaller(root, tag, displayVersion, gitee, preference);
                 return new UpdateCheckResult(displayVersion,
-                    latest > current, new Uri("https://github.com/L1angYun/HSRUnlocker/releases/tag/" + tag), installer);
-            }
-            catch (JsonException ex)
-            {
-                throw new InvalidDataException("The release response is not valid JSON.", ex);
+                    latest > current, new Uri((gitee ? UpdateSources.GiteeRoot : UpdateSources.GitHubRoot) + "/releases/tag/" + tag), installer);
             }
         }
 
-        private static UpdatePackage ReadInstaller(JsonElement root, string tag, string version)
+        private static UpdatePackage ReadInstaller(JsonElement root, string tag, string version, bool gitee,
+            UpdateSourcePreference preference)
         {
             if (!root.TryGetProperty("assets", out JsonElement assets)) return null;
             if (assets.ValueKind != JsonValueKind.Array)
@@ -284,13 +427,13 @@ namespace StarRailUnlocker.Core
                 if (hash == null || !Regex.IsMatch(hash, @"\Asha256:[a-fA-F0-9]{64}\z", RegexOptions.CultureInvariant))
                     throw new InvalidDataException("The installer requires a valid SHA256 digest.");
                 installer = new UpdatePackage(version, fileName,
-                    new Uri("https://github.com/L1angYun/HSRUnlocker/releases/download/" + tag + "/" + fileName),
-                    bytes, hash.Substring(7).ToLowerInvariant());
+                    UpdateSources.FileUri(tag, fileName, gitee),
+                    bytes, hash.Substring(7).ToLowerInvariant(), preference);
             }
             return installer;
         }
 
-        private static bool TryVersion(string text, out Version version)
+        internal static bool TryVersion(string text, out Version version)
         {
             version = null;
             if (text == null || text.Length > 64) return false;

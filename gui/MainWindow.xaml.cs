@@ -85,6 +85,7 @@ namespace StarRailUnlocker
                 StartMinimizedToggle.IsOn = _config.StartMinimized;
                 ExitWithGameToggle.IsOn = _config.ExitWithGame;
                 CheckForUpdatesToggle.IsOn = _config.CheckForUpdates;
+                UpdateSourceBox.SelectedIndex = (int)_config.UpdateSource;
 
                 Log(L10n.T("Ui.LogConfigPath", UnlockConfig.DefaultPath));
                 ConfigureWindow();

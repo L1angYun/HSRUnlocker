@@ -286,6 +286,13 @@
                 </Grid>
                 <StackPanel Spacing="12">
                     <TextBlock x:Name="UpdatesSectionTitle" Style="{StaticResource SectionTitleStyle}" />
+                    <ComboBox x:Name="UpdateSourceBox" HorizontalAlignment="Stretch" MinWidth="0"
+                              SelectionChanged="OnUpdateSourceChanged"
+                              AutomationProperties.AutomationId="UpdateSourceBox">
+                        <ComboBoxItem x:Name="UpdateSourceAutoItem" />
+                        <ComboBoxItem x:Name="UpdateSourceGitHubItem" />
+                        <ComboBoxItem x:Name="UpdateSourceGiteeItem" />
+                    </ComboBox>
                     <Grid ColumnSpacing="16" MinHeight="40">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />

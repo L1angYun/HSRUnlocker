@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using StarRailUnlocker.Core;
 
 namespace StarRailUnlocker
@@ -15,8 +16,7 @@ namespace StarRailUnlocker
         });
         private readonly HttpClient _downloadHttp = new(new HttpClientHandler
         {
-            AllowAutoRedirect = true,
-            MaxAutomaticRedirections = 5,
+            AllowAutoRedirect = false,
             UseCookies = false,
             UseDefaultCredentials = false
         }) { Timeout = Timeout.InfiniteTimeSpan };
@@ -29,6 +29,22 @@ namespace StarRailUnlocker
         private string _updateStatusKey = "Updates.NotChecked";
         private bool _checkingForUpdates, _openingRelease, _downloadingUpdate;
         private double _updateProgress;
+
+        private void OnUpdateSourceChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_initializing || _updatingLanguage || _closed || _closePending ||
+                _checkingForUpdates || _openingRelease || _downloadingUpdate || _preparedUpdate != null ||
+                !UpdateSourceBox.IsEnabled || UpdateSourceBox.SelectedIndex is < 0 or > 2)
+                return;
+            var preference = (UpdateSourcePreference)UpdateSourceBox.SelectedIndex;
+            if (_config.UpdateSource == preference) return;
+            _config.UpdateSource = preference;
+            _updateResult = null;
+            _updateStatusKey = "Updates.NotChecked";
+            _updatePrompts.Offer(null);
+            if (!_config.Save()) Log(L10n.T("Ui.LogConfigSaveFailed", UnlockConfig.LogPath));
+            RefreshUpdatePresentation();
+        }
 
         private void OnCheckForUpdatesToggled(object sender, RoutedEventArgs e)
         {
@@ -43,12 +59,14 @@ namespace StarRailUnlocker
         {
             if (_checkingForUpdates || _downloadingUpdate || _closed || _closePending) return;
             _checkingForUpdates = true;
+            _updateResult = null;
+            _updatePrompts.Offer(null);
             _updateStatusKey = "Updates.Checking";
             RefreshUpdatePresentation();
             CancellationToken token = _updateCancellation.Token;
             try
             {
-                var result = await _updateChecker.CheckAsync(AppVersion, token);
+                var result = await _updateChecker.CheckAsync(AppVersion, _config.UpdateSource, token);
                 if (_closed || _closePending) return;
                 _updateResult = result;
                 _updatePrompts.Offer(result);
@@ -180,6 +198,8 @@ namespace StarRailUnlocker
                 _updateStatusKey == "Updates.Current" ? AppVersion : _updateResult?.Version;
             UpdateStatusText.Text = L10n.T(_updateStatusKey, statusValue);
             CheckForUpdatesToggle.IsEnabled = !_closePending;
+            UpdateSourceBox.IsEnabled = !_closePending && !_checkingForUpdates && !_openingRelease &&
+                !_downloadingUpdate && _preparedUpdate == null;
             CheckUpdatesButton.IsEnabled = !_closePending && !_checkingForUpdates && !_openingRelease && !_downloadingUpdate;
             OpenReleaseButton.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
             OpenReleaseButton.IsEnabled = available && !_closePending && !_checkingForUpdates && !_openingRelease && !_downloadingUpdate;

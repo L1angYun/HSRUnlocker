@@ -43,6 +43,7 @@ namespace StarRailUnlocker.Core
         public bool StartMinimized { get; set; } = false;
         public bool ExitWithGame { get; set; } = true;
         public bool CheckForUpdates { get; set; } = true;
+        public UpdateSourcePreference UpdateSource { get; set; } = UpdateSourcePreference.Auto;
         public bool UseMobileUI { get; set; } = false;
         public MobileGraphicsSource GraphicsSource { get; set; } = MobileGraphicsSource.Auto;
         public MobileSafeAreaMode SafeAreaMode { get; set; } = MobileSafeAreaMode.Original;
@@ -116,6 +117,7 @@ namespace StarRailUnlocker.Core
             FovDelta = Math.Clamp(FovDelta, FovMin, FovMax);
             if (!Enum.IsDefined(GraphicsSource)) GraphicsSource = MobileGraphicsSource.Auto;
             if (!Enum.IsDefined(SafeAreaMode)) SafeAreaMode = MobileSafeAreaMode.Original;
+            if (!Enum.IsDefined(UpdateSource)) UpdateSource = UpdateSourcePreference.Auto;
             if (!double.IsFinite(SafeAreaHorizontalPercent)) SafeAreaHorizontalPercent = SafeAreaHorizontalDefault;
             SafeAreaHorizontalPercent = Math.Clamp(SafeAreaHorizontalPercent, 0, SafeAreaMaxPercent);
             Language = L10n.NormalizePreference(Language);
@@ -132,6 +134,7 @@ namespace StarRailUnlocker.Core
             StartMinimized = StartMinimized,
             ExitWithGame = ExitWithGame,
             CheckForUpdates = CheckForUpdates,
+            UpdateSource = UpdateSource,
             UseMobileUI = UseMobileUI,
             GraphicsSource = GraphicsSource,
             SafeAreaMode = SafeAreaMode,
