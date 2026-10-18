@@ -23,6 +23,12 @@
     "ja-JP": "バックアップから設定を復元しました: {0}",
     "ko-KR": "백업에서 설정을 복구했습니다: {0}"
   },
+  "Config.RollbackFailed": {
+    "zh-CN": "无法还原配置；保留的恢复文件或目标路径：{0}",
+    "en-US": "Could not restore settings; retained recovery file or target path: {0}",
+    "ja-JP": "設定を元に戻せませんでした。保持された復旧ファイルまたは対象パス: {0}",
+    "ko-KR": "설정을 복원할 수 없습니다. 보존된 복구 파일 또는 대상 경로: {0}"
+  },
   "Config.Empty": {
     "zh-CN": "配置文件为空：{0}",
     "en-US": "Settings file was empty: {0}",

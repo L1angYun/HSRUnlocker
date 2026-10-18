@@ -144,12 +144,15 @@ namespace StarRailUnlocker.Core
         private readonly string settingsPath;
         private readonly string legacyPath;
         private readonly Action<string, string, Exception> diagnostic;
+        private readonly Action<string, string, string> replaceFile;
 
-        internal ConfigStorage(string settingsPath, string legacyPath, Action<string, string, Exception> diagnostic)
+        internal ConfigStorage(string settingsPath, string legacyPath, Action<string, string, Exception> diagnostic,
+            Action<string, string, string> replaceFile = null)
         {
             this.settingsPath = Path.GetFullPath(settingsPath);
             this.legacyPath = Path.GetFullPath(legacyPath);
             this.diagnostic = diagnostic ?? throw new ArgumentNullException(nameof(diagnostic));
+            this.replaceFile = replaceFile ?? File.Replace;
         }
 
         internal UnlockConfig Load()
@@ -184,7 +187,11 @@ namespace StarRailUnlocker.Core
         {
             config.Normalize();
             string temporaryPath = settingsPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-            bool ownsTemporary = false;
+            string primarySnapshot = temporaryPath + ".primary";
+            string backupSnapshot = temporaryPath + ".backup";
+            string backupPath = settingsPath + ".bak";
+            bool ownsTemporary = false, ownsPrimary = false, ownsBackup = false;
+            bool replacementStarted = false, backupCanChange = false, retainRecovery = false;
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(settingsPath));
@@ -196,12 +203,20 @@ namespace StarRailUnlocker.Core
                 }
                 if (File.Exists(settingsPath))
                 {
+                    CopySnapshot(settingsPath, primarySnapshot, ref ownsPrimary);
                     // Only a deserializable primary may replace the last-known-good backup.
                     // Read failures must abort rather than treating an inaccessible file as corrupt.
                     bool validPrimary;
-                    try { validPrimary = JsonSerializer.Deserialize<UnlockConfig>(File.ReadAllText(settingsPath, Utf8), Opts) != null; }
+                    try { validPrimary = JsonSerializer.Deserialize<UnlockConfig>(File.ReadAllText(primarySnapshot, Utf8), Opts) != null; }
                     catch (JsonException) { validPrimary = false; }
-                    File.Replace(temporaryPath, settingsPath, validPrimary ? settingsPath + ".bak" : null);
+                    backupCanChange = validPrimary;
+                    if (backupCanChange)
+                    {
+                        try { CopySnapshot(backupPath, backupSnapshot, ref ownsBackup); }
+                        catch (FileNotFoundException) { }
+                    }
+                    replacementStarted = true;
+                    replaceFile(temporaryPath, settingsPath, validPrimary ? backupPath : null);
                 }
                 else
                     File.Move(temporaryPath, settingsPath);
@@ -209,17 +224,71 @@ namespace StarRailUnlocker.Core
             }
             catch (Exception ex)
             {
+                if (replacementStarted)
+                {
+                    // ReplaceFile can rename/delete originals before reporting a late failure.
+                    bool restoredPrimary = RestoreSnapshot(primarySnapshot, settingsPath);
+                    bool restoredBackup = true;
+                    if (backupCanChange)
+                    {
+                        if (ownsBackup)
+                            restoredBackup = RestoreSnapshot(backupSnapshot, backupPath);
+                        else
+                        {
+                            try { File.Delete(backupPath); }
+                            catch (Exception rollbackError)
+                            {
+                                restoredBackup = false;
+                                diagnostic("Config rollback", L10n.T("Config.RollbackFailed", backupPath), rollbackError);
+                            }
+                        }
+                    }
+                    retainRecovery = !restoredPrimary || !restoredBackup;
+                }
                 diagnostic("Config save", L10n.T("Config.SaveFailed", settingsPath), ex);
                 return false;
             }
             finally
             {
-                if (ownsTemporary)
+                if (!retainRecovery)
                 {
-                    try { File.Delete(temporaryPath); }
-                    catch (Exception ex) { diagnostic("Config cleanup", L10n.T("Config.SaveFailed", temporaryPath), ex); }
+                    CleanupTemporary(temporaryPath, ownsTemporary);
+                    CleanupTemporary(primarySnapshot, ownsPrimary);
+                    CleanupTemporary(backupSnapshot, ownsBackup);
                 }
             }
+        }
+
+        private static void CopySnapshot(string source, string snapshot, ref bool owned)
+        {
+            using var input = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var output = new FileStream(snapshot, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            owned = true;
+            input.CopyTo(output);
+            output.Flush(flushToDisk: true);
+        }
+
+        private bool RestoreSnapshot(string snapshot, string destination)
+        {
+            try
+            {
+                if (File.Exists(destination) && File.ReadAllBytes(destination).SequenceEqual(File.ReadAllBytes(snapshot)))
+                    return true;
+                File.Move(snapshot, destination, overwrite: true);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                diagnostic("Config rollback", L10n.T("Config.RollbackFailed", snapshot), ex);
+                return false;
+            }
+        }
+
+        private void CleanupTemporary(string path, bool owned)
+        {
+            if (!owned) return;
+            try { File.Delete(path); }
+            catch (Exception ex) { diagnostic("Config cleanup", L10n.T("Config.SaveFailed", path), ex); }
         }
 
         private bool TryLoad(string path, out UnlockConfig config)

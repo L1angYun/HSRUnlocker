@@ -8,7 +8,124 @@ internal static class ConfigStorageVerification
     {
         VerifyLoad(check);
         VerifySave(check);
+        VerifyLateReplacementFailure(check);
     }
+
+    private static void VerifyLateReplacementFailure(Action<bool, string> check)
+    {
+        foreach (bool hadBackup in new[] { true, false })
+        {
+            using var fixture = new Fixture();
+            const string primary = """{"TargetFramerate":165}""";
+            const string backup = """{"TargetFramerate":90}""";
+            fixture.Write(fixture.Primary, primary);
+            if (hadBackup) fixture.Write(fixture.Backup, backup);
+            fixture.Write(fixture.UnrelatedTemp, "another attempt");
+            var storage = new ConfigStorage(fixture.Primary, fixture.Legacy, fixture.Record,
+                (replacement, destination, backupPath) =>
+                {
+                    File.Move(destination, backupPath, overwrite: true);
+                    throw new IOException("Injected ERROR_UNABLE_TO_MOVE_REPLACEMENT_2", unchecked((int)0x80070499));
+                });
+            check(!storage.Save(new UnlockConfig { TargetFramerate = 240 }) &&
+                  HasBytes(fixture.Primary, primary) &&
+                  (hadBackup ? HasBytes(fixture.Backup, backup) : !File.Exists(fixture.Backup)),
+                $"late replacement failure restores the renamed primary and original backup presence={hadBackup}");
+            check(fixture.OnlyExpectedFiles(hadBackup
+                    ? new[] { fixture.Primary, fixture.Backup, fixture.UnrelatedTemp }
+                    : new[] { fixture.Primary, fixture.UnrelatedTemp }),
+                $"reconciled replacement failure cleans only owned staging with original backup presence={hadBackup}");
+        }
+
+        foreach (string primary in new[] { "{broken", "null" })
+        {
+            using var fixture = new Fixture();
+            fixture.Write(fixture.Primary, primary);
+            const string backup = """{"TargetFramerate":90}""";
+            fixture.Write(fixture.Backup, backup);
+            var storage = new ConfigStorage(fixture.Primary, fixture.Legacy, fixture.Record,
+                (replacement, destination, backupPath) =>
+                {
+                    if (backupPath != null) throw new InvalidOperationException("Invalid primary must not displace a good backup.");
+                    File.Delete(destination);
+                    throw new IOException("Injected ERROR_UNABLE_TO_MOVE_REPLACEMENT", unchecked((int)0x80070498));
+                });
+            check(!storage.Save(new UnlockConfig { TargetFramerate = 240 }) &&
+                  HasBytes(fixture.Primary, primary) && HasBytes(fixture.Backup, backup) &&
+                  fixture.OnlyExpectedFiles(fixture.Primary, fixture.Backup),
+                $"late no-backup replacement failure restores the removed {primary} primary without touching good backup");
+        }
+
+        using (var fixture = new Fixture())
+        {
+            const string primary = """{"TargetFramerate":165}""";
+            const string backup = """{"TargetFramerate":90}""";
+            fixture.Write(fixture.Primary, primary);
+            fixture.Write(fixture.Backup, backup);
+            var storage = new ConfigStorage(fixture.Primary, fixture.Legacy, fixture.Record,
+                (replacement, destination, backupPath) =>
+                {
+                    File.Move(destination, backupPath, overwrite: true);
+                    Directory.CreateDirectory(destination);
+                    throw new IOException("Injected late replacement failure followed by blocked rollback");
+                });
+            check(!storage.Save(new UnlockConfig { TargetFramerate = 240 }) &&
+                  fixture.OwnedFiles.Any(path => path.EndsWith(".primary", StringComparison.Ordinal) &&
+                      HasBytes(path, primary)) &&
+                  HasBytes(fixture.Backup, backup) &&
+                  fixture.Diagnostics.Any(entry => entry.Stage == "Config rollback" &&
+                      entry.Message.Contains(fixture.Primary, StringComparison.Ordinal)),
+                "blocked primary rollback retains its recoverable original, reports its path and still restores backup");
+        }
+
+        using (var fixture = new Fixture())
+        {
+            const string primary = """{"TargetFramerate":165}""";
+            const string backup = """{"TargetFramerate":90}""";
+            fixture.Write(fixture.Primary, primary);
+            fixture.Write(fixture.Backup, backup);
+            FileStream held = null;
+            try
+            {
+                var storage = new ConfigStorage(fixture.Primary, fixture.Legacy, fixture.Record,
+                    (replacement, destination, backupPath) =>
+                    {
+                        File.Move(destination, backupPath, overwrite: true);
+                        held = new FileStream(backupPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        throw new IOException("Injected late replacement failure followed by locked backup rollback");
+                    });
+                bool saved = storage.Save(new UnlockConfig { TargetFramerate = 240 });
+                string recoveryPath = fixture.OwnedFiles.SingleOrDefault(path => path.EndsWith(".backup", StringComparison.Ordinal));
+                check(!saved && HasBytes(fixture.Primary, primary) &&
+                      recoveryPath != null && HasBytes(recoveryPath, backup) &&
+                      fixture.Diagnostics.Any(entry => entry.Stage == "Config rollback" &&
+                          entry.Message.Contains(recoveryPath, StringComparison.Ordinal)),
+                    "locked backup rollback retains and reports its last recoverable original after primary restoration");
+            }
+            finally { held?.Dispose(); }
+        }
+
+        using (var fixture = new Fixture())
+        {
+            const string primary = """{"TargetFramerate":165}""";
+            const string backup = """{"TargetFramerate":90}""";
+            fixture.Write(fixture.Primary, primary);
+            fixture.Write(fixture.Backup, backup);
+            var storage = new ConfigStorage(fixture.Primary, fixture.Legacy, fixture.Record,
+                (replacement, destination, backupPath) =>
+                {
+                    File.Replace(replacement, destination, backupPath);
+                    throw new IOException("Injected failure reported after all replacement transitions");
+                });
+            check(!storage.Save(new UnlockConfig { TargetFramerate = 240 }) &&
+                  HasBytes(fixture.Primary, primary) && HasBytes(fixture.Backup, backup) &&
+                  fixture.OnlyExpectedFiles(fixture.Primary, fixture.Backup),
+                "failure reported after replacement publication atomically restores both byte-exact originals");
+        }
+    }
+
+    private static bool HasBytes(string path, string text) =>
+        File.Exists(path) && File.ReadAllBytes(path).SequenceEqual(Encoding.UTF8.GetBytes(text));
 
     private static void VerifyLoad(Action<bool, string> check)
     {
@@ -212,6 +329,7 @@ internal static class ConfigStorageVerification
 
         internal void Record(string stage, string message, Exception error) => Diagnostics.Add((stage, message, error));
         internal void Write(string path, string text) => File.WriteAllText(path, text, new UTF8Encoding(false));
+        internal IEnumerable<string> OwnedFiles => Directory.EnumerateFiles(root);
         internal bool OnlyExpectedFiles(params string[] expected) =>
             Directory.EnumerateFiles(root).Order(StringComparer.OrdinalIgnoreCase)
                 .SequenceEqual(expected.Order(StringComparer.OrdinalIgnoreCase), StringComparer.OrdinalIgnoreCase);
