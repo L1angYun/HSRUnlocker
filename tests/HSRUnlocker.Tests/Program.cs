@@ -20,11 +20,13 @@ internal static class Program
             Console.WriteLine("Run without arguments for Windows x64 own-process, synthetic PE, mobile-fixture, suspended-unwind and reversible native-entry child-fixture tests. No installed game or live settings are accessed.");
             Console.WriteLine("Use --config for the owned-temporary-directory settings storage checks only.");
             Console.WriteLine("Use --update-check for fake-HTTP update metadata checks only.");
+            Console.WriteLine("Use --update-helper for bounded helper-function temporary-file checks only.");
             return 0;
         }
         bool configOnly = args.SequenceEqual(new[] { "--config" });
         bool updateCheckOnly = args.SequenceEqual(new[] { "--update-check" });
-        if (args.Length != 0 && !configOnly && !updateCheckOnly)
+        bool updateHelperOnly = args.SequenceEqual(new[] { "--update-helper" });
+        if (args.Length != 0 && !configOnly && !updateCheckOnly && !updateHelperOnly)
         {
             Console.Error.WriteLine("Unsupported arguments. This portable suite has no live, launch, disk-client or automatic process-selection mode.");
             return 2;
@@ -32,6 +34,12 @@ internal static class Program
         try
         {
             Check(OperatingSystem.IsWindows() && Environment.Is64BitProcess, "portable suite runs in an x64 Windows test process");
+            if (updateHelperOnly)
+            {
+                UpdateHelperVerification.Run(Check);
+                Console.WriteLine($"UPDATE HELPER VERIFICATION: {Checks.Count} checks passed; only bounded helper functions and owned temporary files were used.");
+                return 0;
+            }
             if (updateCheckOnly)
             {
                 int failures = 0;
@@ -67,6 +75,7 @@ internal static class Program
             UpdateVerification.Run(Check);
             UpdatePromptVerification.Run(Check);
             UpdateInstallVerification.Run(Check);
+            UpdateHelperVerification.Run(Check);
             InstallerGuardVerification.Run(Check);
             // Keep existing diagnostic assertions independent of the Windows display language.
             L10n.SetLanguage("en-US");
@@ -87,7 +96,7 @@ internal static class Program
             ExecutableEntryVerification.Run(Check);
             LifecycleVerification.Run(Check);
             WriteReport(null);
-            Console.WriteLine($"PORTABLE VERIFICATION: {Checks.Count} checks passed; only synthetic files, own allocations and two bounded fixture children were used.");
+            Console.WriteLine($"PORTABLE VERIFICATION: {Checks.Count} checks passed; only synthetic files, own allocations and bounded fixture children were used.");
             return 0;
         }
         catch (Exception ex)
@@ -109,7 +118,7 @@ internal static class Program
                 passed = Checks,
                 success = error == null,
                 error = error == null ? null : new { type = error.GetType().FullName, message = error.Message },
-                scope = "Synthetic files, fake graphics reads, own allocations and two bounded same-assembly fixture children; no installed game files, live settings, network or game launch."
+                scope = "Synthetic files, fake graphics reads, own allocations and bounded fixture children; no installed game files, live settings, network or game launch."
             }, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch (Exception ex) { Console.Error.WriteLine("Could not write test report: " + ex.Message); }

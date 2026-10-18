@@ -143,6 +143,12 @@
     "ja-JP": "更新を完了できませんでした。HSRUnlocker を開いて再試行するか、インストーラーを手動でダウンロードしてください。",
     "ko-KR": "업데이트를 완료하지 못했습니다. HSRUnlocker를 다시 열어 재시도하거나 설치 프로그램을 수동으로 다운로드해 주세요."
   },
+  "Updates.HelperLogs": {
+    "zh-CN": "故障诊断日志：",
+    "en-US": "Failure diagnostic logs:",
+    "ja-JP": "エラー診断ログ:",
+    "ko-KR": "오류 진단 로그:"
+  },
   "Updates.InstallGuardFailed": {
     "zh-CN": "无法登记工具的运行状态。请重新启动 HSRUnlocker 后重试。",
     "en-US": "Could not register the tool's running state. Restart HSRUnlocker and try again.",
