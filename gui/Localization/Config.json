@@ -17,6 +17,12 @@
     "ja-JP": "設定を保存できませんでした: {0}",
     "ko-KR": "설정을 저장할 수 없습니다: {0}"
   },
+  "Config.BackupRecovered": {
+    "zh-CN": "已从备份恢复配置：{0}",
+    "en-US": "Recovered settings from backup: {0}",
+    "ja-JP": "バックアップから設定を復元しました: {0}",
+    "ko-KR": "백업에서 설정을 복구했습니다: {0}"
+  },
   "Config.Empty": {
     "zh-CN": "配置文件为空：{0}",
     "en-US": "Settings file was empty: {0}",

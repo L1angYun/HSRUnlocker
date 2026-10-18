@@ -18,9 +18,11 @@ internal static class Program
         if (args.SequenceEqual(new[] { "--help" }))
         {
             Console.WriteLine("Run without arguments for Windows x64 own-process, synthetic PE, mobile-fixture, suspended-unwind and reversible native-entry child-fixture tests. No installed game or live settings are accessed.");
+            Console.WriteLine("Use --config for the owned-temporary-directory settings storage checks only.");
             return 0;
         }
-        if (args.Length != 0)
+        bool configOnly = args.SequenceEqual(new[] { "--config" });
+        if (args.Length != 0 && !configOnly)
         {
             Console.Error.WriteLine("Unsupported arguments. This portable suite has no live, launch, disk-client or automatic process-selection mode.");
             return 2;
@@ -28,6 +30,12 @@ internal static class Program
         try
         {
             Check(OperatingSystem.IsWindows() && Environment.Is64BitProcess, "portable suite runs in an x64 Windows test process");
+            ConfigStorageVerification.Run(Check);
+            if (configOnly)
+            {
+                Console.WriteLine($"CONFIG VERIFICATION: {Checks.Count} checks passed; only owned temporary settings fixtures were used.");
+                return 0;
+            }
             MappedImageVerification.Run(Check);
             SuspendedUnwindVerification.Run(Check);
             PreferencesVerification.Run(Check);

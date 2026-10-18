@@ -24,13 +24,6 @@ namespace StarRailUnlocker.Core
         private const double SafeAreaHorizontalDefault = 5.0;
         private const double SafeAreaMaxPercent = 15.0;
 
-        private static readonly JsonSerializerOptions Opts = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.Never,
-        };
-
         private static readonly Encoding Utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
         private static readonly object LogSync = new object();
 
@@ -65,46 +58,15 @@ namespace StarRailUnlocker.Core
         public static string LogPath => Path.Combine(DataDirectory, "HSRUnlocker.log");
 
         /// <summary>
-        /// Load the tool settings.  Existing settings win; otherwise a legacy settings file
-        /// beside the tool executable is imported once into the tool-owned directory.
+        /// Load current settings, recover their backup, or import a legacy settings file
+        /// beside the tool executable into the tool-owned directory.
         /// </summary>
-        public static UnlockConfig Load()
-        {
-            if (TryLoad(DefaultPath, out var current))
-            {
-                current.Normalize();
-                return current;
-            }
-
-            if (TryLoad(LegacyPath, out var legacy))
-            {
-                legacy.Normalize();
-                if (legacy.Save())
-                    AppendLog("Config migration", L10n.T("Config.Migrated", DefaultPath));
-                else
-                    AppendLog("Config migration", L10n.T("Config.MigrationSaveFailed", DefaultPath));
-                return legacy;
-            }
-
-            return new UnlockConfig();
-        }
+        public static UnlockConfig Load() => CreateStorage().Load();
 
         /// <summary>Save settings to the tool-owned local application data directory.</summary>
-        public bool Save()
-        {
-            Normalize();
-            try
-            {
-                Directory.CreateDirectory(DataDirectory);
-                File.WriteAllText(DefaultPath, JsonSerializer.Serialize(this, Opts), Utf8);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                AppendLog("Config save", L10n.T("Config.SaveFailed", DefaultPath), ex);
-                return false;
-            }
-        }
+        public bool Save() => CreateStorage().Save(this);
+
+        private static ConfigStorage CreateStorage() => new ConfigStorage(DefaultPath, LegacyPath, AppendLog);
 
         /// <summary>Keep values loaded from older versions within the UI's supported range.</summary>
         public void Normalize()
@@ -167,8 +129,100 @@ namespace StarRailUnlocker.Core
                 // Diagnostics must never prevent the UI from starting.
             }
         }
+    }
 
-        private static bool TryLoad(string path, out UnlockConfig config)
+    /// <summary>Settings storage bound to one primary path and one legacy import source.</summary>
+    internal sealed class ConfigStorage
+    {
+        private static readonly JsonSerializerOptions Opts = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+        };
+        private static readonly Encoding Utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        private readonly string settingsPath;
+        private readonly string legacyPath;
+        private readonly Action<string, string, Exception> diagnostic;
+
+        internal ConfigStorage(string settingsPath, string legacyPath, Action<string, string, Exception> diagnostic)
+        {
+            this.settingsPath = Path.GetFullPath(settingsPath);
+            this.legacyPath = Path.GetFullPath(legacyPath);
+            this.diagnostic = diagnostic ?? throw new ArgumentNullException(nameof(diagnostic));
+        }
+
+        internal UnlockConfig Load()
+        {
+            if (TryLoad(settingsPath, out var current))
+            {
+                current.Normalize();
+                return current;
+            }
+
+            if (TryLoad(settingsPath + ".bak", out var backup))
+            {
+                backup.Normalize();
+                diagnostic("Config recovery", L10n.T("Config.BackupRecovered", settingsPath + ".bak"), null);
+                return backup;
+            }
+
+            if (TryLoad(legacyPath, out var legacy))
+            {
+                legacy.Normalize();
+                if (Save(legacy))
+                    diagnostic("Config migration", L10n.T("Config.Migrated", settingsPath), null);
+                else
+                    diagnostic("Config migration", L10n.T("Config.MigrationSaveFailed", settingsPath), null);
+                return legacy;
+            }
+
+            return new UnlockConfig();
+        }
+
+        internal bool Save(UnlockConfig config)
+        {
+            config.Normalize();
+            string temporaryPath = settingsPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            bool ownsTemporary = false;
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(settingsPath));
+                using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    ownsTemporary = true;
+                    JsonSerializer.Serialize(stream, config, Opts);
+                    stream.Flush(flushToDisk: true);
+                }
+                if (File.Exists(settingsPath))
+                {
+                    // Only a deserializable primary may replace the last-known-good backup.
+                    // Read failures must abort rather than treating an inaccessible file as corrupt.
+                    bool validPrimary;
+                    try { validPrimary = JsonSerializer.Deserialize<UnlockConfig>(File.ReadAllText(settingsPath, Utf8), Opts) != null; }
+                    catch (JsonException) { validPrimary = false; }
+                    File.Replace(temporaryPath, settingsPath, validPrimary ? settingsPath + ".bak" : null);
+                }
+                else
+                    File.Move(temporaryPath, settingsPath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                diagnostic("Config save", L10n.T("Config.SaveFailed", settingsPath), ex);
+                return false;
+            }
+            finally
+            {
+                if (ownsTemporary)
+                {
+                    try { File.Delete(temporaryPath); }
+                    catch (Exception ex) { diagnostic("Config cleanup", L10n.T("Config.SaveFailed", temporaryPath), ex); }
+                }
+            }
+        }
+
+        private bool TryLoad(string path, out UnlockConfig config)
         {
             config = null;
             if (!File.Exists(path)) return false;
@@ -178,11 +232,11 @@ namespace StarRailUnlocker.Core
                 var json = File.ReadAllText(path, Utf8);
                 config = JsonSerializer.Deserialize<UnlockConfig>(json, Opts);
                 if (config != null) return true;
-                AppendLog("Config load", L10n.T("Config.Empty", path));
+                diagnostic("Config load", L10n.T("Config.Empty", path), null);
             }
             catch (Exception ex)
             {
-                AppendLog("Config load", L10n.T("Config.LoadFailed", path), ex);
+                diagnostic("Config load", L10n.T("Config.LoadFailed", path), ex);
             }
 
             config = null;
