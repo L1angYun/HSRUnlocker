@@ -11,6 +11,7 @@ internal static class UpdateMirrorDownloadVerification
     private const string Gitee = "https://gitee.com/liangyun_Liu/HSRUnlocker/releases/download/v1.2.3/HSRUnlocker-1.2.3-win-x64-Setup.exe";
     private const string Attachment = "https://gitee.com/liangyun_Liu/HSRUnlocker/attach_files/123/download/HSRUnlocker-1.2.3-win-x64-Setup.exe";
     private const string Cdn = "https://foruda.gitee.com/attach_file/456/HSRUnlocker-1.2.3-win-x64-Setup.exe?fixture-signature=private-fixture-value";
+    private const string LowercaseCdn = "https://foruda.gitee.com/attach_file/456/hsrunlocker-1.2.3-win-x64-setup.exe?fixture-signature=synthetic-lowercase-value";
 
     public static void Run(Action<bool, string> check) => RunAsync(check).GetAwaiter().GetResult();
 
@@ -22,6 +23,9 @@ internal static class UpdateMirrorDownloadVerification
         UpdatePackage package = Package(payload, GitHub);
         try
         {
+            await VerifyLowercaseCdnDownloadAsync(check, root, payload);
+            await VerifyLowercaseCdnIntegrityAsync(check, root, payload);
+            await VerifyCdnRedirectBoundariesAsync(check, root, payload);
             await VerifyProtocolLengthFailureAsync(check, root, payload);
             // Break caught: fixed-source metadata still permits alternate-provider retry.
             foreach (var sample in new[]
@@ -205,8 +209,12 @@ internal static class UpdateMirrorDownloadVerification
                 (GitHub, "https://attacker.invalid/" + FileName, "untrusted host"),
                 (GitHub, "https://gitee.com.evil.invalid/" + FileName, "lookalike Gitee host"),
                 (Gitee, "https://gitee.com/unrelated/repository/attach_files/123/download/" + FileName, "another Gitee repository"),
+                (Gitee, "https://gitee.com/liangyun_liu/HSRUnlocker/attach_files/123/download/" + FileName, "changed owned repository casing"),
+                (Gitee, "https://gitee.com/liangyun_Liu/HSRUnlocker/attach_files/123/download/hsrunlocker-1.2.3-win-x64-setup.exe", "lowercase owned attachment basename"),
+                (Gitee, "https://gitee.com/liangyun_Liu/HSRUnlocker/releases/download/v1.2.3/hsrunlocker-1.2.3-win-x64-setup.exe", "lowercase release basename"),
                 (Gitee, "https://foruda.gitee.com.evil.invalid/attach_file/456/" + FileName, "lookalike CDN host"),
                 (Gitee, Cdn, "Gitee CDN bypass without an owned attachment"),
+                (Gitee, LowercaseCdn, "lowercase Gitee CDN bypass without an owned attachment"),
                 (Gitee, Attachment + "#fragment", "attachment fragment"),
                 (Gitee, Attachment + "?query=unexpected", "attachment query"),
                 (Gitee, "https://user@gitee.com/liangyun_Liu/HSRUnlocker/attach_files/123/download/" + FileName, "attachment userinfo"),
@@ -305,6 +313,110 @@ internal static class UpdateMirrorDownloadVerification
         }
     }
 
+    private static async Task VerifyLowercaseCdnDownloadAsync(Action<bool, string> check, string root, byte[] payload)
+    {
+        // Break caught: rejecting the exact lowercase filename supplied by the owned attachment's CDN redirect.
+        var requests = new List<string>();
+        bool sourceClosed = false;
+        using var client = Client(requests, (request, _) =>
+        {
+            string uri = request.RequestUri.AbsoluteUri;
+            if (uri == Gitee) return Task.FromResult(Redirect(Attachment));
+            if (uri == Attachment) return Task.FromResult(Redirect(LowercaseCdn));
+            if (uri != LowercaseCdn) throw new InvalidOperationException("Unexpected lowercase CDN fixture URL.");
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StreamContent(new FragmentedStream(payload, onDispose: () => sourceClosed = true))
+            });
+        });
+        var progress = new ProgressRecorder();
+        await CheckSuccessfulDownload(check, client, root, Package(payload, Gitee, UpdateSourcePreference.Gitee),
+            payload, requests, new[] { Gitee, Attachment, LowercaseCdn },
+            "Gitee-only follows the owned attachment to its exact lowercase CDN basename and verifies the canonical local installer",
+            progress);
+        check(sourceClosed && progress.Values[^1] == 1 && IsEmpty(root),
+            "a lowercase CDN download closes its response stream and removes staging after disposal");
+    }
+
+    private static async Task VerifyLowercaseCdnIntegrityAsync(Action<bool, string> check, string root, byte[] payload)
+    {
+        // Break caught: accepting lowercase CDN paths bypasses selected integrity checks or enables an alternate-provider retry.
+        foreach (var sample in new (byte[] Bytes, long? DeclaredLength, string Description)[]
+        {
+            (payload.Select(value => (byte)(value ^ 1)).ToArray(), payload.Length, "corrupted bytes"),
+            (payload[..^1], null, "truncated stream"),
+            (payload.Concat(new byte[] { 7 }).ToArray(), null, "oversized stream"),
+            (payload, payload.Length + 1, "Content-Length mismatch")
+        })
+        {
+            var requests = new List<string>();
+            bool sourceClosed = false;
+            using var client = Client(requests, (request, _) =>
+            {
+                string uri = request.RequestUri.AbsoluteUri;
+                if (uri == Gitee) return Task.FromResult(Redirect(Attachment));
+                if (uri == Attachment) return Task.FromResult(Redirect(LowercaseCdn));
+                if (uri != LowercaseCdn) throw new InvalidOperationException("Unexpected lowercase CDN integrity fixture URL.");
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StreamContent(new FragmentedStream(sample.Bytes, onDispose: () => sourceClosed = true))
+                };
+                response.Content.Headers.ContentLength = sample.DeclaredLength;
+                return Task.FromResult(response);
+            });
+            var progress = new ProgressRecorder();
+            bool refused = false;
+            try { using StagedUpdate staged = await new UpdateInstaller(client, root).DownloadAsync(Package(payload, Gitee), progress); }
+            catch (InvalidDataException) { refused = true; }
+            check(refused && sourceClosed && requests.SequenceEqual(new[] { Gitee, Attachment, LowercaseCdn })
+                && progress.Values.All(value => value < 1) && IsEmpty(root),
+                $"lowercase CDN {sample.Description} fails closed without alternate retry, completion or leftover staging");
+        }
+    }
+
+    private static async Task VerifyCdnRedirectBoundariesAsync(Action<bool, string> check, string root, byte[] payload)
+    {
+        // Break caught: a broad case-insensitive basename rule or relaxed terminal URL validation accepts an untrusted redirect.
+        foreach (var sample in new (string Target, string Description)[]
+        {
+            ("https://foruda.gitee.com/attach_file/456/hsrUnlocker-1.2.3-win-x64-setup.exe", "other mixed casing"),
+            ("https://foruda.gitee.com/attach_file/456/hsrunlocker-1.2.4-win-x64-setup.exe", "changed version"),
+            ("https://foruda.gitee.com/attach_file/456/hsrunlocker-1.2.3-win-x64-setup.zip", "changed extension"),
+            ("https://foruda.gitee.com/attach_file/456/other-1.2.3-win-x64-setup.exe", "changed product name"),
+            ("https://foruda.gitee.com.evil.invalid/attach_file/456/hsrunlocker-1.2.3-win-x64-setup.exe", "lookalike CDN host"),
+            ("https://attacker.invalid/attach_file/456/hsrunlocker-1.2.3-win-x64-setup.exe", "foreign CDN host"),
+            ("http://foruda.gitee.com/attach_file/456/hsrunlocker-1.2.3-win-x64-setup.exe", "HTTP downgrade"),
+            ("https://foruda.gitee.com:444/attach_file/456/hsrunlocker-1.2.3-win-x64-setup.exe", "non-443 port"),
+            ("https://user@foruda.gitee.com/attach_file/456/hsrunlocker-1.2.3-win-x64-setup.exe", "userinfo"),
+            ("https://foruda.gitee.com/attach_file/456/hsrunlocker-1.2.3-win-x64-setup.exe#fragment", "fragment"),
+            ("https://foruda.gitee.com/attach_file/not-numeric/hsrunlocker-1.2.3-win-x64-setup.exe", "nonnumeric attachment identifier"),
+            ("https://foruda.gitee.com/attach_file/456/download/hsrunlocker-1.2.3-win-x64-setup.exe", "extra path segment")
+        })
+        {
+            var requests = new List<string>();
+            using var client = Client(requests, (request, _) => Task.FromResult(
+                request.RequestUri.AbsoluteUri == Gitee ? Redirect(Attachment)
+                    : request.RequestUri.AbsoluteUri == Attachment ? Redirect(sample.Target)
+                    : throw new InvalidOperationException("An unsafe CDN target was requested.")));
+            bool refused = false;
+            try { using StagedUpdate staged = await new UpdateInstaller(client, root).DownloadAsync(Package(payload, Gitee)); }
+            catch (InvalidDataException) { refused = true; }
+            check(refused && requests.SequenceEqual(new[] { Gitee, Attachment }) && IsEmpty(root),
+                $"terminal CDN redirect with {sample.Description} is rejected before its target without retry or leftover staging");
+        }
+
+        var onwardRequests = new List<string>();
+        using var onwardClient = Client(onwardRequests, (request, _) => Task.FromResult(
+            request.RequestUri.AbsoluteUri == Gitee ? Redirect(Attachment)
+                : request.RequestUri.AbsoluteUri == Attachment ? Redirect(LowercaseCdn)
+                : Redirect(Cdn)));
+        bool onwardRefused = false;
+        try { using StagedUpdate staged = await new UpdateInstaller(onwardClient, root).DownloadAsync(Package(payload, Gitee)); }
+        catch (InvalidDataException) { onwardRefused = true; }
+        check(onwardRefused && onwardRequests.SequenceEqual(new[] { Gitee, Attachment, LowercaseCdn }) && IsEmpty(root),
+            "a lowercase terminal CDN response cannot redirect onward or retry another provider");
+    }
+
     private static async Task VerifyProtocolLengthFailureAsync(Action<bool, string> check, string root, byte[] payload)
     {
         // Break caught: explicit HTTP premature EOF bypasses total-length validation and retries a different provider.
@@ -355,11 +467,16 @@ internal static class UpdateMirrorDownloadVerification
         try { staged = await new UpdateInstaller(client, root).DownloadAsync(package, progress, cancellationToken); }
         catch (Exception ex) { failure = ex; }
         using (staged)
-            check(failure == null && staged != null && File.ReadAllBytes(staged.FilePath).SequenceEqual(payload)
+        {
+            byte[] actual = staged == null ? null : File.ReadAllBytes(staged.FilePath);
+            check(failure == null && staged != null && actual.SequenceEqual(payload)
+                && actual.LongLength == package.Size
+                && Convert.ToHexString(SHA256.HashData(actual)).Equals(package.Sha256, StringComparison.OrdinalIgnoreCase)
                 && Path.GetFileName(staged.FilePath) == FileName
                 && !File.Exists(Path.Combine(Path.GetDirectoryName(staged.FilePath), "download.bin"))
                 && requests.SequenceEqual(expectedRequests),
                 description + (failure == null ? "" : " (received " + failure.GetType().Name + ")"));
+        }
     }
 
     private static UpdatePackage Package(byte[] bytes, string url, UpdateSourcePreference preference = UpdateSourcePreference.Auto) =>
@@ -405,11 +522,13 @@ internal static class UpdateMirrorDownloadVerification
     {
         private readonly int failOnRead;
         private readonly Action onSecondRead;
+        private readonly Action onDispose;
         private int reads;
-        public FragmentedStream(byte[] bytes, int failOnRead = 0, Action onSecondRead = null) : base(bytes)
+        public FragmentedStream(byte[] bytes, int failOnRead = 0, Action onSecondRead = null, Action onDispose = null) : base(bytes)
         {
             this.failOnRead = failOnRead;
             this.onSecondRead = onSecondRead;
+            this.onDispose = onDispose;
         }
 
         public override bool CanSeek => false;
@@ -420,6 +539,11 @@ internal static class UpdateMirrorDownloadVerification
             cancellationToken.ThrowIfCancellationRequested();
             if (reads == failOnRead) throw new IOException("Fixture connection interrupted after partial bytes.");
             return base.ReadAsync(buffer[..Math.Min(buffer.Length, 1024)], cancellationToken);
+        }
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing) onDispose?.Invoke();
         }
     }
 

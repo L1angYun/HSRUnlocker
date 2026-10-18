@@ -162,7 +162,9 @@ namespace StarRailUnlocker.Core
             return parts.Length == (downloadSegment ? 3 : 2)
                 && parts[0].Length > 0 && ulong.TryParse(parts[0], System.Globalization.NumberStyles.None,
                     System.Globalization.CultureInfo.InvariantCulture, out _)
-                && (!downloadSegment || parts[1] == "download") && parts[^1] == fileName;
+                && (!downloadSegment || parts[1] == "download")
+                && (parts[^1] == fileName
+                    || (!downloadSegment && parts[^1] == fileName.ToLowerInvariant()));
         }
     }
 }

@@ -54,6 +54,8 @@ FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双�
 
 「更新源」默认「自动」，同时查询 GitHub 和 Gitee，在短暂的结果收集窗口内优先选择较新版本，同版本优先使用响应快的源，直接从选定源下载安装包。自动模式下网络故障可尝试另一个源，但不会跳过大小和 SHA-256 校验；同版本的校验信息冲突时停止更新。也可固定为 GitHub 或 Gitee，此时不会跨站切换。Gitee 同步发布可能稍晚，手动固定该源时以其已发布版本为准。
 
+若 1.3.3 通过 Gitee 自动下载安装包失败，请将「更新源」切换为 GitHub，或手动下载并安装新版安装包。1.3.4 修复了 Gitee CDN 将安装包文件名转为小写时的下载兼容问题。
+
 自动查找读取启动器和 Windows 安装记录，也会检查正在运行的客户端，不按文件夹名称判断版本。手动移动游戏后若安装记录失效，可直接选择实际的 `StarRail.exe`。
 
 客户端路径旁的搜索按钮可重新扫描；扫描不会自动更换当前选择。下拉列表保留扫描到和手动选择过的有效路径，选择后立即保存，下次启动仍可切换。文件已失效时从可用列表移除；工具正在启动、附加、运行或还原会话时暂不能切换。
@@ -144,6 +146,8 @@ Close tool when the game exits is enabled by default. Turn it off to launch or a
 The Updates section offers a manual check and an optional startup check. A newer release opens a prompt to update, view release notes, or continue later, once per version in the same run. While in the tray, the prompt waits until the window is restored. The tool downloads and verifies the installer, finishes restoration, exits, installs the update, and restarts. Downloads can be cancelled; download or verification failures leave the current application in place.
 
 Update source defaults to Auto. Both providers are queried in parallel; within a short result-collection window, a newer release takes priority, followed by the faster source for equal versions. Downloads start directly from that source. Auto may retry the other provider after a network failure, but never bypasses size or SHA-256 checks; conflicting integrity metadata for the same version stops the update. Choosing GitHub or Gitee fixes that provider without cross-provider retries. Gitee publication may lag behind GitHub, so a fixed Gitee choice uses the versions already published there.
+
+If the automatic Gitee installer download fails in 1.3.3, choose GitHub as the Update source, or manually download and install the new installer. Version 1.3.4 supports Gitee CDN redirects that lowercase the installer filename.
 
 Automatic discovery reads launcher and Windows installation records and checks running clients, without inferring versions from folder names. If moving a game leaves stale installation records, browse to its actual `StarRail.exe`.
 
