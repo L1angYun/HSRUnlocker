@@ -167,6 +167,30 @@
     "ja-JP": "グローバルサーバーの設定を使用",
     "ko-KR": "글로벌 서버 설정 사용"
   },
+  "Ui.SafeAreaMode": {
+    "zh-CN": "移动端安全区",
+    "en-US": "Mobile safe area",
+    "ja-JP": "モバイル UI のセーフエリア",
+    "ko-KR": "모바일 UI 안전 영역"
+  },
+  "Ui.SafeAreaOriginal": {
+    "zh-CN": "原样",
+    "en-US": "Original",
+    "ja-JP": "変更なし",
+    "ko-KR": "원래대로"
+  },
+  "Ui.SafeAreaCustom": {
+    "zh-CN": "iOS / 自定义",
+    "en-US": "iOS / Custom",
+    "ja-JP": "iOS / カスタム",
+    "ko-KR": "iOS / 사용자 지정"
+  },
+  "Ui.SafeAreaHorizontal": {
+    "zh-CN": "左右边距（%）",
+    "en-US": "Side margins (%)",
+    "ja-JP": "左右の余白 (%)",
+    "ko-KR": "좌우 여백 (%)"
+  },
   "Ui.RuntimeLog": {
     "zh-CN": "运行日志",
     "en-US": "Activity log",
@@ -286,6 +310,18 @@
     "en-US": "Select the graphics settings to use when launching with the mobile UI. Automatic detection uses client information; China and global clients store settings separately.",
     "ja-JP": "モバイル UI で起動する際に使用する画質設定を選択します。標準ではクライアント情報から自動判別します。中国版とグローバル版では設定の保存先が異なります。",
     "ko-KR": "모바일 UI로 실행할 때 사용할 그래픽 설정을 선택합니다. 기본적으로 클라이언트 정보로 자동 감지합니다. 중국 및 글로벌 클라이언트는 설정을 서로 다른 위치에 저장합니다."
+  },
+  "Ui.SafeAreaModeTip": {
+    "zh-CN": "仅下次由工具启动移动 UI 时生效。自定义边距不是具体 iPhone 机型的精确预设。",
+    "en-US": "Applies on the next mobile UI launch by the tool. Custom margins are not an exact preset for a particular iPhone model.",
+    "ja-JP": "次回ツールからモバイル UI で起動するときに適用します。カスタムの余白は、特定の iPhone 機種を正確に再現するプリセットではありません。",
+    "ko-KR": "다음에 도구에서 모바일 UI로 실행할 때 적용됩니다. 사용자 지정 여백은 특정 iPhone 모델을 정확히 재현하는 프리셋이 아닙니다."
+  },
+  "Ui.SafeAreaHorizontalTip": {
+    "zh-CN": "按游戏原有安全区宽度计算的左右各侧内收百分比，范围 0-15%。5% 只是可调起点。",
+    "en-US": "Percentage of the game's original safe-area width inset on each side, from 0 to 15%. The initial 5% is adjustable.",
+    "ja-JP": "ゲーム本来のセーフエリアの幅を基準に、左右それぞれを内側に寄せる割合です (0-15%)。初期値の 5% は調整できます。",
+    "ko-KR": "게임의 원래 안전 영역 너비를 기준으로 왼쪽과 오른쪽 각각을 안쪽으로 줄이는 비율입니다 (0-15%). 초기값 5%는 조정할 수 있습니다."
   },
   "Ui.AutoStartTip": {
     "zh-CN": "下次打开解锁器时自动启动所选客户端并应用设置",

@@ -5,8 +5,53 @@ internal static class LifecycleVerification
 {
     public static void Run(Action<bool, string> check)
     {
+        VerifyLaunchSettingsSnapshot(check);
         VerifyFovConflictRemainsPending(check);
         VerifySessionRetainsFailedCleanup(check);
+    }
+
+    private static void VerifyLaunchSettingsSnapshot(Action<bool, string> check)
+    {
+        var config = new UnlockConfig
+        {
+            ProcessPath = @"C:\owned-fixture\StarRail.exe",
+            UseMobileUI = true,
+            GraphicsSource = MobileGraphicsSource.Global,
+            SafeAreaMode = MobileSafeAreaMode.Custom,
+            SafeAreaHorizontalPercent = 5,
+            TargetFramerate = 120
+        };
+        using var session = new UnlockSession(config);
+        using var waiting = new ManualResetEventSlim();
+        session.Changed += (state, _) => { if (state == SessionState.Patching) waiting.Set(); };
+        try
+        {
+            // An explicit own PID skips game discovery; no Unity module is loaded in this test process.
+            session.Start(checked((uint)Environment.ProcessId));
+            if (!waiting.Wait(3000)) throw new TimeoutException("Own session did not reach its module wait.");
+            config.ProcessPath = @"C:\different-fixture\StarRail.exe";
+            config.UseMobileUI = false;
+            config.GraphicsSource = MobileGraphicsSource.China;
+            config.SafeAreaMode = MobileSafeAreaMode.Original;
+            config.SafeAreaHorizontalPercent = 15;
+            config.TargetFramerate = 240;
+            var snapshot = typeof(UnlockSession).GetField("_launchConfig", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.GetValue(session) as UnlockConfig;
+            check(snapshot is not null && snapshot.ProcessPath == @"C:\owned-fixture\StarRail.exe"
+                && snapshot.UseMobileUI && snapshot.GraphicsSource == MobileGraphicsSource.Global
+                && snapshot.SafeAreaMode == MobileSafeAreaMode.Custom && snapshot.SafeAreaHorizontalPercent == 5,
+                "session freezes mobile launch and safe-area settings before its worker can observe next-launch edits");
+            check(ReferenceEquals(session.Config, config) && session.Config.TargetFramerate == 240,
+                "launch-only snapshot leaves the session's shared live FPS configuration intact");
+        }
+        finally
+        {
+            session.Stop();
+            var worker = GetField(session, "_worker") as Task;
+            if (worker is not null && !worker.Wait(5000))
+                throw new TimeoutException("Own launch-snapshot session did not settle.");
+        }
+        check(!session.IsRunning, "own launch-snapshot worker stops without scanning for or launching a game");
     }
 
     private static void VerifyFovConflictRemainsPending(Action<bool, string> check)

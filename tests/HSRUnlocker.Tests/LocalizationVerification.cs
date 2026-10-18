@@ -45,6 +45,13 @@ internal static class LocalizationVerification
                 L10n.SetLanguage(languages[i]);
                 check(L10n.T("Ui.StateReady") == titles[i],
                     $"visible ready status uses the selected {languages[i]} language");
+                string[] safeAreaKeys =
+                {
+                    "Ui.SafeAreaMode", "Ui.SafeAreaOriginal", "Ui.SafeAreaCustom",
+                    "Ui.SafeAreaHorizontal", "Ui.SafeAreaModeTip", "Ui.SafeAreaHorizontalTip"
+                };
+                check(safeAreaKeys.All(key => !string.IsNullOrWhiteSpace(L10n.T(key)) && L10n.T(key) != key),
+                    $"safe-area choices, numeric labels and accessible explanations resolve in {languages[i]}");
             }
             L10n.SetLanguage("en-US");
             check(L10n.T("Ui.StatusActive", 144, 1234).Contains("144")

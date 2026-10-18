@@ -18,7 +18,7 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 |---|---|
 | 帧率解锁 | 设置 10–480 FPS 上限，默认 120；游戏重设上限时自动恢复目标值。实际帧率取决于硬件与游戏负载。 |
 | FOV 调整 | 视野增量范围为 −60° 至 +60°，支持滑块、数值输入和一键归零。 |
-| 移动端 UI | 启动游戏时启用触控界面，可沿用客户端已保存的画质设置。 |
+| 移动端 UI | 启动游戏时启用触控界面，可沿用客户端已保存的画质设置，并选择安全区边距。 |
 | 相机反虚化（实验性） | 关闭相机靠近或俯仰视角引起的角色淡出，支持运行时开关。 |
 | 启动与附加 | 首次启动自动检测客户端，可随时重新扫描，通过下拉列表切换已记住的路径；从工具启动游戏，或附加到已运行的游戏进程。 |
 | 托盘与配置 | 最小化到托盘、单实例、自动保存设置，可选择随工具启动游戏、随游戏退出工具。 |
@@ -43,6 +43,8 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 5. 点击「停止并还原」恢复帧率、FOV 与反虚化修改。
 
 使用移动端 UI 时，请先退出正在运行的游戏，再开启选项并通过工具启动。若提示缺少画质设置，请先以普通模式运行一次对应客户端。「画质设置来源」默认自动识别；国服和国际服选项只决定读取哪份已保存的画质设置。
+
+「移动端安全区」默认「原样」；选择「iOS / 自定义」后可设置左右各侧的安全边距，范围 0–15%，初始值为 5%。它不是特定 iPhone 的机型预设，不会自动检测串流设备；选择及边距在下次由工具启动移动 UI 时应用，不改变画质设置。
 
 FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双击托盘图标可恢复窗口。
 
@@ -105,7 +107,7 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 |---|---|
 | FPS unlock | Set a 10–480 FPS limit, with a default of 120. Automatically reapplies the target when the game resets it. Actual FPS depends on hardware and game load. |
 | FOV adjustment | Apply an offset from −60° to +60° using the slider or numeric input, with a reset button. |
-| Mobile UI | Enable the touch interface when launching the game and reuse saved graphics settings. |
+| Mobile UI | Enable the touch interface when launching the game, reuse saved graphics settings, and select safe-area margins. |
 | Camera anti-fade (experimental) | Disable character fading caused by camera proximity or elevation; can be toggled while playing. |
 | Launch and attach | Detect clients on first launch, rescan on demand, switch remembered paths from a dropdown, launch the game, or attach to an existing process. |
 | Tray and settings | Minimize to tray, single-instance behavior, saved preferences, optional game launch with the tool, and optional tool exit with the game. |
@@ -130,6 +132,8 @@ Addresses are resolved dynamically, but game updates may still require compatibi
 5. Click Stop and restore to restore FPS, FOV, and anti-fade changes.
 
 To use mobile UI, close any running game, enable the option, then launch through the tool. If graphics settings are missing, run that client normally once first. The graphics-settings source is detected automatically by default; the China/global choices only select which saved settings to read.
+
+Mobile safe area defaults to Original. Choose iOS / Custom to set a margin on each side, from 0 to 15%, initially 5%. This is not a model-specific iPhone preset and does not detect streaming devices. The selection and margins apply the next time the tool launches mobile UI, without changing graphics settings.
 
 FOV changes apply on the next camera update. Minimizing moves the tool to the tray; double-click its tray icon to restore the window.
 

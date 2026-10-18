@@ -4,6 +4,9 @@ using StarRailUnlocker.Core;
 
 internal static class MobileEntryVerification
 {
+    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+    private delegate int PlatformGetter();
+
     public static void Run(Action<bool, string> check)
     {
         string payload = Convert.ToBase64String(Encoding.UTF8.GetBytes("{\"FPS\":60}\0"));
@@ -32,7 +35,7 @@ internal static class MobileEntryVerification
         bool finished = true;
         try
         {
-            ulong wrapper = region + 0x1000, entry = region + 0x2000, command = region + 128;
+            ulong wrapper = region + 0x1000, entry = region + 0x2000, getter = entry + 0x200, command = region + 128;
             // Authored native fixture records Win64 entry arguments and callee stack alignment.
             byte[] stub = { 0x48,0x89,0x4B,0x60, 0x48,0x89,0x53,0x68, 0x4C,0x89,0x43,0x70,
                 0x44,0x89,0x4B,0x78, 0x48,0x89,0xE0, 0x83,0xE0,0x0F, 0x89,0x43,0x7C,
@@ -44,6 +47,7 @@ internal static class MobileEntryVerification
             Encoding.Unicode.GetBytes("-platform_type CLOUD_WEB_TOUCH\0").CopyTo(state, 128);
             check(process.WriteData(region, state) && process.WriteData(wrapper, MobileGameLauncher.BuildBootstrap())
                 && process.WriteData(entry, stub) && process.WriteData(entry + 0x100, new byte[] { 0x89,0x4B,0x58,0xC3 })
+                && process.WriteData(getter, MobileGameLauncher.BuildPlatformGetter())
                 && process.MakeExecutable(wrapper, 0x2000),
                 "mobile fixture separates writable state and read-execute bootstrap/entry pages");
             thread = Native.CreateRemoteThread(process.Handle, IntPtr.Zero, UIntPtr.Zero,
@@ -82,6 +86,9 @@ internal static class MobileEntryVerification
             finished = Native.WaitForSingleObject(thread, 3000) == 0;
             check(finished && process.ReadInt32(region + 4) == 1 && process.ReadInt32(region + 32) == 0,
                 "cancelled bootstrap returns without calling the entry");
+            int platform = Marshal.GetDelegateForFunctionPointer<PlatformGetter>((IntPtr)(long)getter)();
+            check(platform == 7,
+                $"executed production platform getter preserves WindowsEditor (7) without forcing Android (11); actual {platform}");
         }
         finally
         {

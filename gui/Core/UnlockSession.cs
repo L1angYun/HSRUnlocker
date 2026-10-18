@@ -32,6 +32,7 @@ namespace StarRailUnlocker.Core
         private readonly HashSet<string> _antiFadeMessages = new(StringComparer.Ordinal);
         private TargetProcess _proc;
         private ResolvedGameBuild _build;
+        private UnlockConfig _launchConfig;
         private CancellationTokenSource _cts;
         private Task _worker;
         private FovPatcher _fov;
@@ -83,6 +84,8 @@ namespace StarRailUnlocker.Core
             lock (_lifecycle)
             {
                 if (IsRunning) return;
+                _launchConfig = Config.Clone();
+                _launchConfig.Normalize();
                 _cts?.Dispose();
                 _cts = new CancellationTokenSource();
                 var token = _cts.Token;
@@ -114,13 +117,14 @@ namespace StarRailUnlocker.Core
         {
             bool failure = false;
             string failureMessage = "";
+            var launchConfig = _launchConfig ?? Config;
             ResetFeatures();
             try
             {
                 if (pid == 0)
                 {
                     Set(SessionState.WaitingForGame, L10n.T("Runtime.Session.FindingGame"));
-                    bool launchRequested = launchIfMissing || Config.AutoStart;
+                    bool launchRequested = launchIfMissing || launchConfig.AutoStart;
                     if (launchRequested)
                     {
                         foreach (uint existing in TargetProcess.FindProcessIds("StarRail.exe"))
@@ -128,17 +132,17 @@ namespace StarRailUnlocker.Core
                             var module = TargetProcess.FindMainModule(existing);
                             if (string.IsNullOrWhiteSpace(module.Path))
                                 throw new InvalidOperationException(L10n.T("Runtime.Session.RunningPathUnknown", existing));
-                            if (string.Equals(System.IO.Path.GetFullPath(module.Path), System.IO.Path.GetFullPath(Config.ProcessPath), StringComparison.OrdinalIgnoreCase))
+                            if (string.Equals(System.IO.Path.GetFullPath(module.Path), System.IO.Path.GetFullPath(launchConfig.ProcessPath), StringComparison.OrdinalIgnoreCase))
                             { pid = existing; break; }
                         }
                     }
                     else pid = TargetProcess.FindProcessId("StarRail.exe");
                     if (pid == 0 && launchRequested)
                     {
-                        pid = GameLauncher.Launch(Config, Log, token);
-                        Log(L10n.T(Config.UseMobileUI ? "Runtime.Session.GameStartedMobile" : "Runtime.Session.GameStarted", pid));
+                        pid = GameLauncher.Launch(launchConfig, Log, token);
+                        Log(L10n.T(launchConfig.UseMobileUI ? "Runtime.Session.GameStartedMobile" : "Runtime.Session.GameStarted", pid));
                     }
-                    else if (pid != 0 && Config.UseMobileUI)
+                    else if (pid != 0 && launchConfig.UseMobileUI)
                         Log(L10n.T("Runtime.Session.MobileAttachOnly"));
                     var deadline = DateTime.UtcNow.AddMinutes(10);
                     while (pid == 0 && DateTime.UtcNow < deadline)

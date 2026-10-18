@@ -42,6 +42,9 @@ internal static class Program
             L10n.SetLanguage("en-US");
             MobileLaunchVerification.Run(Check, Array.Empty<string>());
             MobileEntryVerification.Run(Check);
+            MobileSafeAreaVerification.Run(Check);
+            MobileSafeAreaOptionsVerification.Run(Check);
+            NamedGetterOverrideVerification.Run(Check);
             MobileUnwindVerification.Run(Check);
             MobilePeVerification.Run(Check);
             VerifyLaunchGuard();

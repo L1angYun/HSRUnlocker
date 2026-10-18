@@ -26,7 +26,8 @@ namespace StarRailUnlocker.Core
                 throw new InvalidOperationException(L10n.T("Runtime.Launcher.AdminRequired"));
             if (config.UseMobileUI)
                 return MobileGameLauncher.Launch(config.ProcessPath,
-                    MobileArguments(config.ProcessPath, config.GraphicsSource, log), log, cancellationToken);
+                    MobileArguments(config.ProcessPath, config.GraphicsSource, log), log, cancellationToken,
+                    config.SafeAreaMode, config.SafeAreaHorizontalPercent);
             var start = new ProcessStartInfo(config.ProcessPath)
             {
                 WorkingDirectory = Path.GetDirectoryName(config.ProcessPath),

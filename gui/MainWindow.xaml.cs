@@ -80,6 +80,8 @@ namespace StarRailUnlocker
                 MobileUiToggle.IsOn = _config.UseMobileUI;
                 GraphicsSourceBox.SelectedIndex = (int)_config.GraphicsSource;
                 GraphicsSourceBox.IsEnabled = _config.UseMobileUI;
+                SafeAreaModeBox.SelectedIndex = (int)_config.SafeAreaMode;
+                SafeAreaHorizontalBox.Value = _config.SafeAreaHorizontalPercent;
                 StartMinimizedToggle.IsOn = _config.StartMinimized;
                 ExitWithGameToggle.IsOn = _config.ExitWithGame;
                 CheckForUpdatesToggle.IsOn = _config.CheckForUpdates;
@@ -233,6 +235,11 @@ namespace StarRailUnlocker
             FovBox.Minimum = -60;
             FovBox.Maximum = 60;
             FovBox.SmallChange = 0.01;
+
+            SafeAreaHorizontalBox.Minimum = 0;
+            SafeAreaHorizontalBox.Maximum = 15;
+            SafeAreaHorizontalBox.SmallChange = 0.5;
+            SafeAreaHorizontalBox.LargeChange = 1;
         }
 
         private void OnAntiFadeToggled(object sender, RoutedEventArgs e)
@@ -247,7 +254,7 @@ namespace StarRailUnlocker
         {
             if (_initializing || _closed || _closePending) return;
             _config.UseMobileUI = MobileUiToggle.IsOn;
-            GraphicsSourceBox.IsEnabled = MobileUiToggle.IsOn;
+            RefreshPresentation();
         }
 
         private void OnGraphicsSourceChanged(object sender, SelectionChangedEventArgs e)
@@ -255,6 +262,20 @@ namespace StarRailUnlocker
             if (_initializing || _closed || _closePending) return;
             if (GraphicsSourceBox.SelectedIndex is >= 0 and <= 2)
                 _config.GraphicsSource = (MobileGraphicsSource)GraphicsSourceBox.SelectedIndex;
+        }
+
+        private void OnSafeAreaModeChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_initializing || _closed || _closePending || !SafeAreaModeBox.IsEnabled) return;
+            if (SafeAreaModeBox.SelectedIndex is >= 0 and <= 1)
+                _config.SafeAreaMode = (MobileSafeAreaMode)SafeAreaModeBox.SelectedIndex;
+            RefreshPresentation();
+        }
+
+        private void OnSafeAreaHorizontalChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+        {
+            if (_initializing || _closed || _closePending || !sender.IsEnabled || !double.IsFinite(args.NewValue)) return;
+            _config.SafeAreaHorizontalPercent = Math.Clamp(args.NewValue, 0, 15);
         }
 
         private void OnExitWithGameToggled(object sender, RoutedEventArgs e)
@@ -704,6 +725,10 @@ namespace StarRailUnlocker
             _config.UseMobileUI = MobileUiToggle.IsOn;
             if (GraphicsSourceBox.SelectedIndex is >= 0 and <= 2)
                 _config.GraphicsSource = (MobileGraphicsSource)GraphicsSourceBox.SelectedIndex;
+            if (SafeAreaModeBox.SelectedIndex is >= 0 and <= 1)
+                _config.SafeAreaMode = (MobileSafeAreaMode)SafeAreaModeBox.SelectedIndex;
+            if (double.IsFinite(SafeAreaHorizontalBox.Value))
+                _config.SafeAreaHorizontalPercent = SafeAreaHorizontalBox.Value;
             _config.Normalize();
         }
     }

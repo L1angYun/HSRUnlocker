@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using StarRailUnlocker.Core;
 
@@ -9,6 +10,8 @@ using StarRailUnlocker.Core;
 /// </summary>
 internal static class SyntheticPeVerification
 {
+    internal const string SafeAreaName = "UnityEngine.Screen::get_safeArea_Injected";
+
     private static readonly string[] Names =
     {
         "UnityEngine.Camera::set_fieldOfView", "UnityEngine.Camera::get_fieldOfView",
@@ -41,10 +44,13 @@ internal static class SyntheticPeVerification
         public uint SetterSlotRva = SlotRva + 8;
     }
 
-    private static (byte[] Bytes, Layout Layout) BuildImage(ulong imageBase, bool duplicateRegistration, string omitName)
+    private static (byte[] Bytes, Layout Layout) BuildImage(ulong imageBase, bool duplicateRegistration, string omitName,
+        IReadOnlyList<string> orderedNames = null)
     {
         var layout = new Layout();
-        var allNames = new List<string>(Names) { "Synthetic.Decoy::A", "Synthetic.Decoy::B", "Synthetic.Decoy::C", "Synthetic.Decoy::D" };
+        var allNames = orderedNames == null
+            ? new List<string>(Names) { "Synthetic.Decoy::A", "Synthetic.Decoy::B", "Synthetic.Decoy::C", "Synthetic.Decoy::D" }
+            : new List<string>(orderedNames);
         if (omitName != null) allNames.Remove(omitName);
         int count = allNames.Count;
 
@@ -84,7 +90,7 @@ internal static class SyntheticPeVerification
         new byte[] { 0x48, 0x8B, 0xF2 }.CopyTo(loop, 0);
         new byte[] { 0x48, 0x8B, 0xF9 }.CopyTo(loop, 3);
         new byte[] { 0x49, 0x63, 0xE8 }.CopyTo(loop, 6);
-        const int pairOffset = 0x30, helperOffset = 0x2C0;
+        const int pairOffset = 0x30, helperOffset = 0x340;
         new byte[] { 0x8B, 0x0F, 0x48, 0x8B, 0x14, 0xDE, 0xE8 }.CopyTo(loop, pairOffset);
         BitConverter.GetBytes(checked((int)(TextRva + helperOffset - (TextRva + loopOffset + pairOffset + 11))))
             .CopyTo(loop, pairOffset + 7);
@@ -125,6 +131,17 @@ internal static class SyntheticPeVerification
         layout.Tables = tables.ToArray();
         layout.Data = new byte[0x1000];
         return (Compose(imageBase, layout), layout);
+    }
+
+    internal static byte[] BuildNamedGetterImage(ulong imageBase, bool reverseOrder = false, bool duplicateRegistration = false)
+    {
+        var names = new List<string>(Names)
+        {
+            "Synthetic.Decoy::A", "Synthetic.Decoy::B", "Synthetic.Decoy::C", "Synthetic.Decoy::D"
+        };
+        names.Insert(2, SafeAreaName);
+        if (reverseOrder) names.Reverse();
+        return BuildImage(imageBase, duplicateRegistration, null, names).Bytes;
     }
 
     private static byte[] Compose(ulong imageBase, Layout layout)
@@ -179,6 +196,7 @@ internal static class SyntheticPeVerification
     {
         VerifyHeaderAndStreaming(check);
         VerifyRegistration(check);
+        VerifyNamedRegistration(check);
         VerifyForwarders(check);
     }
 
@@ -317,5 +335,132 @@ internal static class SyntheticPeVerification
             check(refused, "a forwarder without its required padding is refused");
         }
         finally { File.Delete(path); }
+    }
+
+    private static void VerifyNamedRegistration(Action<bool, string> check)
+    {
+        var resolveMethod = typeof(MobileSafeArea).GetMethod("ResolveRegistration", BindingFlags.Static | BindingFlags.NonPublic,
+            null, new[] { typeof(PeImage), typeof(MobileSafeAreaMode), typeof(double) }, null);
+        check(resolveMethod != null, "optional safeArea registration gate is available for authored PE inputs");
+        if (resolveMethod == null) return;
+        var resolveOption = resolveMethod.CreateDelegate<Func<PeImage, MobileSafeAreaMode, double, GameBuildResolver.NamedRegistration>>();
+
+        // A cached product RVA or table index cannot survive both independent changes.
+        foreach (var variant in new[]
+        {
+            (Base: 0x180000000UL, Reverse: false, Native: 0x1190UL, Slot: 0x6010UL),
+            (Base: 0x7FF700000000UL, Reverse: true, Native: 0x1250UL, Slot: 0x6030UL)
+        })
+        {
+            string path = WriteImage(BuildNamedGetterImage(variant.Base, variant.Reverse));
+            try
+            {
+                var image = new PeImage(path);
+                var named = GameBuildResolver.ResolveNamedRegistration(image, SafeAreaName);
+                check(named.NativeTargetRva == variant.Native && named.TableEntryRva == variant.Slot,
+                    $"named safeArea resolution follows the authored table at base {variant.Base:X}, reversed={variant.Reverse}");
+                check(named.EntryRva == 0x1000 && named.LoopRva == 0x1080 && named.KeysRva == 0x6048
+                    && named.Entry.AsSpan().SequenceEqual(image.ReadRva(named.EntryRva, named.Entry.Length))
+                    && named.Loop.AsSpan().SequenceEqual(image.ReadRva(named.LoopRva, named.Loop.Length))
+                    && named.Keys.AsSpan().SequenceEqual(image.ReadRva(named.KeysRva, named.Keys.Length)),
+                    "named safeArea resolution retains exact entry, loop and key-table proofs");
+                foreach (double percent in new[] { 5d, 15d })
+                {
+                    var selected = resolveOption(image, MobileSafeAreaMode.Custom, percent);
+                    check(selected != null && selected.NativeTargetRva == variant.Native && selected.TableEntryRva == variant.Slot
+                        && selected.EntryRva == named.EntryRva && selected.LoopRva == named.LoopRva && selected.KeysRva == named.KeysRva
+                        && selected.Entry.AsSpan().SequenceEqual(named.Entry) && selected.Loop.AsSpan().SequenceEqual(named.Loop)
+                        && selected.Keys.AsSpan().SequenceEqual(named.Keys),
+                        $"Custom {percent}% selects the named safeArea target with all proofs at base {variant.Base:X}, reversed={variant.Reverse}");
+                }
+            }
+            finally { File.Delete(path); }
+        }
+
+        void RefuseCustom(PeImage image, string description)
+        {
+            bool refused = false;
+            try { _ = resolveOption(image, MobileSafeAreaMode.Custom, 5); }
+            catch (Exception ex) when (ex is InvalidDataException or NotSupportedException) { refused = true; }
+            check(refused, description);
+        }
+
+        void Refuse(byte[] bytes, string description, Action<PeImage> verifyOptions = null)
+        {
+            string path = WriteImage(bytes);
+            try
+            {
+                PeImage image = null;
+                bool refused = false;
+                try
+                {
+                    image = new PeImage(path);
+                    _ = GameBuildResolver.ResolveNamedRegistration(image, SafeAreaName);
+                }
+                catch (Exception ex) when (ex is InvalidDataException or NotSupportedException or EndOfStreamException)
+                { refused = true; }
+                check(refused, description);
+                verifyOptions?.Invoke(image);
+            }
+            finally { File.Delete(path); }
+        }
+
+        Refuse(BuildImage(0x180000000, false, null).Bytes,
+            "a structurally valid registration without the named safeArea key is refused",
+            image =>
+            {
+                // Eager optional resolution would break unchanged launches on an otherwise valid PE.
+                foreach (var option in new[]
+                {
+                    (Mode: MobileSafeAreaMode.Original, Percent: 5d),
+                    (Mode: (MobileSafeAreaMode)999, Percent: 5d),
+                    (Mode: MobileSafeAreaMode.Custom, Percent: 0d)
+                })
+                    check(resolveOption(image, option.Mode, option.Percent) == null,
+                        $"{option.Mode} {option.Percent}% skips the absent optional safeArea key in a valid authored PE");
+                RefuseCustom(image, "Custom 5% refuses a valid authored PE that lacks the safeArea key");
+            });
+
+        // Duplicating only the optional key leaves all four required registration names valid.
+        var duplicateKey = BuildNamedGetterImage(0x180000000);
+        string duplicatePath = WriteImage(duplicateKey);
+        try
+        {
+            var image = new PeImage(duplicatePath);
+            var section = image.Sections.Single(s => s.Name == ".rdata");
+            BitConverter.GetBytes(NameHash(SafeAreaName)).CopyTo(duplicateKey, checked((int)section.Raw + 9 * 8 + 8 * 4));
+        }
+        finally { File.Delete(duplicatePath); }
+        Refuse(duplicateKey, "duplicate safeArea keys are refused even when the required registration names remain unique",
+            image => RefuseCustom(image, "Custom 5% refuses duplicate safeArea keys rather than selecting one"));
+
+        Refuse(BuildNamedGetterImage(0x180000000, duplicateRegistration: true),
+            "two structurally valid named safeArea registrations are refused as ambiguous");
+
+        var nonExecutable = BuildNamedGetterImage(0x180000000);
+        string nonExecutablePath = WriteImage(nonExecutable);
+        try
+        {
+            var image = new PeImage(nonExecutablePath);
+            var section = image.Sections.Single(s => s.Name == ".rdata");
+            BitConverter.GetBytes(0x180007000UL).CopyTo(nonExecutable, checked((int)section.Raw + 2 * 8));
+        }
+        finally { File.Delete(nonExecutablePath); }
+        Refuse(nonExecutable, "a named safeArea pointer into non-executable data is refused");
+
+        var shortTarget = BuildNamedGetterImage(0x180000000);
+        string shortTargetPath = WriteImage(shortTarget);
+        try
+        {
+            var image = new PeImage(shortTargetPath);
+            var section = image.Sections.Single(s => s.Name == ".rdata");
+            BitConverter.GetBytes(0x18000142FUL).CopyTo(shortTarget, checked((int)section.Raw + 2 * 8));
+        }
+        finally { File.Delete(shortTargetPath); }
+        Refuse(shortTarget, "a safeArea target with fewer than 32 executable file-backed bytes is refused");
+
+        var truncated = BuildNamedGetterImage(0x180000000);
+        Array.Resize(ref truncated, truncated.Length - 1);
+        Refuse(truncated, "named safeArea discovery refuses a PE whose final section is truncated");
     }
 }

@@ -229,6 +229,18 @@
                                 <ComboBoxItem x:Name="GraphicsChinaItem" />
                                 <ComboBoxItem x:Name="GraphicsGlobalItem" />
                             </ComboBox>
+                            <ComboBox x:Name="SafeAreaModeBox" HorizontalAlignment="Stretch" MinWidth="0"
+                                      IsEnabled="False" SelectionChanged="OnSafeAreaModeChanged"
+                                      AutomationProperties.AutomationId="SafeAreaModeBox">
+                                <ComboBoxItem x:Name="SafeAreaOriginalItem" />
+                                <ComboBoxItem x:Name="SafeAreaCustomItem" />
+                            </ComboBox>
+                            <StackPanel x:Name="SafeAreaInsetsPanel" Spacing="12" Visibility="Collapsed">
+                                <NumberBox x:Name="SafeAreaHorizontalBox" HorizontalAlignment="Stretch" MinWidth="0"
+                                           IsEnabled="False" SpinButtonPlacementMode="Inline"
+                                           ValueChanged="OnSafeAreaHorizontalChanged"
+                                           AutomationProperties.AutomationId="SafeAreaHorizontalBox" />
+                            </StackPanel>
                         </StackPanel>
                         <Border Height="1" Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
                         <Grid ColumnSpacing="16" MinHeight="40">

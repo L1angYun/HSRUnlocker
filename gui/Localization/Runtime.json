@@ -719,59 +719,71 @@
     "ja-JP": "モバイルのグラフィック引数は空でない正規の Base64 で指定してください",
     "ko-KR": "모바일 그래픽 인수는 비어 있지 않은 정규 Base64여야 합니다"
   },
-  "Runtime.MobileLauncher.PlatformLayoutMismatch": {
-    "zh-CN": "移动平台接口的运行时结构与所选客户端不一致",
-    "en-US": "Mobile platform runtime layout does not match the selected client",
-    "ja-JP": "モバイルプラットフォームの実行時構造が選択したクライアントと一致しません",
-    "ko-KR": "모바일 플랫폼의 런타임 구조가 선택한 클라이언트와 일치하지 않습니다"
+  "Runtime.MobileLauncher.GetterLayoutMismatch": {
+    "zh-CN": "命名接口 {0} 的运行时结构与所选客户端不一致",
+    "en-US": "The runtime layout of named interface {0} does not match the selected client",
+    "ja-JP": "名前付きインターフェイス {0} の実行時構造が選択したクライアントと一致しません",
+    "ko-KR": "명명된 인터페이스 {0}의 런타임 구조가 선택한 클라이언트와 일치하지 않습니다"
   },
-  "Runtime.MobileLauncher.PlatformPointerChanged": {
-    "zh-CN": "移动平台注册指针已经改变，已取消启动",
-    "en-US": "The mobile platform registration pointer has changed; launch canceled",
-    "ja-JP": "モバイルプラットフォームの登録ポインターが変更されているため、起動を中止しました",
-    "ko-KR": "모바일 플랫폼 등록 포인터가 변경되어 실행을 취소했습니다"
+  "Runtime.MobileLauncher.GetterPointerChanged": {
+    "zh-CN": "命名接口 {0} 的注册指针已经改变，已取消启动",
+    "en-US": "The registration pointer for {0} has changed; launch canceled",
+    "ja-JP": "{0} の登録ポインターが変更されているため、起動を中止しました",
+    "ko-KR": "{0}의 등록 포인터가 변경되어 실행을 취소했습니다"
   },
-  "Runtime.MobileLauncher.PlatformSectionInvalid": {
-    "zh-CN": "移动平台注册项不属于只读或可写数据节",
-    "en-US": "The mobile platform registration is outside read-only or writable data sections",
-    "ja-JP": "モバイルプラットフォーム登録が読み取り専用または書き込み可能なデータセクション内にありません",
-    "ko-KR": "모바일 플랫폼 등록 항목이 읽기 전용 또는 쓰기 가능한 데이터 섹션에 속하지 않습니다"
+  "Runtime.MobileLauncher.GetterSectionInvalid": {
+    "zh-CN": "命名接口 {0} 的注册项不属于可读、不可执行的数据节",
+    "en-US": "The registration for {0} is outside readable, non-executable data sections",
+    "ja-JP": "{0} の登録が読み取り可能な非実行データセクション内にありません",
+    "ko-KR": "{0}의 등록 항목이 읽기 가능하고 실행 불가능한 데이터 섹션에 속하지 않습니다"
   },
-  "Runtime.MobileLauncher.PlatformFunctionFailed": {
-    "zh-CN": "无法准备独立移动平台函数",
-    "en-US": "Cannot prepare the separate mobile platform function",
-    "ja-JP": "専用のモバイルプラットフォーム関数を準備できません",
-    "ko-KR": "별도 모바일 플랫폼 함수를 준비할 수 없습니다"
+  "Runtime.MobileLauncher.GetterFunctionFailed": {
+    "zh-CN": "无法准备命名接口 {0} 的独立函数",
+    "en-US": "Cannot prepare the independent function for {0}",
+    "ja-JP": "{0} の独立関数を準備できません",
+    "ko-KR": "{0}의 독립 함수를 준비할 수 없습니다"
   },
-  "Runtime.MobileLauncher.PlatformPageFailed": {
-    "zh-CN": "无法准备平台注册数据页",
-    "en-US": "Cannot prepare the platform registration data page",
-    "ja-JP": "プラットフォーム登録データページを準備できません",
-    "ko-KR": "플랫폼 등록 데이터 페이지를 준비할 수 없습니다"
+  "Runtime.MobileLauncher.GetterPageFailed": {
+    "zh-CN": "无法准备命名接口 {0} 的注册数据页",
+    "en-US": "Cannot prepare the registration data page for {0}",
+    "ja-JP": "{0} の登録データページを準備できません",
+    "ko-KR": "{0}의 등록 데이터 페이지를 준비할 수 없습니다"
   },
-  "Runtime.MobileLauncher.PlatformRegistrationChanged": {
-    "zh-CN": "移动平台注册项被其他组件改变，已取消启动",
-    "en-US": "Another component changed the mobile platform registration; launch canceled",
-    "ja-JP": "別のコンポーネントがモバイルプラットフォーム登録を変更したため、起動を中止しました",
-    "ko-KR": "다른 구성 요소가 모바일 플랫폼 등록 항목을 변경하여 실행을 취소했습니다"
+  "Runtime.MobileLauncher.GetterRegistrationChanged": {
+    "zh-CN": "命名接口 {0} 的注册项被其他组件改变，已取消启动",
+    "en-US": "Another component changed the registration for {0}; launch canceled",
+    "ja-JP": "別のコンポーネントが {0} の登録を変更したため、起動を中止しました",
+    "ko-KR": "다른 구성 요소가 {0}의 등록 항목을 변경하여 실행을 취소했습니다"
   },
-  "Runtime.MobileLauncher.PlatformProtectionFailed": {
-    "zh-CN": "无法恢复平台注册数据页保护",
-    "en-US": "Cannot restore platform registration data page protection",
-    "ja-JP": "プラットフォーム登録データページの保護を復元できません",
-    "ko-KR": "플랫폼 등록 데이터 페이지 보호를 복원할 수 없습니다"
+  "Runtime.MobileLauncher.GetterProtectionFailed": {
+    "zh-CN": "无法恢复命名接口 {0} 的注册数据页保护",
+    "en-US": "Cannot restore registration data page protection for {0}",
+    "ja-JP": "{0} の登録データページの保護を復元できません",
+    "ko-KR": "{0}의 등록 데이터 페이지 보호를 복원할 수 없습니다"
   },
-  "Runtime.MobileLauncher.PlatformReplacementUnconfirmed": {
-    "zh-CN": "无法确认移动平台注册替换",
-    "en-US": "Cannot confirm the mobile platform registration replacement",
-    "ja-JP": "モバイルプラットフォーム登録の置換を確認できません",
-    "ko-KR": "모바일 플랫폼 등록 교체를 확인할 수 없습니다"
+  "Runtime.MobileLauncher.GetterReplacementUnconfirmed": {
+    "zh-CN": "无法确认命名接口 {0} 的注册替换",
+    "en-US": "Cannot confirm the registration replacement for {0}",
+    "ja-JP": "{0} の登録の置換を確認できません",
+    "ko-KR": "{0}의 등록 교체를 확인할 수 없습니다"
   },
   "Runtime.MobileLauncher.PlatformReplaced": {
-    "zh-CN": "移动 UI：按名称替换 Application.get_platform 注册项（UnityPlayer+0x{0:X}）",
-    "en-US": "Mobile UI: replaced the named Application.get_platform registration (UnityPlayer+0x{0:X})",
-    "ja-JP": "モバイル UI：Application.get_platform 登録を名前で特定し置換しました（UnityPlayer+0x{0:X}）",
-    "ko-KR": "모바일 UI: 이름으로 확인한 Application.get_platform 등록 항목 교체됨(UnityPlayer+0x{0:X})"
+    "zh-CN": "移动 UI：桌面兼容标识 WindowsEditor (7)，按名称替换 Application.get_platform 注册项（UnityPlayer+0x{0:X}）",
+    "en-US": "Mobile UI: desktop compatibility identity WindowsEditor (7); replaced the named Application.get_platform registration (UnityPlayer+0x{0:X})",
+    "ja-JP": "モバイル UI：デスクトップ互換識別 WindowsEditor (7) を使用し、Application.get_platform 登録を名前で特定し置換しました（UnityPlayer+0x{0:X}）",
+    "ko-KR": "모바일 UI: 데스크톱 호환 식별 WindowsEditor (7) 사용; 이름으로 확인한 Application.get_platform 등록 항목 교체됨(UnityPlayer+0x{0:X})"
+  },
+  "Runtime.MobileLauncher.SafeAreaApplied": {
+    "zh-CN": "移动 UI 安全区：左右各内收 {0:0.##}%；已安装独立安全区接口，游戏内布局待确认",
+    "en-US": "Mobile UI safe area: {0:0.##}% inset on each side; independent safe-area interface installed, in-game layout not yet confirmed",
+    "ja-JP": "モバイル UI セーフエリア：左右それぞれ {0:0.##}% の余白。独立したセーフエリアインターフェイスを適用しました。ゲーム内レイアウトは未確認です",
+    "ko-KR": "모바일 UI 안전 영역: 좌우 각각 {0:0.##}% 여백. 독립 안전 영역 인터페이스 적용됨. 게임 내 배치는 아직 확인되지 않았습니다"
+  },
+  "Runtime.MobileLauncher.SafeAreaOriginal": {
+    "zh-CN": "移动 UI 安全区：原样，未安装额外安全区接口",
+    "en-US": "Mobile UI safe area: original; no additional safe-area interface installed",
+    "ja-JP": "モバイル UI セーフエリア：変更なし。追加のセーフエリアインターフェイスは適用していません",
+    "ko-KR": "모바일 UI 안전 영역: 원래대로. 추가 안전 영역 인터페이스는 적용하지 않았습니다"
   },
   "Runtime.MobileLauncher.ExitResolveFailed": {
     "zh-CN": "无法解析 ExitProcess",

@@ -15,7 +15,8 @@ namespace StarRailUnlocker.Core
     public static class MobileGameLauncher
     {
         public static uint Launch(string executable, System.Collections.Generic.IReadOnlyList<string> arguments, Action<string> log = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default, MobileSafeAreaMode safeAreaMode = MobileSafeAreaMode.Original,
+            double safeAreaHorizontalPercent = 5)
         {
             cancellationToken.ThrowIfCancellationRequested();
             executable = Path.GetFullPath(executable);
@@ -24,6 +25,7 @@ namespace StarRailUnlocker.Core
             var appImage = new PeImage(executable);
             var engineImage = new PeImage(enginePath);
             var platform = GameBuildResolver.ResolveNamedRegistration(engineImage, "UnityEngine.Application::get_platform");
+            var safeArea = MobileSafeArea.ResolveRegistration(engineImage, safeAreaMode, safeAreaHorizontalPercent);
             uint slotRva = MobileEntryResolver.FindUnityMainImport(executable);
             uint exportRva = MobileEntryResolver.FindUnityMainExport(enginePath);
             string command = BuildCommandLine(arguments);
@@ -37,7 +39,7 @@ namespace StarRailUnlocker.Core
                 4, IntPtr.Zero, Path.GetDirectoryName(executable), ref startup, out var info))
                 throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Runtime.MobileLauncher.SuspendedStartFailed"));
             ulong state = 0, code = 0; IntPtr worker = IntPtr.Zero;
-            RemoteFunctionTable unwind = null;
+            RemoteFunctionTable unwind = null, safeAreaUnwind = null;
             bool committed = false;
             try
             {
@@ -76,6 +78,14 @@ namespace StarRailUnlocker.Core
                     throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.EngineMismatch"));
                 ValidateImage(target, engine.Base, engineImage);
                 InstallMobilePlatform(target, engine.Base, engineImage, platform, log);
+                if (safeArea != null)
+                {
+                    safeAreaUnwind = InstallGetterOverride(target, engine.Base, engineImage, safeArea,
+                        original => MobileSafeArea.BuildGetter(original, safeAreaHorizontalPercent),
+                        MobileSafeArea.BuildUnwindInfo(), MobileSafeArea.GetterName);
+                    log?.Invoke(L10n.T("Runtime.MobileLauncher.SafeAreaApplied", safeAreaHorizontalPercent));
+                }
+                else log?.Invoke(L10n.T("Runtime.MobileLauncher.SafeAreaOriginal"));
                 ulong entry = checked(engine.Base + exportRva);
                 var entryBytes = target.Read(entry, 32);
                 if (entryBytes == null || !entryBytes.AsSpan().SequenceEqual(engineImage.ReadRva(exportRva, 32)))
@@ -121,6 +131,7 @@ namespace StarRailUnlocker.Core
                 if (worker != IntPtr.Zero) Native.CloseHandle(worker);
                 // Registered or pending tables can still reference bootstrap code after worker creation fails.
                 // Bootstrap state/code and registration storage remain owned by this process until its exit.
+                safeAreaUnwind?.Dispose();
                 unwind?.Dispose();
                 Native.CloseHandle(info.Thread); Native.CloseHandle(info.Process);
             }
@@ -172,50 +183,90 @@ namespace StarRailUnlocker.Core
         };
         internal static byte[] BuildBootstrapUnwindInfo() =>
             new byte[] { 0x01, 0x05, 0x02, 0x00, 0x05, 0x32, 0x01, 0x30 }; // ALLOC_SMALL 0x20; PUSH RBX.
-        internal static byte[] BuildPlatformGetter() => new byte[] { 0xB8, 11, 0, 0, 0, 0xC3 }; // RuntimePlatform.Android
+        // Select a desktop compatibility identity instead of an Android host identity.
+        internal static byte[] BuildPlatformGetter() => new byte[] { 0xB8, 7, 0, 0, 0, 0xC3 }; // RuntimePlatform.WindowsEditor
 
         private static void InstallMobilePlatform(TargetProcess target, ulong engineBase, PeImage image,
             GameBuildResolver.NamedRegistration platform, Action<string> log)
         {
+            InstallGetterOverride(target, engineBase, image, platform, _ => BuildPlatformGetter(), null,
+                "UnityEngine.Application::get_platform");
+            log?.Invoke(L10n.T("Runtime.MobileLauncher.PlatformReplaced", platform.TableEntryRva));
+        }
+
+        internal static RemoteFunctionTable InstallGetterOverride(TargetProcess target, ulong engineBase, PeImage image,
+            GameBuildResolver.NamedRegistration registration, Func<ulong, byte[]> buildGetter, byte[] unwindInfo, string name)
+        {
+            ArgumentNullException.ThrowIfNull(target);
+            ArgumentNullException.ThrowIfNull(image);
+            ArgumentNullException.ThrowIfNull(registration);
+            ArgumentNullException.ThrowIfNull(buildGetter);
             void Verify(ulong rva, byte[] expected)
             {
                 var live = target.Read(checked(engineBase + rva), expected.Length);
                 if (live == null || !live.AsSpan().SequenceEqual(expected))
-                    throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.PlatformLayoutMismatch"));
+                    throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.GetterLayoutMismatch", name));
             }
-            Verify(platform.EntryRva, platform.Entry);
-            Verify(platform.LoopRva, platform.Loop);
-            Verify(platform.KeysRva, platform.Keys);
-            Verify(platform.NativeTargetRva, image.ReadRva(platform.NativeTargetRva, 32));
-            ulong slot = checked(engineBase + platform.TableEntryRva);
-            ulong original = checked(engineBase + platform.NativeTargetRva);
+            Verify(registration.EntryRva, registration.Entry);
+            Verify(registration.LoopRva, registration.Loop);
+            Verify(registration.KeysRva, registration.Keys);
+            Verify(registration.NativeTargetRva, image.ReadRva(registration.NativeTargetRva, 32));
+            ulong slot = checked(engineBase + registration.TableEntryRva);
+            ulong original = checked(engineBase + registration.NativeTargetRva);
             if (slot % 8 != 0 || target.ReadUInt64(slot) != original)
-                throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.PlatformPointerChanged"));
+                throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.GetterPointerChanged", name));
             bool dataSection = false;
             foreach (var section in image.Sections)
                 if ((section.Flags & 0x40000000) != 0 && (section.Flags & 0x20000000) == 0
-                    && platform.TableEntryRva >= section.Rva
-                    && platform.TableEntryRva + 8 <= (ulong)section.Rva + section.VirtualSize)
+                    && section.VirtualSize >= 8 && registration.TableEntryRva >= section.Rva
+                    && registration.TableEntryRva - section.Rva <= (ulong)section.VirtualSize - 8)
                     dataSection = true;
-            if (!dataSection) throw new InvalidDataException(L10n.T("Runtime.MobileLauncher.PlatformSectionInvalid"));
-            ulong getter = target.Allocate(4096);
-            if (getter == 0 || !target.WriteData(getter, BuildPlatformGetter()) || !target.MakeExecutable(getter, 4096))
-                throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.PlatformFunctionFailed"));
-            if (!Native.VirtualProtectEx(target.Handle, (IntPtr)(long)slot, (IntPtr)8, Native.PAGE_READWRITE, out uint previous))
-                throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Runtime.MobileLauncher.PlatformPageFailed"));
+            if (!dataSection) throw new InvalidDataException(L10n.T("Runtime.MobileLauncher.GetterSectionInvalid", name));
+            byte[] code = buildGetter(original);
+            if (code == null || code.Length == 0 || code.Length > 4096)
+                throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.GetterFunctionFailed", name));
+            ulong getter = 0;
+            RemoteFunctionTable unwind = null;
+            bool publicationPossible = false;
             try
             {
-                if (!target.CompareExchangePointer(slot, original, getter, out _))
-                    throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.PlatformRegistrationChanged"));
+                getter = target.Allocate(4096);
+                if (getter == 0 || !target.WriteData(getter, code) || !target.MakeExecutable(getter, 4096))
+                    throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.GetterFunctionFailed", name));
+                if (unwindInfo != null)
+                {
+                    unwind = new RemoteFunctionTable(target, getter, code, unwindInfo);
+                    unwind.Register();
+                }
+                if (!Native.VirtualProtectEx(target.Handle, (IntPtr)(long)slot, (IntPtr)8, Native.PAGE_READWRITE, out uint previous))
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Runtime.MobileLauncher.GetterPageFailed", name));
+                try
+                {
+                    // A timed-out helper can still publish later; retain its code even if confirmation fails.
+                    publicationPossible = true;
+                    if (!target.CompareExchangePointer(slot, original, getter, out _))
+                    {
+                        publicationPossible = false;
+                        throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.GetterRegistrationChanged", name));
+                    }
+                }
+                finally
+                {
+                    if (!Native.VirtualProtectEx(target.Handle, (IntPtr)(long)slot, (IntPtr)8, previous, out _))
+                        throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Runtime.MobileLauncher.GetterProtectionFailed", name));
+                }
+                if (target.ReadUInt64(slot) != getter)
+                    throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.GetterReplacementUnconfirmed", name));
+                // Registration slots, later caches and unwind entries may retain this function until client exit.
+                return unwind;
             }
-            finally
+            catch
             {
-                if (!Native.VirtualProtectEx(target.Handle, (IntPtr)(long)slot, (IntPtr)8, previous, out _))
-                    throw new Win32Exception(Marshal.GetLastWin32Error(), L10n.T("Runtime.MobileLauncher.PlatformProtectionFailed"));
+                unwind?.Dispose();
+                if (getter != 0 && !publicationPossible && !target.HasPendingPointerExchange && unwind?.MustRetainCode != true)
+                    target.Free(getter);
+                throw;
             }
-            if (target.ReadUInt64(slot) != getter) throw new InvalidOperationException(L10n.T("Runtime.MobileLauncher.PlatformReplacementUnconfirmed"));
-            // The registration and all later IL2CPP caches can retain this function until game exit.
-            log?.Invoke(L10n.T("Runtime.MobileLauncher.PlatformReplaced", platform.TableEntryRva));
         }
 
         private static ulong ResolveExitProcess(TargetProcess target)

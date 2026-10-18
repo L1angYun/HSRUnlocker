@@ -77,6 +77,10 @@ namespace StarRailUnlocker
             MobileUiToggle.IsEnabled = AutoStartToggle.IsEnabled = StartMinimizedToggle.IsEnabled =
                 !blocked && !preparing && !restoring;
             GraphicsSourceBox.IsEnabled = MobileUiToggle.IsEnabled && _config.UseMobileUI;
+            SafeAreaModeBox.IsEnabled = GraphicsSourceBox.IsEnabled;
+            bool customSafeArea = _config.SafeAreaMode == MobileSafeAreaMode.Custom;
+            SafeAreaInsetsPanel.Visibility = customSafeArea ? Visibility.Visible : Visibility.Collapsed;
+            SafeAreaHorizontalBox.IsEnabled = SafeAreaModeBox.IsEnabled && customSafeArea;
             ExitWithGameToggle.IsEnabled = !blocked;
             RefreshUpdatePresentation();
 

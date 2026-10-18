@@ -6,9 +6,9 @@ Updated October 18, 2026. Build results, synthetic tests, and observed in-game b
 
 ## 功能验证 / Functional Checks
 
-以下为此前在 Windows 11 上对已公开客户端的观察。本轮 1.3.0 修复未重新启动游戏；新增检查的范围见下文。
+下表为此前在 Windows 11 上对已公开客户端的观察。本轮自动检查未启动游戏；1.3.1 与 1.3.2 的用户实测结果单列于表后。
 
-The following observations used a publicly released client on Windows 11 in an earlier run. This 1.3.0 repair did not relaunch a game; the new checks are scoped below.
+The table records earlier observations using a publicly released client on Windows 11. Automated checks in this run did not launch a game; user feedback for 1.3.1 and 1.3.2 is recorded separately below the table.
 
 | 项目 / Check | 范围与结果 / Scope and Result |
 |---|---|
@@ -18,6 +18,22 @@ The following observations used a publicly released client on Windows 11 in an e
 | FOV | 同一静止场景的画面对照确认视野变化，停止后还原。 / A same-scene visual comparison confirmed the change in field of view and restoration on stop. |
 | 相机反虚化 / Camera anti-fade | 当前验证场景中启用有效，停用后恢复。场景覆盖并非穷尽，不能据此保证所有距离、仰角和角色过渡均具有相同表现。 / Enabling produced the intended effect in the checked scene, and disabling restored normal behavior. Scene coverage is not exhaustive and does not establish identical behavior at every distance, angle, or character transition. |
 | 移动 UI / Mobile UI | 启动进入触控布局，画质设置来源的选择与保存通过。 / Launching into the touch layout and selecting and saving the graphics-settings source passed. |
+
+1.3.0 收到移动 UI 画质降低的用户反馈。1.3.1 本地候选将移动启动使用的平台标识由 Android (11) 改为 WindowsEditor (7)，保持启动参数和画质设置原始字节不变。该修改仍影响所有读取此平台标识的代码；合成测试只确认返回值，不证明游戏内画质恢复或触控布局保持，也不覆盖 iOS 安全区。
+
+A user reported reduced graphics quality with mobile UI in 1.3.0. The local 1.3.1 candidate changes the mobile-launch platform identity from Android (11) to WindowsEditor (7), leaving the launch arguments and raw graphics-settings bytes unchanged. This still affects every consumer of that platform identity. Synthetic checks establish only the return value, not restored in-game quality, retained touch layout, or iOS safe-area behavior.
+
+2026-10-18，用户实测确认 1.3.1 移动 UI 的画质已恢复正常。此结果来自用户实际运行反馈，本轮未独立进行量化画质对比；iOS 安全区不在此次确认范围。
+
+On October 18, 2026, the user confirmed normal graphics quality with mobile UI in 1.3.1 after testing it in-game. This is user-reported verification, not an independently measured graphics comparison in this run; iOS safe-area behavior is outside this confirmation.
+
+1.3.2 增加默认「原样」及可选「iOS / 自定义」安全区。自定义范围为左右各侧 0–15%，初始值 5%，在下次由工具启动移动 UI 时应用；不将平台标识改为 iOS，也不改写画质数据、启动参数或游戏保存的偏好。实现按名称解析安全区接口，调用原接口后内收水平边界，保留垂直边界。接口安装不等于游戏 HUD 已采用新边界；游戏保存的布局偏好也可能限制实际内收，具体设备的遮挡情况尚需实测。
+
+Version 1.3.2 adds Original (default) and optional iOS / Custom safe areas. Custom insets range from 0 to 15% on each side, initially 5%, applied on the next tool-started mobile UI launch. They do not change the platform identity to iOS or rewrite graphics data, launch arguments, or saved game preferences. The implementation resolves the safe-area interface by name, calls its original function, and insets only the horizontal bounds. Installing the interface does not establish that the game HUD consumes those bounds; saved layout preferences may also limit the effective inset. Device-specific occlusion still requires an in-game check.
+
+2026-10-18，用户实测确认 1.3.2 的移动端安全区功能工作正常。此确认来自用户实际运行反馈，不包含独立测量的边距数据，也不保证所有场景、分辨率或设备均无界面遮挡。
+
+On October 18, 2026, the user confirmed that the mobile safe-area feature in 1.3.2 worked in-game. This is user-reported verification, without independently measured inset values. It does not establish that every scene, resolution, or device is free of UI occlusion.
 
 ## 界面与构建 / UI and Build
 
@@ -31,7 +47,7 @@ The native WinUI 3 interface was checked on Windows 11 at 150% display scaling, 
 - 日志展开、清空和按钮状态通过；复制按钮的剪贴板写入未在该组检查中执行。 / Log expansion, clearing, and button availability passed; clipboard writing was not exercised in these checks.
 - 托盘最小化、重复启动恢复已有窗口、正常退出及验证前配置恢复通过。 / Tray minimization, restoring the existing window on duplicate launch, normal shutdown, and restoration of the original settings passed.
 - 发布构建及源码包解包构建通过，编译 XAML 资源、图标、MiSans 原字体、字体版权通知及完整许可包含在输出中。 / Publishing and building an extracted source package passed, with compiled XAML resources, icons, the unmodified MiSans font, its copyright notice, and the complete font license present in the output.
-- 最终字体样式通过构建与静态审查，未完成该次样式调整后的原生界面复查；不将资源存在或构建成功等同于运行时字形验证。 / The final font styles passed compilation and static review; the native interface was not rechecked after that style adjustment. Resource presence and build success do not establish runtime glyph rendering.
+- 此前一次字体样式调整仅通过构建与静态审查；下列 1.3.2 独立原生窗口检查补充覆盖了当前 MiSans 资源及新增控件。资源存在或构建成功本身不等于运行时字形验证。 / An earlier font-style adjustment was checked only by compilation and static review. The separate 1.3.2 native-window checks below add coverage of the current MiSans resources and new controls. Resource presence or build success alone does not establish runtime glyph rendering.
 
 1.1.2 的数值框修复使用独立的原生 WinUI 控件窗口验证，读取本版本 FPS/FOV 控件行的 XAML，并使用相同的 WinUI 依赖与 MiSans。150% 缩放下复现了旧版微调弹层在滚动后残留；改为内嵌按钮后，两项滚动检查均无浮层，四项原生按钮调节检查通过，300/540 DIP 行宽下的数值与负小数显示检查通过。这组检查不启动正式应用或游戏，也不读取真实配置。
 
@@ -44,6 +60,10 @@ The 1.2.0 first-run and update dialogs were checked in a separate native WinUI w
 1.3.0 的客户端选择行直接链接本版本的路径与扫描处理代码，并提取实际 XAML、语言资源和 MiSans，在独立原生窗口通过 **203 项检查**。四种语言、520/980 DIP 宽度下生成并检查了 24 张非空渲染图，覆盖下拉列表宽度、长路径省略、扫描状态、选择后保存、失效路径拒绝、扫描期间及运行会话期间的操作限制。文件是否存在、扫描结果和配置保存使用自编替身；不运行正式应用或系统文件选择器，不访问真实安装记录或配置。
 
 The 1.3.0 client selector passed **203 checks** in a separate native window linking this revision's path and scan handlers and extracting the actual XAML, localization, and MiSans resources. Twenty-four nonblank renders across four languages and 520/980 DIP widths were checked for dropdown bounds, long-path ellipsis, and scan states. Behavior checks cover immediate selection persistence, unavailable-path rejection, and scan/session guards. File availability, discovery results, and settings persistence use authored substitutes; neither the production application nor the OS picker runs, and no live installation records or settings are accessed.
+
+1.3.2 的安全区控件在独立原生 WinUI 窗口通过 **245 项断言**，四种语言、520/980 DIP 宽度下生成并检查了 **24 张非空截图**。检查链接当前实际展示与本地化代码、XAML、配置归一化及处理方法，覆盖原样与自定义切换、0/5/15%、越界与空输入、语言切换保值、移动 UI 关闭及会话忙碌/退出时的禁用状态、字体、文本边界和控件重叠。保存与会话状态使用私有替身；不运行正式应用或游戏，不将此结果视为游戏 HUD 或 iPhone 实测。
+
+The 1.3.2 safe-area controls passed **245 assertions** in a separate native WinUI window, with **24 nonblank screenshots** checked across four languages and 520/980 DIP widths. Checks use the current presentation and localization code, XAML, configuration normalization, and handlers. They cover Original/Custom switching, 0/5/15%, out-of-range and empty input, retained values across language changes, disabled states when mobile UI is off or the session is busy/closing, fonts, text bounds, and overlap. Persistence and session state use private substitutes. Neither the production application nor a game runs; these results do not verify a game HUD or an iPhone.
 
 ## 安装与更新 / Installation and Updates
 
@@ -76,6 +96,14 @@ The October 18, 2026 run for 1.2.0 passed **540 checks**. The output for the cor
 1.3.0 的便携测试通过 **633 项检查**，其中 39 项新增客户端列表检查覆盖本地路径规范化、重复与失效路径、扫描合并、手动路径保留、枚举上限、旧配置兼容、独立克隆与 JSON 往返。文件是否存在由自编数据提供，不读取真实客户端或配置。
 
 The portable suite for 1.3.0 passed **633 checks**, including 39 new client-list checks for local path normalization, duplicate and unavailable paths, scan merging, remembered manual paths, enumeration bounds, legacy settings, independent clones, and JSON roundtrips. File availability uses authored data rather than live clients or settings.
+
+1.3.1 的便携测试通过 **634 项检查**。新增检查将生产平台 getter 写入自有只读可执行内存并实际调用，确认返回 WindowsEditor (7)，而非 Android (11)；该检查不启动或读取游戏。
+
+The portable suite for 1.3.1 passed **634 checks**. The added check writes the production platform getter into owned read-execute memory, calls it, and verifies WindowsEditor (7) rather than Android (11), without launching or reading a game.
+
+1.3.2 的便携测试通过 **857 项检查**。新增检查实际执行生产安全区函数，覆盖不同分辨率、已有水平边界、0/15% 边界、非有限或无效矩形的原样保留、调用约定、原函数只调用一次及操作系统栈展开。自编 PE 覆盖按名称定位、缺失与歧义拒绝、原样/0% 不解析可选接口；自有内存覆盖 RX 发布、真实展开表先注册、指针 CAS 竞争拒绝与数据页保护还原。另验证旧配置兼容、四语资源和启动配置快照不影响实时 FPS 配置。
+
+The portable suite for 1.3.2 passed **857 checks**. Added checks execute the production safe-area function across resolutions, existing horizontal bounds, 0/15% limits, bit-preserving fallback for nonfinite or invalid rectangles, calling conventions, exactly one original call, and OS stack unwinding. Authored PE files cover named resolution, missing/ambiguous rejection, and skipping the optional interface in Original/0% modes. Owned-memory checks cover RX publication, real unwind registration before publication, CAS conflict rejection, and restoration of data-page protection. Further checks cover legacy settings, four-language resources, and launch snapshots that leave live FPS configuration intact.
 
 另新增 45 项映射查询检查和 9 项挂起启动检查。旧实现在自建挂起测试子进程中复现了系统模块不匹配错误；修复后，在不恢复其主线程的情况下，系统导出定位、真实展开表注册、引导线程就绪及取消均通过，随后仅恢复该测试子进程运行 `--help` 并正常退出。检查区分内存映射覆盖范围与 PE 镜像尺寸，保留系统文件身份、PE 头、可执行页和入口字节校验；这不等同于真实客户端中的移动 UI 启动验证。
 

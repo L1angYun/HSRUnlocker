@@ -64,6 +64,13 @@ namespace StarRailUnlocker
                 GraphicsChinaItem.Content = L10n.T("Ui.GraphicsChina");
                 GraphicsGlobalItem.Content = L10n.T("Ui.GraphicsGlobal");
                 GraphicsSourceBox.SelectedIndex = graphicsSourceIndex;
+                int safeAreaModeIndex = SafeAreaModeBox.SelectedIndex;
+                SafeAreaModeBox.SelectedItem = null;
+                SafeAreaModeBox.Header = WrappedText("Ui.SafeAreaMode");
+                SafeAreaOriginalItem.Content = L10n.T("Ui.SafeAreaOriginal");
+                SafeAreaCustomItem.Content = L10n.T("Ui.SafeAreaCustom");
+                SafeAreaModeBox.SelectedIndex = safeAreaModeIndex;
+                SafeAreaHorizontalBox.Header = WrappedText("Ui.SafeAreaHorizontal");
                 LogExpander.Header = WrappedText("Ui.RuntimeLog");
                 LanguageBox.SelectedItem = null;
                 LanguageBox.Header = WrappedText("Ui.Language");
@@ -88,6 +95,8 @@ namespace StarRailUnlocker
                 LocalizeControl(AntiFadeToggle, "Ui.AntiFade", "Ui.AntiFadeTip");
                 LocalizeControl(MobileUiToggle, "Ui.MobileUi", "Ui.MobileUiTip");
                 LocalizeControl(GraphicsSourceBox, "Ui.GraphicsSourceName", "Ui.GraphicsSourceTip");
+                LocalizeControl(SafeAreaModeBox, "Ui.SafeAreaMode", "Ui.SafeAreaModeTip");
+                LocalizeControl(SafeAreaHorizontalBox, "Ui.SafeAreaHorizontal", "Ui.SafeAreaHorizontalTip");
                 LocalizeControl(AutoStartToggle, "Ui.AutoStart", "Ui.AutoStartTip");
                 LocalizeControl(StartMinimizedToggle, "Ui.StartMinimized", "Ui.StartMinimizedTip");
                 LocalizeControl(ExitWithGameToggle, "Updates.ExitWithGame", "Updates.ExitWithGameTip");

@@ -21,6 +21,8 @@ namespace StarRailUnlocker.Core
         private const int FpsMax = 480;
         private const double FovMin = -60.0;
         private const double FovMax = 60.0;
+        private const double SafeAreaHorizontalDefault = 5.0;
+        private const double SafeAreaMaxPercent = 15.0;
 
         private static readonly JsonSerializerOptions Opts = new JsonSerializerOptions
         {
@@ -43,6 +45,8 @@ namespace StarRailUnlocker.Core
         public bool CheckForUpdates { get; set; } = true;
         public bool UseMobileUI { get; set; } = false;
         public MobileGraphicsSource GraphicsSource { get; set; } = MobileGraphicsSource.Auto;
+        public MobileSafeAreaMode SafeAreaMode { get; set; } = MobileSafeAreaMode.Original;
+        public double SafeAreaHorizontalPercent { get; set; } = SafeAreaHorizontalDefault;
         public string Language { get; set; } = "auto";
 
         /// <summary>Directory owned by this tool for settings and diagnostics.</summary>
@@ -111,6 +115,9 @@ namespace StarRailUnlocker.Core
                 FovDelta = 0.0;
             FovDelta = Math.Clamp(FovDelta, FovMin, FovMax);
             if (!Enum.IsDefined(GraphicsSource)) GraphicsSource = MobileGraphicsSource.Auto;
+            if (!Enum.IsDefined(SafeAreaMode)) SafeAreaMode = MobileSafeAreaMode.Original;
+            if (!double.IsFinite(SafeAreaHorizontalPercent)) SafeAreaHorizontalPercent = SafeAreaHorizontalDefault;
+            SafeAreaHorizontalPercent = Math.Clamp(SafeAreaHorizontalPercent, 0, SafeAreaMaxPercent);
             Language = L10n.NormalizePreference(Language);
         }
 
@@ -127,6 +134,8 @@ namespace StarRailUnlocker.Core
             CheckForUpdates = CheckForUpdates,
             UseMobileUI = UseMobileUI,
             GraphicsSource = GraphicsSource,
+            SafeAreaMode = SafeAreaMode,
+            SafeAreaHorizontalPercent = SafeAreaHorizontalPercent,
             Language = Language,
         };
 
