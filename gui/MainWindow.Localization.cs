@@ -40,7 +40,7 @@ namespace StarRailUnlocker
                 Title = L10n.T("Ui.WindowTitle", AppVersion);
                 VersionText.Text = L10n.T("Ui.Version", AppVersion);
                 PathLabel.Text = L10n.T("Ui.Client");
-                PathBox.PlaceholderText = L10n.T("Ui.ChooseExecutable");
+                ClientPathBox.PlaceholderText = L10n.T("Ui.ChooseExecutable");
                 DisplaySectionTitle.Text = L10n.T("Ui.DisplaySection");
                 FpsLabel.Text = L10n.T("Ui.TargetFramerate");
                 FpsUnitText.Text = L10n.T("Ui.FpsUnit");
@@ -78,7 +78,7 @@ namespace StarRailUnlocker
                     }
 
                 LocalizeControl(SaveButton, "Ui.SaveConfig", "Ui.SaveConfig");
-                LocalizeControl(PathBox, "Ui.GamePath");
+                LocalizeControl(ClientPathBox, "Ui.GamePath");
                 LocalizeControl(BrowseButton, "Ui.ChooseExecutable", "Ui.ChooseExecutable");
                 LocalizeControl(FpsSlider, "Ui.FpsSliderName", "Ui.FpsSliderTip");
                 LocalizeControl(FpsBox, "Ui.FpsBoxName", "Ui.FpsBoxTip");
@@ -113,6 +113,7 @@ namespace StarRailUnlocker
                         SetWrappedTooltip(button, text);
                     }
                 RefreshUpdatePresentation();
+                RefreshClientPresentation();
             }
             finally
             {

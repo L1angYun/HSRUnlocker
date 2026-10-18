@@ -87,13 +87,39 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBox x:Name="PathBox" IsReadOnly="True" MinWidth="0"
-                                 ToolTipService.ToolTip="{Binding Text, ElementName=PathBox}" />
-                        <Button Grid.Column="1" x:Name="BrowseButton" Click="OnBrowseClick"
+                        <ComboBox x:Name="ClientPathBox" MinWidth="0" Height="36"
+                                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                  MaxDropDownHeight="320" SelectionChanged="OnGameClientChanged"
+                                  AutomationProperties.AutomationId="ClientPathBox">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis"
+                                               MaxWidth="{Binding ActualWidth, ElementName=ClientPathBox}"
+                                               ToolTipService.ToolTip="{Binding}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <Button Grid.Column="1" x:Name="ScanGamesButton" Click="OnScanGamesClick"
+                                AutomationProperties.AutomationId="ScanGamesButton"
+                                Style="{StaticResource ToolButtonStyle}">
+                            <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Find" /></Viewbox>
+                        </Button>
+                        <Button Grid.Column="2" x:Name="BrowseButton" Click="OnBrowseClick"
                                 Style="{StaticResource ToolButtonStyle}">
                             <Viewbox Width="16" Height="16"><SymbolIcon Symbol="OpenFile" /></Viewbox>
                         </Button>
+                    </Grid>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ProgressRing x:Name="ClientScanProgress" Width="16" Height="16"
+                                      IsActive="False" Visibility="Collapsed" />
+                        <TextBlock Grid.Column="1" x:Name="ClientScanStatus" Style="{StaticResource SecondaryTextStyle}"
+                                   Visibility="Collapsed" AutomationProperties.LiveSetting="Polite" />
                     </Grid>
                 </StackPanel>
 

@@ -24,18 +24,11 @@ namespace StarRailUnlocker
                 if (list != null && result == ContentDialogResult.Primary && list.SelectedIndex >= 0)
                 {
                     string path = _detectedGamePaths[list.SelectedIndex];
-                    if (IsValidGamePath(path))
-                    {
-                        PathBox.Text = _config.ProcessPath = path;
-                        _localErrorKey = null;
-                        if (!_config.Save()) Log(L10n.T("Ui.LogConfigSaveFailed", UnlockConfig.LogPath));
-                        Log(L10n.T("Ui.LogGamePathSet", path));
-                    }
-                    else Log(L10n.T("Ui.LogInvalidGamePath"));
+                    TrySetGamePath(path);
                 }
                 else if ((list == null && result == ContentDialogResult.Primary) ||
                     (list != null && result == ContentDialogResult.Secondary))
-                    await ChooseGameAsync();
+                    await ChooseGameAsync(duringSetup: true);
             }
             catch (Exception ex) { App.WriteLog("First-run setup", ex); }
             finally { _dialogOpen = false; }
@@ -86,7 +79,7 @@ namespace StarRailUnlocker
         {
             // Keep setup, file picking, and tray restoration ahead of background notifications.
             UpdateCheckResult result = _updatePrompts.Take(_startupComplete && _dialogRoot != null &&
-                !_closed && !_closePending && !_dialogOpen && !_pickingGame && !_inTray &&
+                !_closed && !_closePending && !_dialogOpen && !_pickingGame && !_scanningGames && !_inTray &&
                 !_checkingForUpdates && !_downloadingUpdate && !_openingRelease);
             if (result == null) return;
             _dialogOpen = true;

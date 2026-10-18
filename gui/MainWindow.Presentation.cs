@@ -61,13 +61,13 @@ namespace StarRailUnlocker
             if (_closed || StateTitle == null) return;
             var session = _session;
             bool running = session?.IsRunning == true;
-            bool blocked = _closePending || _switchingSession || _setupInProgress;
+            bool blocked = _closePending || _switchingSession || _setupInProgress || _scanningGames || _pickingGame;
             bool restoring = running && (_stoppingSession ||
                 session.State is SessionState.Failed or SessionState.GameExited);
             if (!running) _stoppingSession = false;
-            StartButton.IsEnabled = AttachButton.IsEnabled = !blocked && !running;
+            StartButton.IsEnabled = AttachButton.IsEnabled = CanChangeGameClient;
             StopButton.IsEnabled = !blocked && running && !restoring;
-            BrowseButton.IsEnabled = !blocked && !running && !_pickingGame;
+            RefreshClientPresentation();
             SaveButton.IsEnabled = !blocked;
             FpsSlider.IsEnabled = FpsBox.IsEnabled = FovSlider.IsEnabled = FovBox.IsEnabled =
                 ResetFovButton.IsEnabled = AntiFadeToggle.IsEnabled = !blocked && !restoring;

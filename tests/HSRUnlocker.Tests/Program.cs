@@ -17,7 +17,7 @@ internal static class Program
         if (ExecutableEntryVerification.TryRunChild(args, out int childResult)) return childResult;
         if (args.SequenceEqual(new[] { "--help" }))
         {
-            Console.WriteLine("Run without arguments for Windows x64 own-process, synthetic PE, mobile-fixture and reversible native-entry child-fixture tests. No installed game or live settings are accessed.");
+            Console.WriteLine("Run without arguments for Windows x64 own-process, synthetic PE, mobile-fixture, suspended-unwind and reversible native-entry child-fixture tests. No installed game or live settings are accessed.");
             return 0;
         }
         if (args.Length != 0)
@@ -28,7 +28,10 @@ internal static class Program
         try
         {
             Check(OperatingSystem.IsWindows() && Environment.Is64BitProcess, "portable suite runs in an x64 Windows test process");
+            MappedImageVerification.Run(Check);
+            SuspendedUnwindVerification.Run(Check);
             PreferencesVerification.Run(Check);
+            GameClientPathsVerification.Run(Check);
             GameDiscoveryVerification.Run(Check);
             LocalizationVerification.Run(Check);
             UpdateVerification.Run(Check);
@@ -51,7 +54,7 @@ internal static class Program
             ExecutableEntryVerification.Run(Check);
             LifecycleVerification.Run(Check);
             WriteReport(null);
-            Console.WriteLine($"PORTABLE VERIFICATION: {Checks.Count} checks passed; only synthetic files, own allocations and one bounded fixture child were used.");
+            Console.WriteLine($"PORTABLE VERIFICATION: {Checks.Count} checks passed; only synthetic files, own allocations and two bounded fixture children were used.");
             return 0;
         }
         catch (Exception ex)
@@ -73,7 +76,7 @@ internal static class Program
                 passed = Checks,
                 success = error == null,
                 error = error == null ? null : new { type = error.GetType().FullName, message = error.Message },
-                scope = "Synthetic files, fake graphics reads, own allocations and one bounded same-assembly fixture child; no installed game files, live settings, network or game launch."
+                scope = "Synthetic files, fake graphics reads, own allocations and two bounded same-assembly fixture children; no installed game files, live settings, network or game launch."
             }, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch (Exception ex) { Console.Error.WriteLine("Could not write test report: " + ex.Message); }

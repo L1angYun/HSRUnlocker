@@ -71,7 +71,7 @@ namespace StarRailUnlocker
                     Log(L10n.T("Ui.LogConfiguredPath", _config.ProcessPath));
                 }
 
-                PathBox.Text = _config.ProcessPath;
+                RefreshGameClients();
                 ApplyFps(_config.TargetFramerate);
                 AutoStartToggle.IsOn = _config.AutoStart;
                 FovBox.Value = _config.FovDelta;
@@ -364,11 +364,11 @@ namespace StarRailUnlocker
             return candidates;
         }
 
-        private void SetDetectedGame(uint pid, string path, string messageKey)
+        private bool SetDetectedGame(uint pid, string path, string messageKey)
         {
-            PathBox.Text = path;
-            _config.ProcessPath = path;
+            if (!TrySetGamePath(path)) return false;
             Log(L10n.T(messageKey, pid, path));
+            return true;
         }
 
         // ------------------------------------------------------------------ logging
@@ -445,15 +445,21 @@ namespace StarRailUnlocker
         }
 
         // ------------------------------------------------------------------ buttons
-        private async void OnBrowseClick(object sender, RoutedEventArgs e) => await ChooseGameAsync();
+        private async void OnBrowseClick(object sender, RoutedEventArgs e)
+        {
+            if (CanChangeGameClient) await ChooseGameAsync();
+        }
 
         private static bool IsValidGamePath(string path) =>
             File.Exists(path) && string.Equals(Path.GetFileName(path), "StarRail.exe", StringComparison.OrdinalIgnoreCase);
 
-        private async System.Threading.Tasks.Task<bool> ChooseGameAsync()
+        private async System.Threading.Tasks.Task<bool> ChooseGameAsync(bool duringSetup = false)
         {
-            if (_closed || _closePending || _pickingGame) return false;
+            if (_closed || _closePending || _pickingGame || _scanningGames || _switchingSession ||
+                _session?.IsRunning == true || _downloadingUpdate ||
+                ((_setupInProgress || _dialogOpen) && !duringSetup)) return false;
             _pickingGame = true;
+            RefreshPresentation();
             try
             {
                 var picker = new FileOpenPicker(AppWindow.Id);
@@ -465,12 +471,7 @@ namespace StarRailUnlocker
                     Log(L10n.T("Ui.LogChooseGameExecutable"));
                     return false;
                 }
-                PathBox.Text = file.Path;
-                _config.ProcessPath = file.Path;
-                _localErrorKey = null;
-                _config.Save();
-                Log(L10n.T("Ui.LogGamePathSet", file.Path));
-                return true;
+                return TrySetGamePath(file.Path);
             }
             catch (Exception ex)
             {
@@ -481,6 +482,7 @@ namespace StarRailUnlocker
             finally
             {
                 _pickingGame = false;
+                if (!_closed && !_closePending) RefreshPresentation();
                 QueueUpdatePrompt();
             }
         }
@@ -492,20 +494,13 @@ namespace StarRailUnlocker
             {
                 if (!IsValidGamePath(_config.ProcessPath))
                 {
-                    var installed = await System.Threading.Tasks.Task.Run(GameInstallationDiscovery.FindInstalled);
+                    await ScanGameClientsAsync(duringSetup: true);
                     if (_closed || _closePending) return;
-                    var paths = new SortedSet<string>(installed, StringComparer.OrdinalIgnoreCase);
-                    foreach (var game in FindRunningGames()) paths.Add(game.Path);
-                    _detectedGamePaths = paths.ToArray();
                     if (_detectedGamePaths.Count == 1 && !IsValidGamePath(_config.ProcessPath))
                     {
                         string detected = _detectedGamePaths[0];
-                        if (IsValidGamePath(detected))
-                        {
-                            PathBox.Text = _config.ProcessPath = detected;
+                        if (TrySetGamePath(detected))
                             Log(L10n.T("Ui.LogInstalledGame", detected));
-                            if (!_config.Save()) Log(L10n.T("Ui.LogConfigSaveFailed", UnlockConfig.LogPath));
-                        }
                     }
                 }
                 if (!IsValidGamePath(_config.ProcessPath)) await ShowSetupAsync();
@@ -543,7 +538,7 @@ namespace StarRailUnlocker
 
         private async void OnStartClick(object sender, RoutedEventArgs e)
         {
-            if (_closed || _closePending) return;
+            if (!CanChangeGameClient) return;
             SyncConfig();
             if (!IsValidGamePath(_config.ProcessPath))
             {
@@ -557,7 +552,7 @@ namespace StarRailUnlocker
 
         private async void OnAttachClick(object sender, RoutedEventArgs e)
         {
-            if (_closed || _closePending || _switchingSession || _dialogOpen) return;
+            if (!CanChangeGameClient) return;
             SyncConfig();
             var games = FindRunningGames();
             if (games.Count == 0)
@@ -568,7 +563,7 @@ namespace StarRailUnlocker
             }
             RunningGameCandidate selected = games.Count == 1 ? games[0] : await ChooseRunningGameAsync(games);
             if (selected == null || _closed || _closePending) return;
-            SetDetectedGame(selected.Pid, selected.Path, "Ui.LogAttachGame");
+            if (!SetDetectedGame(selected.Pid, selected.Path, "Ui.LogAttachGame")) return;
             LaunchSession(selected.Pid);
         }
 
@@ -656,7 +651,7 @@ namespace StarRailUnlocker
 
         private async void LaunchSession(uint pid, bool launchIfMissing = false)
         {
-            if (_switchingSession || _closePending || _closed) return;
+            if (_switchingSession || _closePending || _closed || _scanningGames || _pickingGame) return;
             CancelGameExitClose();
             _switchingSession = true;
             _stoppingSession = false;
@@ -697,7 +692,6 @@ namespace StarRailUnlocker
 
         private void SyncConfig()
         {
-            _config.ProcessPath = PathBox.Text ?? string.Empty;
             if (double.IsFinite(FpsBox.Value))
                 _config.TargetFramerate = (int)Math.Round(Math.Clamp(FpsBox.Value, FpsMin, FpsMax));
             _config.AutoStart = AutoStartToggle.IsOn;

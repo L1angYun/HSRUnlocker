@@ -20,7 +20,7 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 | FOV 调整 | 视野增量范围为 −60° 至 +60°，支持滑块、数值输入和一键归零。 |
 | 移动端 UI | 启动游戏时启用触控界面，可沿用客户端已保存的画质设置。 |
 | 相机反虚化（实验性） | 关闭相机靠近或俯仰视角引起的角色淡出，支持运行时开关。 |
-| 启动与附加 | 首次启动自动检测已安装的客户端；从工具启动游戏，或附加到已运行的游戏进程。 |
+| 启动与附加 | 首次启动自动检测客户端，可随时重新扫描，通过下拉列表切换已记住的路径；从工具启动游戏，或附加到已运行的游戏进程。 |
 | 托盘与配置 | 最小化到托盘、单实例、自动保存设置，可选择随工具启动游戏、随游戏退出工具。 |
 | 多语言 | 简体中文、English、日本語、한국어；默认跟随系统，可手动切换并保存。 |
 | 版本更新 | 启动时或手动检查 GitHub 正式发布版本，发现新版弹窗提示，支持下载安装包、校验、升级并重启。自动检查可关闭。 |
@@ -51,6 +51,8 @@ FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双�
 「版本更新」可手动检查新版，也可关闭启动时的自动检查。发现新版会弹窗，可立即更新、查看发布说明或稍后处理；同次运行对同一版本只提示一次。在托盘中时等恢复窗口后提示。工具会下载并校验安装包，完成还原、退出后安装新版并重启。下载可取消；下载或校验失败不会替换当前程序。
 
 自动查找读取启动器和 Windows 安装记录，也会检查正在运行的客户端，不按文件夹名称判断版本。手动移动游戏后若安装记录失效，可直接选择实际的 `StarRail.exe`。
+
+客户端路径旁的搜索按钮可重新扫描；扫描不会自动更换当前选择。下拉列表保留扫描到和手动选择过的有效路径，选择后立即保存，下次启动仍可切换。文件已失效时从可用列表移除；工具正在启动、附加、运行或还原会话时暂不能切换。
 
 配置和日志保存在 `%LOCALAPPDATA%\HSRUnlocker\`，升级与卸载保留这些文件。升级或卸载前请正常退出工具。
 
@@ -105,7 +107,7 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 | FOV adjustment | Apply an offset from −60° to +60° using the slider or numeric input, with a reset button. |
 | Mobile UI | Enable the touch interface when launching the game and reuse saved graphics settings. |
 | Camera anti-fade (experimental) | Disable character fading caused by camera proximity or elevation; can be toggled while playing. |
-| Launch and attach | Detect installed clients on first launch, launch the game through the tool, or attach to an existing game process. |
+| Launch and attach | Detect clients on first launch, rescan on demand, switch remembered paths from a dropdown, launch the game, or attach to an existing process. |
 | Tray and settings | Minimize to tray, single-instance behavior, saved preferences, optional game launch with the tool, and optional tool exit with the game. |
 | Languages | Simplified Chinese, English, Japanese, and Korean. Follows the system by default, with a saved manual choice. |
 | Updates | Check stable GitHub releases at startup or manually, show a new-version prompt, download and verify the installer, then upgrade and restart. Startup checks can be disabled. |
@@ -136,6 +138,8 @@ Close tool when the game exits is enabled by default. Turn it off to launch or a
 The Updates section offers a manual check and an optional startup check. A newer release opens a prompt to update, view release notes, or continue later, once per version in the same run. While in the tray, the prompt waits until the window is restored. The tool downloads and verifies the installer, finishes restoration, exits, installs the update, and restarts. Downloads can be cancelled; download or verification failures leave the current application in place.
 
 Automatic discovery reads launcher and Windows installation records and checks running clients, without inferring versions from folder names. If moving a game leaves stale installation records, browse to its actual `StarRail.exe`.
+
+The search button beside the client path rescans without replacing the current selection. The dropdown remembers valid discovered and manually chosen paths; selecting one saves it immediately for subsequent launches. Missing files are removed from the available list. Switching is disabled while the tool starts, attaches, runs, or restores a session.
 
 Settings and logs are stored in `%LOCALAPPDATA%\HSRUnlocker\` and retained during upgrades and uninstallation. Close the tool normally before upgrading or uninstalling.
 

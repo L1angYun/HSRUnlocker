@@ -160,9 +160,17 @@ namespace StarRailUnlocker.Core
                 ulong rva = address - start;
                 var disk = new PeImage(local.FileName);
                 var remote = TargetProcess.FindModule(_process.Pid, local.ModuleName);
-                if (remote.Base == 0 || remote.Size != disk.SizeOfImage
+                bool mappedExtent = remote.Base == 0;
+                if (mappedExtent)
+                {
+                    // A fresh suspended process has image mappings before its loader list exists.
+                    var mapped = MappedImageResolver.Find(_process, local.BaseAddress);
+                    remote = (mapped.Base, mapped.Size, local.FileName);
+                }
+                if (remote.Base == 0 || !ImageSizeMatches(remote.Size, disk.SizeOfImage, mappedExtent)
                     || !string.Equals(Path.GetFullPath(remote.Path), Path.GetFullPath(local.FileName), StringComparison.OrdinalIgnoreCase)
-                    || !disk.IsExecutableRva(rva, 16))
+                    || !disk.IsExecutableRva(rva, 16)
+                    || !MappedImageResolver.IsExecutableRange(_process.Handle, remote.Base, checked(remote.Base + rva), 16))
                     throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.SystemExportModuleMismatch"));
                 byte[] head = _process.Read(remote.Base, 4096);
                 if (head == null || BitConverter.ToUInt16(head, 0) != 0x5A4D)
@@ -178,6 +186,10 @@ namespace StarRailUnlocker.Core
             }
             throw new InvalidOperationException(L10n.T("Resolver.FunctionTable.CannotEstablishExportOwner"));
         }
+
+        internal static bool ImageSizeMatches(uint observedSize, uint imageSize, bool mappedExtent) =>
+            // Image allocations can include OS-owned tail pages; PE identity is checked separately.
+            imageSize != 0 && (mappedExtent ? observedSize >= imageSize : observedSize == imageSize);
 
         private void FreeUnregisteredStorage()
         {

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -32,6 +33,7 @@ namespace StarRailUnlocker.Core
         private static readonly object LogSync = new object();
 
         public string ProcessPath { get; set; } = "";
+        public string[] GamePaths { get; set; } = Array.Empty<string>();
         public int TargetFramerate { get; set; } = 120;
         public double FovDelta { get; set; } = 0.0;
         public bool DisableCameraFade { get; set; } = false;
@@ -103,6 +105,7 @@ namespace StarRailUnlocker.Core
         public void Normalize()
         {
             ProcessPath = (ProcessPath ?? string.Empty).Trim();
+            GamePaths = GameClientPaths.Normalize((GamePaths ?? Array.Empty<string>()).Prepend(ProcessPath));
             TargetFramerate = Math.Clamp(TargetFramerate, FpsMin, FpsMax);
             if (double.IsNaN(FovDelta) || double.IsInfinity(FovDelta))
                 FovDelta = 0.0;
@@ -114,6 +117,7 @@ namespace StarRailUnlocker.Core
         public UnlockConfig Clone() => new UnlockConfig
         {
             ProcessPath = ProcessPath,
+            GamePaths = GamePaths?.ToArray() ?? Array.Empty<string>(),
             TargetFramerate = TargetFramerate,
             FovDelta = FovDelta,
             DisableCameraFade = DisableCameraFade,

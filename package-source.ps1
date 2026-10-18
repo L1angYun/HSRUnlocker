@@ -25,6 +25,7 @@ $include = @(
     'tests\LegacyCleanup.Tests.ps1', 'tests\LegacyCleanup.fixture.iss',
     'gui\App.xaml', 'gui\App.xaml.cs', 'gui\MainWindow.xaml', 'gui\MainWindow.xaml.cs',
     'gui\MainWindow.Presentation.cs', 'gui\MainWindow.Localization.cs', 'gui\MainWindow.Updates.cs', 'gui\MainWindow.Dialogs.cs',
+    'gui\MainWindow.Clients.cs',
     'gui\WindowLayout.cs', 'gui\Assets\AppIcon.png', 'gui\Assets\AppIcon.ico',
     'gui\Assets\Fonts\MiSansVF.ttf', 'gui\Assets\Fonts\MiSans-LICENSE.pdf', 'gui\Assets\Fonts\NOTICE.md',
     'gui\TrayIcon.cs', 'gui\HSRUnlocker.csproj', 'gui\app.manifest'

@@ -35,6 +35,42 @@
     "ja-JP": "StarRail.exe を選択",
     "ko-KR": "StarRail.exe 선택"
   },
+  "Ui.ScanClients": {
+    "zh-CN": "重新扫描 StarRail.exe",
+    "en-US": "Scan for StarRail.exe again",
+    "ja-JP": "StarRail.exe を再検索",
+    "ko-KR": "StarRail.exe 다시 검색"
+  },
+  "Ui.ScanningClients": {
+    "zh-CN": "正在查找游戏客户端…",
+    "en-US": "Finding game clients…",
+    "ja-JP": "ゲームクライアントを検索中…",
+    "ko-KR": "게임 클라이언트 검색 중…"
+  },
+  "Ui.AvailableClients": {
+    "zh-CN": "可用客户端：{0}",
+    "en-US": "Available clients: {0}",
+    "ja-JP": "利用可能なクライアント：{0}",
+    "ko-KR": "사용 가능한 클라이언트: {0}"
+  },
+  "Ui.NoClientsFound": {
+    "zh-CN": "未找到游戏客户端",
+    "en-US": "No game clients found",
+    "ja-JP": "ゲームクライアントが見つかりません",
+    "ko-KR": "게임 클라이언트를 찾지 못했습니다"
+  },
+  "Ui.ClientScanFailed": {
+    "zh-CN": "扫描失败，请重试",
+    "en-US": "Scan failed. Try again.",
+    "ja-JP": "検索に失敗しました。再試行してください。",
+    "ko-KR": "검색하지 못했습니다. 다시 시도하세요."
+  },
+  "Ui.LogClientScanFailed": {
+    "zh-CN": "扫描游戏客户端失败：{0}",
+    "en-US": "Could not scan for game clients: {0}",
+    "ja-JP": "ゲームクライアントを検索できませんでした：{0}",
+    "ko-KR": "게임 클라이언트를 검색하지 못했습니다: {0}"
+  },
   "Ui.DisplaySection": {
     "zh-CN": "画面与镜头",
     "en-US": "Display and camera",

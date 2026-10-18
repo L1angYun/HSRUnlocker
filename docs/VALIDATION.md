@@ -6,9 +6,9 @@ Updated October 18, 2026. Build results, synthetic tests, and observed in-game b
 
 ## 功能验证 / Functional Checks
 
-以下结果来自 Windows 11 上的已公开客户端。
+以下为此前在 Windows 11 上对已公开客户端的观察。本轮 1.3.0 修复未重新启动游戏；新增检查的范围见下文。
 
-The following checks used a publicly released client on Windows 11.
+The following observations used a publicly released client on Windows 11 in an earlier run. This 1.3.0 repair did not relaunch a game; the new checks are scoped below.
 
 | 项目 / Check | 范围与结果 / Scope and Result |
 |---|---|
@@ -41,6 +41,10 @@ The 1.1.2 numeric-control fix was checked in a separate native WinUI window that
 
 The 1.2.0 first-run and update dialogs were checked in a separate native WinUI window linking this revision's dialog code, prompt queue, localization, App.xaml, and MiSans. All 508 native assertions passed, with 32 rendered images across four languages and 520/980 DIP window widths. Checks covered client selection, complete button labels, fonts, text bounds, dismissal, same-version suppression, and deferral during setup, file picking, and tray hiding. Installer, release-note, and picker actions used recording substitutes; no real download, installation, browser action, configuration write, or application launch occurred.
 
+1.3.0 的客户端选择行直接链接本版本的路径与扫描处理代码，并提取实际 XAML、语言资源和 MiSans，在独立原生窗口通过 **203 项检查**。四种语言、520/980 DIP 宽度下生成并检查了 24 张非空渲染图，覆盖下拉列表宽度、长路径省略、扫描状态、选择后保存、失效路径拒绝、扫描期间及运行会话期间的操作限制。文件是否存在、扫描结果和配置保存使用自编替身；不运行正式应用或系统文件选择器，不访问真实安装记录或配置。
+
+The 1.3.0 client selector passed **203 checks** in a separate native window linking this revision's path and scan handlers and extracting the actual XAML, localization, and MiSans resources. Twenty-four nonblank renders across four languages and 520/980 DIP widths were checked for dropdown bounds, long-path ellipsis, and scan states. Behavior checks cover immediate selection persistence, unavailable-path rejection, and scan/session guards. File availability, discovery results, and settings persistence use authored substitutes; neither the production application nor the OS picker runs, and no live installation records or settings are accessed.
+
 ## 安装与更新 / Installation and Updates
 
 1.1.0 自包含发布及 Inno Setup 安装程序编译通过。安装包解出 **551 个应用文件**，逐文件 SHA-256 与发布目录一致，无缺失、多余或 PDB 文件；四种安装语言、编译 XAML、.NET 与 Windows App SDK 运行组件、MiSans 和许可通知均已检查。
@@ -69,9 +73,17 @@ This run did not execute the installer or update helper, trigger UAC, read live 
 
 The October 18, 2026 run for 1.2.0 passed **540 checks**. The output for the corresponding source revision is authoritative.
 
-`tests/HSRUnlocker.Tests` 使用合成 PE、固定测试数据、临时目录和自有内存，不读取已安装游戏、真实设置或注册表，不联网，也不启动游戏。原生调用与展开测试会执行本项目自行编写的合成机器码，并使用一个有界的同程序集测试子进程。
+1.3.0 的便携测试通过 **633 项检查**，其中 39 项新增客户端列表检查覆盖本地路径规范化、重复与失效路径、扫描合并、手动路径保留、枚举上限、旧配置兼容、独立克隆与 JSON 往返。文件是否存在由自编数据提供，不读取真实客户端或配置。
 
-`tests/HSRUnlocker.Tests` uses synthetic PE files, authored fixtures, temporary directories, and owned memory. It does not read installed games, live settings, or the registry, access the network, or launch a game. Native calling-convention and unwind checks execute synthetic machine code authored for this project and use one bounded child running the same test assembly.
+The portable suite for 1.3.0 passed **633 checks**, including 39 new client-list checks for local path normalization, duplicate and unavailable paths, scan merging, remembered manual paths, enumeration bounds, legacy settings, independent clones, and JSON roundtrips. File availability uses authored data rather than live clients or settings.
+
+另新增 45 项映射查询检查和 9 项挂起启动检查。旧实现在自建挂起测试子进程中复现了系统模块不匹配错误；修复后，在不恢复其主线程的情况下，系统导出定位、真实展开表注册、引导线程就绪及取消均通过，随后仅恢复该测试子进程运行 `--help` 并正常退出。检查区分内存映射覆盖范围与 PE 镜像尺寸，保留系统文件身份、PE 头、可执行页和入口字节校验；这不等同于真实客户端中的移动 UI 启动验证。
+
+There are also 45 new mapped-image checks and nine suspended-start checks. The old implementation reproduced the system-module mismatch in an owned suspended test child. After the repair, system-export resolution, actual unwind registration, and bootstrap readiness and cancellation passed without resuming its primary thread; only that test child was then resumed into `--help` and exited normally. The checks distinguish mapping coverage from PE image size and retain system-file identity, PE-header, executable-page, and entry-byte verification. They do not establish mobile UI launch behavior in a real client.
+
+`tests/HSRUnlocker.Tests` 使用合成 PE、固定测试数据、临时目录和自有内存，不读取已安装游戏、真实设置或注册表，不联网，也不启动游戏。原生调用与展开测试会执行本项目自行编写的合成机器码，并使用两个有界的同程序集测试子进程。
+
+`tests/HSRUnlocker.Tests` uses synthetic PE files, authored fixtures, temporary directories, and owned memory. It does not read installed games, live settings, or the registry, access the network, or launch a game. Native calling-convention and unwind checks execute synthetic machine code authored for this project and use two bounded children running the same test assembly.
 
 覆盖范围包括结构解析与扫描、动态定位、无效或歧义结构拒绝、调用约定、并发与还原、移动平台参数、配置归一化和权限检查；语言测试覆盖系统语言选择、手动选择与配置兼容、四语资源及格式参数、数字格式和并发切换。合成测试通过不替代真实环境中的功能观察。
 
