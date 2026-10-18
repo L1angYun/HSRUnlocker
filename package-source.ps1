@@ -23,6 +23,7 @@ $include = @(
     'installer\LegacyRuntimeCleanup.iss', 'installer\LegacyCleanupState.iss',
     'tests\InstallerMetadata.Tests.ps1', 'tests\Installer.Tests.ps1', 'tests\RuntimePrerequisites.fixture.iss',
     'tests\LegacyCleanup.Tests.ps1', 'tests\LegacyCleanup.fixture.iss',
+    'tests\NativeFixtures.Tests.ps1',
     'gui\App.xaml', 'gui\App.xaml.cs', 'gui\MainWindow.xaml', 'gui\MainWindow.xaml.cs',
     'gui\MainWindow.Presentation.cs', 'gui\MainWindow.Localization.cs', 'gui\MainWindow.Updates.cs', 'gui\MainWindow.Dialogs.cs',
     'gui\MainWindow.Clients.cs',

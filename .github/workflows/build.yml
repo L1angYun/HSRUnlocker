@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     runs-on: windows-latest
@@ -31,3 +34,35 @@ jobs:
 
       - name: Test installer metadata and cleanup inventory
         run: powershell -NoProfile -File .\tests\InstallerMetadata.Tests.ps1
+
+      - name: Install pinned native fixture compiler
+        shell: pwsh
+        timeout-minutes: 5
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Join-Path $env:RUNNER_TEMP 'innosetup-7.1.0-x64.exe'
+          $compilerDirectory = Join-Path $env:RUNNER_TEMP 'inno-7.1.0'
+          Invoke-WebRequest -Uri 'https://github.com/jrsoftware/issrc/releases/download/is-7_1_0/innosetup-7.1.0-x64.exe' -OutFile $installer -TimeoutSec 120
+          $expectedHash = '0362a383ed217d4c4239b5933866dd96d3eb2102737da92f80f6057a4b40df2f'
+          if ((Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash -ine $expectedHash) {
+            throw 'The pinned Inno Setup installer failed SHA-256 verification.'
+          }
+          $process = Start-Process -FilePath $installer -WindowStyle Hidden -PassThru -ArgumentList @(
+            '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/CURRENTUSER', '/PORTABLE=1',
+            "/DIR=`"$compilerDirectory`"")
+          if (-not $process.WaitForExit(120000)) {
+            $process.Kill()
+            throw 'The pinned Inno Setup compiler installation exceeded its two-minute bound.'
+          }
+          if ($process.ExitCode -ne 0) { throw "Inno Setup compiler installation failed: $($process.ExitCode)." }
+          $compiler = Join-Path $compilerDirectory 'ISCC.exe'
+          if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) { throw 'The pinned compiler is missing.' }
+          $version = (& $compiler --version | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or $version -cne '7.1.0') { throw 'The pinned compiler version is incorrect.' }
+
+      - name: Test native installer fixtures and negative control
+        shell: pwsh
+        timeout-minutes: 5
+        # Only lowest-privilege synthetic fixtures execute, never the production application installer.
+        run: |
+          & .\tests\NativeFixtures.Tests.ps1 -CompilerPath (Join-Path $env:RUNNER_TEMP 'inno-7.1.0\ISCC.exe') -EvidenceDir (Join-Path $env:RUNNER_TEMP 'native-fixture-evidence')
