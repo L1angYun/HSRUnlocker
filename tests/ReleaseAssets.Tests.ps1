@@ -372,3 +372,4 @@ finally {
 $failed = @($results | Where-Object { -not $_.Passed })
 Write-Host ("Release asset tests: {0} passed, {1} failed." -f ($results.Count - $failed.Count), $failed.Count)
 if ($failed.Count -gt 0) { exit 1 }
+exit 0
