@@ -6,14 +6,14 @@
     "ko-KR": "게임 종료 시 도구 닫기"
   },
   "Updates.ExitWithGameTip": {
-    "zh-CN": "关闭后，游戏退出时工具会保持打开，可再次启动或附加游戏。",
-    "en-US": "When off, the tool stays open after the game exits so you can launch or attach again.",
+    "zh-CN": "关闭后，游戏退出时工具会保持打开，可再次启动或连接游戏。",
+    "en-US": "When off, the tool stays open after the game exits so you can launch or connect again.",
     "ja-JP": "オフの場合、ゲーム終了後もツールを開いたままにし、再起動や再接続ができます。",
     "ko-KR": "끄면 게임이 종료되어도 도구가 열려 있어 게임을 다시 실행하거나 연결할 수 있습니다."
   },
   "Updates.GameExitedStayingOpen": {
-    "zh-CN": "游戏已退出，可再次启动或附加游戏。",
-    "en-US": "The game has exited. You can launch or attach again.",
+    "zh-CN": "游戏已退出，可再次启动或连接游戏。",
+    "en-US": "The game has exited. You can launch or connect again.",
     "ja-JP": "ゲームが終了しました。再起動または再接続できます。",
     "ko-KR": "게임이 종료되었습니다. 다시 실행하거나 연결할 수 있습니다."
   },
@@ -210,10 +210,10 @@
     "ko-KR": "현재 버전 {0}이(가) 최신 버전입니다."
   },
   "Updates.Failed": {
-    "zh-CN": "检查失败，请检查网络后重试。",
-    "en-US": "Could not check for updates. Check your connection and try again.",
-    "ja-JP": "更新を確認できませんでした。接続を確認して再試行してください。",
-    "ko-KR": "업데이트를 확인하지 못했습니다. 네트워크 연결을 확인하고 다시 시도해 주세요."
+    "zh-CN": "无法检查更新，请重试或切换更新来源。",
+    "en-US": "Could not check for updates. Try again or choose another update source.",
+    "ja-JP": "更新を確認できませんでした。再試行するか、別の更新元を選択してください。",
+    "ko-KR": "업데이트를 확인하지 못했습니다. 다시 시도하거나 다른 업데이트 소스를 선택하세요."
   },
   "Updates.RateLimited": {
     "zh-CN": "GitHub 访问受限，备用更新信息也未能获取。请稍后重试。",
@@ -222,15 +222,15 @@
     "ko-KR": "GitHub 요청 한도에 도달했으며 대체 업데이트 정보도 가져오지 못했습니다. 나중에 다시 시도해 주세요."
   },
   "Updates.TimedOut": {
-    "zh-CN": "检查更新超时，请稍后重试。",
-    "en-US": "The update check timed out. Try again later.",
-    "ja-JP": "更新の確認がタイムアウトしました。後で再試行してください。",
-    "ko-KR": "업데이트 확인 시간이 초과되었습니다. 나중에 다시 시도해 주세요."
+    "zh-CN": "检查更新超时，请重试或切换更新来源。",
+    "en-US": "The update check timed out. Try again or choose another update source.",
+    "ja-JP": "更新の確認がタイムアウトしました。再試行するか、別の更新元を選択してください。",
+    "ko-KR": "업데이트 확인 시간이 초과되었습니다. 다시 시도하거나 다른 업데이트 소스를 선택하세요."
   },
   "Updates.OpenFailed": {
-    "zh-CN": "无法打开下载页，请重试。",
-    "en-US": "Could not open the download page. Please try again.",
-    "ja-JP": "ダウンロードページを開けませんでした。再試行してください。",
-    "ko-KR": "다운로드 페이지를 열지 못했습니다. 다시 시도해 주세요."
+    "zh-CN": "无法打开发布页面，请重试。",
+    "en-US": "Could not open the release page. Try again.",
+    "ja-JP": "リリースページを開けませんでした。再試行してください。",
+    "ko-KR": "릴리스 페이지를 열지 못했습니다. 다시 시도해 주세요."
   }
 }

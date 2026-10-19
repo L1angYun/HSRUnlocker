@@ -89,7 +89,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <ComboBox x:Name="ClientPathBox" MinWidth="0" Height="36"
+                        <ComboBox x:Name="ClientPathBox" MinWidth="0" MinHeight="36"
                                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                                   MaxDropDownHeight="320" SelectionChanged="OnGameClientChanged"
                                   AutomationProperties.AutomationId="ClientPathBox">

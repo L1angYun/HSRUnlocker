@@ -19,7 +19,7 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 | 帧率解锁 | 设置 10–480 FPS 上限，默认 120；游戏重设上限时自动恢复目标值。实际帧率取决于硬件与游戏负载。 |
 | FOV 调整 | 视野增量范围为 −60° 至 +60°，支持滑块、数值输入和一键归零。 |
 | 移动端 UI | 启动游戏时启用触控界面，可沿用客户端已保存的画质设置，并选择安全区边距。 |
-| 相机反虚化（实验性） | 关闭相机靠近或俯仰视角引起的角色淡出，支持运行时开关。 |
+| 防止角色淡出（实验性） | 关闭相机靠近或俯仰视角引起的角色淡出（相机反虚化），支持运行时开关。 |
 | 启动与附加 | 首次启动自动检测客户端，可随时重新扫描，通过下拉列表切换已记住的路径；从工具启动游戏，或附加到已运行的游戏进程。 |
 | 托盘与配置 | 最小化到托盘、单实例、自动保存设置，可选择随工具启动游戏、随游戏退出工具。 |
 | 多语言 | 简体中文、English、日本語、한국어；默认跟随系统，可手动切换并保存。 |
@@ -39,16 +39,16 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 1. 从 [GitHub Releases](https://github.com/L1angYun/HSRUnlocker/releases) 或 [Gitee Releases](https://gitee.com/liangyun_Liu/HSRUnlocker/releases) 下载 `HSRUnlocker-版本号-win-x64-Setup.exe`，安装后使用快捷方式运行。
 2. 首次启动会自动查找已安装的 `StarRail.exe`。找到一个时自动保存；多个时选择客户端；未找到时手动选择。
 3. 设置目标帧率、FOV 和所需开关。
-4. 点击「启动游戏」，或用「附加游戏」连接已运行的客户端。
-5. 点击「停止并还原」恢复帧率、FOV 与反虚化修改。
+4. 点击「启动游戏」，或用「连接游戏」连接已运行的客户端。
+5. 点击「停止并还原」恢复帧率上限、FOV 和角色淡出效果，游戏继续运行。
 
 使用移动端 UI 时，请先退出正在运行的游戏，再开启选项并通过工具启动。若提示缺少画质设置，请先以普通模式运行一次对应客户端。「画质设置来源」默认自动识别；国服和国际服选项只决定读取哪份已保存的画质设置。
 
-「移动端安全区」默认「原样」；选择「iOS / 自定义」后可设置左右各侧的安全边距，范围 0–15%，初始值为 5%。它不是特定 iPhone 的机型预设，不会自动检测串流设备；选择及边距在下次由工具启动移动 UI 时应用，不改变画质设置。
+「移动端安全区」默认「游戏默认」；选择「自定义边距」后可设置左右每侧的安全边距，范围 0–15%，初始值为 5%，用于为刘海或灵动岛预留空间。选择及边距在下次由工具启动移动 UI 时应用，不改变画质设置。
 
 FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双击托盘图标可恢复窗口。
 
-「游戏退出时关闭工具」默认开启；关闭后可在同一窗口再次启动或附加游戏。正常退出工具时仍会先完成还原。
+「游戏退出时关闭工具」默认开启；关闭后可在同一窗口再次启动或连接游戏。正常退出工具时仍会先完成还原。
 
 「版本更新」可手动检查新版，也可关闭启动时的自动检查。发现新版会弹窗，可立即更新、查看发布说明或稍后处理；同次运行对同一版本只提示一次。在托盘中时等恢复窗口后提示。工具会下载并校验安装包，完成还原、退出后安装新版并重启。下载可取消；下载或校验失败不会替换当前程序。
 
@@ -134,16 +134,16 @@ Addresses are resolved dynamically, but game updates may still require compatibi
 1. Download `HSRUnlocker-version-win-x64-Setup.exe` from [GitHub Releases](https://github.com/L1angYun/HSRUnlocker/releases) or [Gitee Releases](https://gitee.com/liangyun_Liu/HSRUnlocker/releases), install it, and use its shortcut.
 2. The first launch searches for installed `StarRail.exe` clients. A single match is saved automatically; choose between multiple matches or browse manually if none are found.
 3. Set the target FPS, FOV offset, and desired options.
-4. Click Launch game, or Attach to game for a running client.
-5. Click Stop and restore to restore FPS, FOV, and anti-fade changes.
+4. Click Launch game, or Connect to game for a running client.
+5. Click Stop and restore to restore the frame rate limit, FOV, and character fading. The game keeps running.
 
 To use mobile UI, close any running game, enable the option, then launch through the tool. If graphics settings are missing, run that client normally once first. The graphics-settings source is detected automatically by default; the China/global choices only select which saved settings to read.
 
-Mobile safe area defaults to Original. Choose iOS / Custom to set a margin on each side, from 0 to 15%, initially 5%. This is not a model-specific iPhone preset and does not detect streaming devices. The selection and margins apply the next time the tool launches mobile UI, without changing graphics settings.
+Mobile safe area defaults to Game default. Choose Custom margins to set a margin on each side, from 0 to 15%, initially 5%, leaving room for a notch or Dynamic Island. The selection and margins apply the next time the tool launches mobile UI, without changing graphics settings.
 
 FOV changes apply on the next camera update. Minimizing moves the tool to the tray; double-click its tray icon to restore the window.
 
-Close tool when the game exits is enabled by default. Turn it off to launch or attach again from the same window. Normal tool shutdown still completes restoration before closing.
+Close tool when the game exits is enabled by default. Turn it off to launch or connect again from the same window. Normal tool shutdown still completes restoration before closing.
 
 The Updates section offers a manual check and an optional startup check. A newer release opens a prompt to update, view release notes, or continue later, once per version in the same run. While in the tray, the prompt waits until the window is restored. The tool downloads and verifies the installer, finishes restoration, exits, installs the update, and restarts. Downloads can be cancelled; download or verification failures leave the current application in place.
 
