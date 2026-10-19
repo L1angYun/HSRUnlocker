@@ -690,8 +690,8 @@
     "ko-KR": "설치된 게임을 자동 감지했습니다: {0}"
   },
   "Ui.LogAttachGame": {
-    "zh-CN": "附加到游戏: PID {0}, {1}",
-    "en-US": "Attaching to game: PID {0}, {1}",
+    "zh-CN": "连接到游戏: PID {0}, {1}",
+    "en-US": "Connecting to game: PID {0}, {1}",
     "ja-JP": "ゲームに接続します: PID {0}, {1}",
     "ko-KR": "게임에 연결합니다: PID {0}, {1}"
   },
@@ -732,8 +732,8 @@
     "ko-KR": "PID {0}: 주 모듈 열거에 실패했습니다"
   },
   "Ui.LogProcessEnumerationFailed": {
-    "zh-CN": "枚举 StarRail.exe 进程失败，无法安全附加",
-    "en-US": "Failed to enumerate StarRail.exe processes; cannot attach safely.",
+    "zh-CN": "枚举 StarRail.exe 进程失败，无法安全连接",
+    "en-US": "Failed to enumerate StarRail.exe processes; cannot connect safely.",
     "ja-JP": "StarRail.exe プロセスの列挙に失敗したため、安全に接続できません。",
     "ko-KR": "StarRail.exe 프로세스 열거에 실패하여 안전하게 연결할 수 없습니다."
   },
@@ -810,10 +810,10 @@
     "ko-KR": "프로세스를 선택하지 못했습니다: {0}"
   },
   "Ui.LogStopping": {
-    "zh-CN": "停止中（将还原帧率、FOV 与反虚化设置）…",
-    "en-US": "Stopping and restoring frame rate, FOV, and camera fade…",
-    "ja-JP": "停止してフレームレート、FOV、カメラフェードを復元しています…",
-    "ko-KR": "중지하고 프레임 레이트, FOV 및 카메라 페이드를 복원하는 중…"
+    "zh-CN": "停止中（将还原帧率、FOV 与角色淡出效果）…",
+    "en-US": "Stopping and restoring frame rate, FOV, and character fading…",
+    "ja-JP": "停止してフレームレート、FOV、キャラクターのフェードを復元しています…",
+    "ko-KR": "중지하고 프레임 레이트, FOV 및 캐릭터 페이드를 복원하는 중…"
   },
   "Ui.LogSession": {
     "zh-CN": "[{0}] {1}",

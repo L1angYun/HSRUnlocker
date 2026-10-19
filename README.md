@@ -4,9 +4,9 @@
   <img src="gui/Assets/AppIcon.png" width="96" height="96" alt="HSRUnlocker" />
 </p>
 
-崩坏：星穹铁道帧率解锁工具，支持 FOV 调整、移动端 UI 和相机反虚化。使用 C# / .NET 8 与原生 WinUI 3 界面。
+崩坏：星穹铁道帧率解锁工具，支持 FOV 调整、移动端 UI 和防止角色淡出。使用 C# / .NET 8 与原生 WinUI 3 界面。
 
-A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti-fade. Built with C# / .NET 8 and WinUI 3.
+A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and character fading prevention. Built with C# / .NET 8 and WinUI 3.
 
 [简体中文](#简体中文) | [English](#english)
 
@@ -19,8 +19,8 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and camera anti
 | 帧率解锁 | 设置 10–480 FPS 上限，默认 120；游戏重设上限时自动恢复目标值。实际帧率取决于硬件与游戏负载。 |
 | FOV 调整 | 视野增量范围为 −60° 至 +60°，支持滑块、数值输入和一键归零。 |
 | 移动端 UI | 启动游戏时启用触控界面，可沿用客户端已保存的画质设置，并选择安全区边距。 |
-| 防止角色淡出（实验性） | 关闭相机靠近或俯仰视角引起的角色淡出（相机反虚化），支持运行时开关。 |
-| 启动与附加 | 首次启动自动检测客户端，可随时重新扫描，通过下拉列表切换已记住的路径；从工具启动游戏，或附加到已运行的游戏进程。 |
+| 防止角色淡出（实验性） | 关闭相机靠近或俯仰视角引起的角色淡出，支持运行时开关。 |
+| 启动与连接 | 首次启动自动检测客户端，可随时重新扫描，通过下拉列表切换已记住的路径；从工具启动游戏，或连接已运行的游戏进程。 |
 | 托盘与配置 | 最小化到托盘、单实例、自动保存设置，可选择随工具启动游戏、随游戏退出工具。 |
 | 多语言 | 简体中文、English、日本語、한국어；默认跟随系统，可手动切换并保存。 |
 | 版本更新 | GitHub / Gitee 并行检查并自动选源，也可固定更新源；发现新版弹窗提示，支持下载安装包、校验、升级并重启。自动检查可关闭。 |
@@ -58,7 +58,7 @@ FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双�
 
 自动查找读取启动器和 Windows 安装记录，也会检查正在运行的客户端，不按文件夹名称判断版本。手动移动游戏后若安装记录失效，可直接选择实际的 `StarRail.exe`。
 
-客户端路径旁的搜索按钮可重新扫描；扫描不会自动更换当前选择。下拉列表保留扫描到和手动选择过的有效路径，选择后立即保存，下次启动仍可切换。文件已失效时从可用列表移除；工具正在启动、附加、运行或还原会话时暂不能切换。
+客户端路径旁的搜索按钮可重新扫描；扫描不会自动更换当前选择。下拉列表保留扫描到和手动选择过的有效路径，选择后立即保存，下次启动仍可切换。文件已失效时从可用列表移除；工具正在启动、连接、运行或还原会话时暂不能切换。
 
 配置和应用日志保存在 `%LOCALAPPDATA%\HSRUnlocker\`，升级与卸载保留这些文件。`settings.json` 使用原子保存，有效的旧配置保留为 `settings.json.bak`；主配置不可用时优先读取备份并记录日志，不会立即重写主配置。升级或卸载前请正常退出工具。
 
@@ -69,6 +69,17 @@ FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双�
 「界面语言」位于启动设置中，切换后立即更新界面与托盘。已经产生的日志保留原语言，新的提示使用当前语言。
 
 界面使用随包附带的 MiSans 字体，无需额外安装；未包含的韩文等字形使用 Windows 字体回退。
+
+### 校验下载
+
+将安装包与同一版本的 `SHA256SUMS.txt` 下载到同一目录，在该目录打开 PowerShell。以下以 1.3.5 为例，其他版本请替换安装包文件名：
+
+```powershell
+Get-FileHash .\HSRUnlocker-1.3.5-win-x64-Setup.exe -Algorithm SHA256
+Get-Content .\SHA256SUMS.txt
+```
+
+将输出的 SHA-256 与清单中安装包同名条目的哈希比较，字母大小写不影响结果。不一致时请重新下载并再次核对。
 
 ### 从源码构建
 
@@ -93,6 +104,22 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 
 构建同时生成 `update.json`，其中的安装包大小与 SHA-256 来自实际成品。发布时，将安装包、源码 ZIP、`SHA256SUMS.txt` 和 `update.json` 上传到同一版本的正式 Release；GitHub 与 Gitee 使用相同文件。Gitee 的源码同步不代替 Release 附件发布，附件应先上传并核对，最后上传 `update.json`。客户端无需登录或提供令牌。
 
+安装包构建完成后，用 PowerShell 7.2 或更高版本在项目根目录准备这四个附件：
+
+```powershell
+$version = (Get-Content .\artifacts\installer\update.json -Raw | ConvertFrom-Json).tag_name.Substring(1)
+$source = .\package-source.ps1 -OutDir .\artifacts\source | ConvertFrom-Json
+$release = @{
+    Version = $version
+    InstallerPath = ".\artifacts\installer\HSRUnlocker-$version-win-x64-Setup.exe"
+    SourceArchivePath = $source.Archive
+    OutDir = '.\artifacts\release-assets'
+}
+.\scripts\Prepare-ReleaseAssets.ps1 @release
+```
+
+脚本核对更新清单中的版本、文件名、大小与 SHA-256，并检查源码 ZIP 可读，再复制原文件、生成 `SHA256SUMS.txt`，重新核对副本。输出目录必须为空，并与输入目录分开；再次执行时指定新的空目录。脚本只准备本地文件，不上传或发布。
+
 ### 关于 Vibe Coding
 
 本项目采用 **Vibe Coding** 方式开发：AI 参与功能拆解、界面设计、代码、测试和文档编写。这不是一个全部手写的项目，也不会将 AI 生成内容包装成经过独立专业审计的成果。
@@ -114,8 +141,8 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 | FPS unlock | Set a 10–480 FPS limit, with a default of 120. Automatically reapplies the target when the game resets it. Actual FPS depends on hardware and game load. |
 | FOV adjustment | Apply an offset from −60° to +60° using the slider or numeric input, with a reset button. |
 | Mobile UI | Enable the touch interface when launching the game, reuse saved graphics settings, and select safe-area margins. |
-| Camera anti-fade (experimental) | Disable character fading caused by camera proximity or elevation; can be toggled while playing. |
-| Launch and attach | Detect clients on first launch, rescan on demand, switch remembered paths from a dropdown, launch the game, or attach to an existing process. |
+| Prevent character fading (experimental) | Disable character fading caused by camera proximity or elevation; can be toggled while playing. |
+| Launch and connect | Detect clients on first launch, rescan on demand, switch remembered paths from a dropdown, launch the game, or connect to an existing process. |
 | Tray and settings | Minimize to tray, single-instance behavior, saved preferences, optional game launch with the tool, and optional tool exit with the game. |
 | Languages | Simplified Chinese, English, Japanese, and Korean. Follows the system by default, with a saved manual choice. |
 | Updates | Check GitHub and Gitee in parallel with automatic source selection or a fixed provider, show a new-version prompt, verify the installer, then upgrade and restart. Startup checks can be disabled. |
@@ -153,7 +180,7 @@ If the automatic Gitee installer download fails in 1.3.3, choose GitHub as the U
 
 Automatic discovery reads launcher and Windows installation records and checks running clients, without inferring versions from folder names. If moving a game leaves stale installation records, browse to its actual `StarRail.exe`.
 
-The search button beside the client path rescans without replacing the current selection. The dropdown remembers valid discovered and manually chosen paths; selecting one saves it immediately for subsequent launches. Missing files are removed from the available list. Switching is disabled while the tool starts, attaches, runs, or restores a session.
+The search button beside the client path rescans without replacing the current selection. The dropdown remembers valid discovered and manually chosen paths; selecting one saves it immediately for subsequent launches. Missing files are removed from the available list. Switching is disabled while the tool starts, connects, runs, or restores a session.
 
 Settings and application logs are stored in `%LOCALAPPDATA%\HSRUnlocker\` and retained during upgrades and uninstallation. Writes to `settings.json` are atomic, keeping the previous valid settings as `settings.json.bak`. If the primary settings are unusable, the tool reads the backup first and logs the recovery without immediately rewriting the primary file. Close the tool normally before upgrading or uninstalling.
 
@@ -164,6 +191,17 @@ The installation directory retains application DLLs, compiled XAML, fonts, and l
 The language selector is in the startup settings. Changes immediately update the interface and tray. Existing log entries retain their original language; new messages use the current selection.
 
 MiSans is bundled with the application. Characters it does not include, such as Hangul, use Windows font fallback.
+
+### Verify Downloads
+
+Download the installer and `SHA256SUMS.txt` from the same release into one directory, then open PowerShell there. This example uses 1.3.5; replace the installer filename for other versions:
+
+```powershell
+Get-FileHash .\HSRUnlocker-1.3.5-win-x64-Setup.exe -Algorithm SHA256
+Get-Content .\SHA256SUMS.txt
+```
+
+Compare the SHA-256 output with the entry for the same installer filename. Letter case does not matter. If they differ, download the files again and recheck.
 
 ### Build From Source
 
@@ -187,6 +225,22 @@ powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
 The script publishes a framework-dependent application and compiles the installer. Use `-CompilerPath` to select `ISCC.exe`. The installer definition is in `installer\HSRUnlocker.iss`; pinned Microsoft runtime URLs and SHA-256 hashes are in `installer\runtime-dependencies.json`. Prerequisites are checked, verified, and installed before application files are replaced. Failures leave existing application files intact; a requested restart requires rebooting and running Setup again.
 
 The build also generates `update.json` using the actual installer's size and SHA-256. Upload the installer, source ZIP, `SHA256SUMS.txt`, and `update.json` to the same stable release, using identical files on GitHub and Gitee. Source synchronization does not publish Gitee release attachments. Upload and verify the other attachments before publishing `update.json` last. Clients do not need to sign in or supply a token.
+
+After building the installer, prepare these four attachments from the repository root using PowerShell 7.2 or later:
+
+```powershell
+$version = (Get-Content .\artifacts\installer\update.json -Raw | ConvertFrom-Json).tag_name.Substring(1)
+$source = .\package-source.ps1 -OutDir .\artifacts\source | ConvertFrom-Json
+$release = @{
+    Version = $version
+    InstallerPath = ".\artifacts\installer\HSRUnlocker-$version-win-x64-Setup.exe"
+    SourceArchivePath = $source.Archive
+    OutDir = '.\artifacts\release-assets'
+}
+.\scripts\Prepare-ReleaseAssets.ps1 @release
+```
+
+The script validates the manifest version, filename, size and SHA-256, checks that the source ZIP is readable, copies the original files, generates `SHA256SUMS.txt`, and rechecks the copies. The output directory must be empty and separate from input directories; use a new empty directory for subsequent runs. It prepares local files without uploading or publishing.
 
 ### About Vibe Coding
 

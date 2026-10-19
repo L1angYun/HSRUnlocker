@@ -35,6 +35,10 @@ jobs:
       - name: Test installer metadata and cleanup inventory
         run: powershell -NoProfile -File .\tests\InstallerMetadata.Tests.ps1
 
+      - name: Test release asset preparation
+        shell: pwsh
+        run: .\tests\ReleaseAssets.Tests.ps1
+
       - name: Install pinned native fixture compiler
         shell: pwsh
         timeout-minutes: 5

@@ -11,7 +11,10 @@ dotnet build .\gui\HSRUnlocker.csproj -c Release -r win-x64
 dotnet run   --project .\tests\HSRUnlocker.Tests\HSRUnlocker.Tests.csproj -c Release
 powershell -NoProfile -File .\tests\Packaging.Tests.ps1
 powershell -NoProfile -File .\tests\InstallerMetadata.Tests.ps1
+pwsh -NoProfile -File .\tests\ReleaseAssets.Tests.ps1
 ```
+
+发布附件测试需要 PowerShell 7.2 或更高版本，只使用临时目录中的合成文件。
 
 原生安装程序测试需要 Inno Setup 7.1 或更高版本，并显式提供实际 `ISCC.exe` 路径；以下入口不会因缺少编译器而跳过测试：
 
@@ -53,7 +56,10 @@ dotnet build .\gui\HSRUnlocker.csproj -c Release -r win-x64
 dotnet run   --project .\tests\HSRUnlocker.Tests\HSRUnlocker.Tests.csproj -c Release
 powershell -NoProfile -File .\tests\Packaging.Tests.ps1
 powershell -NoProfile -File .\tests\InstallerMetadata.Tests.ps1
+pwsh -NoProfile -File .\tests\ReleaseAssets.Tests.ps1
 ```
+
+Release asset tests require PowerShell 7.2 or later and use only synthetic files in temporary directories.
 
 Native installer tests require Inno Setup 7.1 or later and an explicit path to the actual `ISCC.exe`. This entrypoint does not skip tests when the compiler is missing:
 

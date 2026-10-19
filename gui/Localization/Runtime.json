@@ -6,8 +6,8 @@
     "ko-KR": "StarRail.exe 찾는 중…"
   },
   "Runtime.Session.RunningPathUnknown": {
-    "zh-CN": "无法确认已运行 StarRail.exe（PID {0}）的客户端路径；请使用可访问该进程的权限附加，未启动另一个客户端",
-    "en-US": "Cannot verify the running StarRail.exe path (PID {0}); attach with permission to access it. No additional client was started",
+    "zh-CN": "无法确认已运行 StarRail.exe（PID {0}）的客户端路径；请使用可访问该进程的权限连接，未启动另一个客户端",
+    "en-US": "Cannot verify the running StarRail.exe path (PID {0}); connect with permission to access it. No additional client was started",
     "ja-JP": "実行中の StarRail.exe（PID {0}）のパスを確認できません。アクセス権限のある状態で接続してください。別のクライアントは起動していません",
     "ko-KR": "실행 중인 StarRail.exe(PID {0}) 경로를 확인할 수 없습니다. 해당 프로세스에 접근 가능한 권한으로 연결하세요. 추가 클라이언트는 실행하지 않았습니다"
   },
@@ -24,8 +24,8 @@
     "ko-KR": "게임 실행됨, PID {0}(모바일 UI 진입점 적용됨)"
   },
   "Runtime.Session.MobileAttachOnly": {
-    "zh-CN": "移动 UI 只在启动游戏时应用；当前附加模式不会改变已运行客户端的启动参数",
-    "en-US": "Mobile UI applies only at launch; attaching does not change a running client's launch arguments",
+    "zh-CN": "移动 UI 只在启动游戏时应用；当前连接模式不会改变已运行客户端的启动参数",
+    "en-US": "Mobile UI applies only at launch; connecting does not change a running client's launch arguments",
     "ja-JP": "モバイル UI はゲーム起動時のみ適用されます。接続モードでは実行中クライアントの起動引数は変わりません",
     "ko-KR": "모바일 UI는 게임 실행 시에만 적용됩니다. 연결 모드는 실행 중인 클라이언트의 실행 인수를 변경하지 않습니다"
   },
@@ -36,8 +36,8 @@
     "ko-KR": "게임 프로세스 대기 시간 초과"
   },
   "Runtime.Session.AttachedWaiting": {
-    "zh-CN": "已附加到 PID {0}，等待游戏模块加载…",
-    "en-US": "Attached to PID {0}; waiting for game modules…",
+    "zh-CN": "已连接到 PID {0}，等待游戏模块加载…",
+    "en-US": "Connected to PID {0}; waiting for game modules…",
     "ja-JP": "PID {0} に接続しました。ゲームモジュールの読み込みを待機中…",
     "ko-KR": "PID {0}에 연결됨. 게임 모듈 로딩 대기 중…"
   },
@@ -114,10 +114,10 @@
     "ko-KR": "게임이 종료되어 대상 리소스를 해제했습니다"
   },
   "Runtime.Session.StoppedRestored": {
-    "zh-CN": "已停止：帧率、FOV 与反虚化已还原",
-    "en-US": "Stopped: frame cap, FOV and anti-fade restored",
-    "ja-JP": "停止しました。フレームレート上限、FOV、カメラフェードを復元済み",
-    "ko-KR": "중지됨: 프레임 제한, FOV 및 카메라 페이드 복원 완료"
+    "zh-CN": "已停止：帧率、FOV 与角色淡出效果已还原",
+    "en-US": "Stopped: frame cap, FOV and character fading restored",
+    "ja-JP": "停止しました。フレームレート上限、FOV、キャラクターのフェードを復元済み",
+    "ko-KR": "중지됨: 프레임 제한, FOV 및 캐릭터 페이드 복원 완료"
   },
   "Runtime.Session.StoppedIncomplete": {
     "zh-CN": "已停止，但还原不完整；详情见日志",
@@ -180,22 +180,22 @@
     "ko-KR": "카메라 상태 읽기 실패: {0}"
   },
   "Runtime.Session.AntiFadeDisabled": {
-    "zh-CN": "反虚化未启用，相机淡出保持原样",
-    "en-US": "Anti-fade disabled; camera fading is unchanged",
-    "ja-JP": "カメラフェード無効化はオフです。元のフェード動作を維持します",
-    "ko-KR": "카메라 페이드 방지가 꺼져 있습니다. 기존 페이드 동작을 유지합니다"
+    "zh-CN": "防止角色淡出未启用，角色淡出保持原样",
+    "en-US": "Character fading prevention disabled; character fading is unchanged",
+    "ja-JP": "キャラクターのフェード防止はオフです。元のフェード動作を維持します",
+    "ko-KR": "캐릭터 페이드 방지가 꺼져 있습니다. 기존 페이드 동작을 유지합니다"
   },
   "Runtime.Session.AntiFadeEnableFailed": {
-    "zh-CN": "无法启用相机反虚化",
-    "en-US": "Cannot enable camera anti-fade",
-    "ja-JP": "カメラフェード無効化を有効にできません",
-    "ko-KR": "카메라 페이드 방지를 켤 수 없습니다"
+    "zh-CN": "无法启用防止角色淡出功能",
+    "en-US": "Cannot enable character fading prevention",
+    "ja-JP": "キャラクターのフェード防止を有効にできません",
+    "ko-KR": "캐릭터 페이드 방지를 켤 수 없습니다"
   },
   "Runtime.Session.AntiFadeApplied": {
-    "zh-CN": "反虚化已应用，效果待游戏场景验证",
-    "en-US": "Anti-fade applied; verify the effect in a game scene",
-    "ja-JP": "カメラフェード無効化を適用しました。効果はゲーム内で確認してください",
-    "ko-KR": "카메라 페이드 방지를 적용했습니다. 게임 장면에서 효과를 확인하세요"
+    "zh-CN": "防止角色淡出已应用，效果待游戏场景验证",
+    "en-US": "Character fading prevention applied; verify the effect in a game scene",
+    "ja-JP": "キャラクターのフェード防止を適用しました。効果はゲーム内で確認してください",
+    "ko-KR": "캐릭터 페이드 방지를 적용했습니다. 게임 장면에서 효과를 확인하세요"
   },
   "Runtime.Session.FovUnsafe": {
     "zh-CN": "无法安全应用 FOV",
@@ -216,16 +216,16 @@
     "ko-KR": "FOV를 일시적으로 사용할 수 없습니다: {0}. 프레임 제한 해제에는 영향이 없으며 나중에 재시도합니다"
   },
   "Runtime.Session.AntiFadeUnsafe": {
-    "zh-CN": "无法安全应用反虚化",
-    "en-US": "Cannot safely apply anti-fade",
-    "ja-JP": "カメラフェード無効化を安全に適用できません",
-    "ko-KR": "카메라 페이드 방지를 안전하게 적용할 수 없습니다"
+    "zh-CN": "无法安全应用防止角色淡出功能",
+    "en-US": "Cannot safely prevent character fading",
+    "ja-JP": "キャラクターのフェード防止を安全に適用できません",
+    "ko-KR": "캐릭터 페이드 방지를 안전하게 적용할 수 없습니다"
   },
   "Runtime.Session.AntiFadeUnavailable": {
-    "zh-CN": "反虚化暂不可用：{0}；帧率解锁不受影响，将稍后重试",
-    "en-US": "Anti-fade temporarily unavailable: {0}; frame rate unlocking is unaffected. Will retry",
-    "ja-JP": "カメラフェード無効化は一時的に利用できません：{0}。フレームレート解除への影響はありません。後で再試行します",
-    "ko-KR": "카메라 페이드 방지를 일시적으로 사용할 수 없습니다: {0}. 프레임 제한 해제에는 영향이 없으며 나중에 재시도합니다"
+    "zh-CN": "防止角色淡出暂不可用：{0}；帧率解锁不受影响，将稍后重试",
+    "en-US": "Character fading prevention temporarily unavailable: {0}; frame rate unlocking is unaffected. Will retry",
+    "ja-JP": "キャラクターのフェード防止は一時的に利用できません：{0}。フレームレート解除への影響はありません。後で再試行します",
+    "ko-KR": "캐릭터 페이드 방지를 일시적으로 사용할 수 없습니다: {0}. 프레임 제한 해제에는 영향이 없으며 나중에 재시도합니다"
   },
   "Runtime.Session.FovNotRestored": {
     "zh-CN": "FOV 尚未完全还原",
@@ -234,22 +234,22 @@
     "ko-KR": "FOV가 완전히 복원되지 않았습니다"
   },
   "Runtime.Session.AntiFadeNotRestored": {
-    "zh-CN": "反虚化尚未完全还原",
-    "en-US": "Anti-fade is not fully restored",
-    "ja-JP": "カメラフェードの復元が未完了です",
-    "ko-KR": "카메라 페이드가 완전히 복원되지 않았습니다"
+    "zh-CN": "角色淡出效果尚未完全还原",
+    "en-US": "Character fading is not fully restored",
+    "ja-JP": "キャラクターのフェードの復元が未完了です",
+    "ko-KR": "캐릭터 페이드가 완전히 복원되지 않았습니다"
   },
   "Runtime.Session.AntiFadeRestoreIncomplete": {
-    "zh-CN": "反虚化还原未完成：{0}",
-    "en-US": "Anti-fade restoration incomplete: {0}",
-    "ja-JP": "カメラフェードの復元が未完了です：{0}",
-    "ko-KR": "카메라 페이드 복원 미완료: {0}"
+    "zh-CN": "角色淡出效果还原未完成：{0}",
+    "en-US": "Character fading restoration incomplete: {0}",
+    "ja-JP": "キャラクターのフェードの復元が未完了です：{0}",
+    "ko-KR": "캐릭터 페이드 복원 미완료: {0}"
   },
   "Runtime.Session.AntiFadeCleanupFailed": {
-    "zh-CN": "反虚化资源清理失败：{0}",
-    "en-US": "Anti-fade resource cleanup failed: {0}",
-    "ja-JP": "カメラフェード関連リソースの解放に失敗しました：{0}",
-    "ko-KR": "카메라 페이드 방지 리소스 정리 실패: {0}"
+    "zh-CN": "防止角色淡出的资源清理失败：{0}",
+    "en-US": "Character fading prevention resource cleanup failed: {0}",
+    "ja-JP": "キャラクターのフェード防止関連リソースの解放に失敗しました：{0}",
+    "ko-KR": "캐릭터 페이드 방지 리소스 정리 실패: {0}"
   },
   "Runtime.Session.FovRestoreIncomplete": {
     "zh-CN": "FOV 还原未完成：{0}",
@@ -294,16 +294,16 @@
     "ko-KR": "카메라 전환 진입점을 설정할 수 없습니다"
   },
   "Runtime.AntiFade.EnableWrapperFailed": {
-    "zh-CN": "无法启用反虚化标量包装代码",
-    "en-US": "Cannot enable the anti-fade scalar wrapper",
-    "ja-JP": "カメラフェード無効化のスカラーラッパーを有効にできません",
-    "ko-KR": "카메라 페이드 방지 스칼라 래퍼를 활성화할 수 없습니다"
+    "zh-CN": "无法启用防止角色淡出的标量包装代码",
+    "en-US": "Cannot enable the scalar wrapper for character fading prevention",
+    "ja-JP": "キャラクターのフェード防止用のスカラーラッパーを有効にできません",
+    "ko-KR": "캐릭터 페이드 방지 스칼라 래퍼를 활성화할 수 없습니다"
   },
   "Runtime.AntiFade.Enabled": {
-    "zh-CN": "反虚化已启用：仅相机距离与仰角虚化使用 1.0，普通角色过渡继续执行",
-    "en-US": "Anti-fade enabled: only camera distance and elevation fading use 1.0; normal character transitions continue",
-    "ja-JP": "カメラフェード無効化が有効です。距離と仰角によるフェードのみ 1.0 とし、通常のキャラクター遷移は維持します",
-    "ko-KR": "카메라 페이드 방지 활성화: 카메라 거리와 고도에 따른 페이드만 1.0을 사용하며 일반 캐릭터 전환은 유지합니다"
+    "zh-CN": "防止角色淡出已启用：仅相机距离与仰角导致的角色淡出标量使用 1.0，普通角色过渡继续执行",
+    "en-US": "Character fading prevention enabled: only camera distance and elevation fade scalars use 1.0; normal character transitions continue",
+    "ja-JP": "キャラクターのフェード防止が有効です。距離と仰角によるフェードのみ 1.0 とし、通常のキャラクター遷移は維持します",
+    "ko-KR": "캐릭터 페이드 방지 활성화: 카메라 거리와 고도에 따른 페이드만 1.0을 사용하며 일반 캐릭터 전환은 유지합니다"
   },
   "Runtime.AntiFade.EntryRestorePending": {
     "zh-CN": "{0}；入口还原待重试：{1}",
@@ -318,10 +318,10 @@
     "ko-KR": "{0}; 래퍼 비활성화를 확인할 수 없습니다"
   },
   "Runtime.AntiFade.InstallFailed": {
-    "zh-CN": "反虚化安装失败：{0}",
-    "en-US": "Anti-fade installation failed: {0}",
-    "ja-JP": "カメラフェード無効化の適用に失敗しました：{0}",
-    "ko-KR": "카메라 페이드 방지 적용 실패: {0}"
+    "zh-CN": "防止角色淡出功能安装失败：{0}",
+    "en-US": "Character fading prevention installation failed: {0}",
+    "ja-JP": "キャラクターのフェード防止の適用に失敗しました：{0}",
+    "ko-KR": "캐릭터 페이드 방지 적용 실패: {0}"
   },
   "Runtime.AntiFade.AllocateFailed": {
     "zh-CN": "无法分配相机过渡包装代码",
@@ -336,16 +336,16 @@
     "ko-KR": "래퍼가 전용 코드 페이지 범위를 초과했습니다"
   },
   "Runtime.AntiFade.InitializeFailed": {
-    "zh-CN": "无法初始化反虚化代码与状态",
-    "en-US": "Cannot initialize anti-fade code and state",
-    "ja-JP": "カメラフェード無効化のコードと状態を初期化できません",
-    "ko-KR": "카메라 페이드 방지 코드와 상태를 초기화할 수 없습니다"
+    "zh-CN": "无法初始化防止角色淡出的代码与状态",
+    "en-US": "Cannot initialize character fading prevention code and state",
+    "ja-JP": "キャラクターのフェード防止のコードと状態を初期化できません",
+    "ko-KR": "캐릭터 페이드 방지 코드와 상태를 초기화할 수 없습니다"
   },
   "Runtime.AntiFade.ProtectFailed": {
-    "zh-CN": "无法完成反虚化代码页保护",
-    "en-US": "Cannot set anti-fade code page protection",
-    "ja-JP": "カメラフェード無効化のコードページ保護を設定できません",
-    "ko-KR": "카메라 페이드 방지 코드 페이지 보호를 설정할 수 없습니다"
+    "zh-CN": "无法完成防止角色淡出的代码页保护",
+    "en-US": "Cannot set character fading prevention code page protection",
+    "ja-JP": "キャラクターのフェード防止のコードページ保護を設定できません",
+    "ko-KR": "캐릭터 페이드 방지 코드 페이지 보호를 설정할 수 없습니다"
   },
   "Runtime.AntiFade.EntryOwnedByOther": {
     "zh-CN": "相机入口已由其他代码接管；未启用或覆盖该入口",
@@ -354,10 +354,10 @@
     "ko-KR": "다른 코드가 카메라 진입점을 사용 중입니다. 해당 진입점을 활성화하거나 덮어쓰지 않았습니다"
   },
   "Runtime.AntiFade.DisableFailed": {
-    "zh-CN": "无法停用反虚化包装代码，入口保持有效以便重试",
-    "en-US": "Cannot disable the anti-fade wrapper; the entry remains valid for retry",
-    "ja-JP": "カメラフェード無効化ラッパーを停止できません。再試行のため入口を維持します",
-    "ko-KR": "카메라 페이드 방지 래퍼를 중지할 수 없습니다. 재시도를 위해 진입점을 유지합니다"
+    "zh-CN": "无法停用防止角色淡出的包装代码，入口保持有效以便重试",
+    "en-US": "Cannot disable the wrapper for character fading prevention; the entry remains valid for retry",
+    "ja-JP": "キャラクターのフェード防止用ラッパーを停止できません。再試行のため入口を維持します",
+    "ko-KR": "캐릭터 페이드 방지 래퍼를 중지할 수 없습니다. 재시도를 위해 진입점을 유지합니다"
   },
   "Runtime.AntiFade.EntryRestoreFailed": {
     "zh-CN": "无法还原相机入口",
@@ -366,22 +366,22 @@
     "ko-KR": "카메라 진입점을 복원할 수 없습니다"
   },
   "Runtime.AntiFade.Removed": {
-    "zh-CN": "反虚化已停用，相机过渡入口已还原",
-    "en-US": "Anti-fade disabled; camera transition entry restored",
-    "ja-JP": "カメラフェード無効化を停止し、カメラ遷移入口を復元しました",
-    "ko-KR": "카메라 페이드 방지를 중지하고 카메라 전환 진입점을 복원했습니다"
+    "zh-CN": "防止角色淡出已停用，相机过渡入口已还原",
+    "en-US": "Character fading prevention disabled; camera transition entry restored",
+    "ja-JP": "キャラクターのフェード防止を停止し、カメラ遷移入口を復元しました",
+    "ko-KR": "캐릭터 페이드 방지를 중지하고 카메라 전환 진입점을 복원했습니다"
   },
   "Runtime.AntiFade.RestoreFailed": {
-    "zh-CN": "反虚化还原失败：{0}",
-    "en-US": "Anti-fade restoration failed: {0}",
-    "ja-JP": "カメラフェードの復元に失敗しました：{0}",
-    "ko-KR": "카메라 페이드 복원 실패: {0}"
+    "zh-CN": "角色淡出效果还原失败：{0}",
+    "en-US": "Character fading restoration failed: {0}",
+    "ja-JP": "キャラクターのフェードの復元に失敗しました：{0}",
+    "ko-KR": "캐릭터 페이드 복원 실패: {0}"
   },
   "Runtime.AntiFade.StatisticsReadFailed": {
-    "zh-CN": "无法读取反虚化调用统计",
-    "en-US": "Cannot read anti-fade call statistics",
-    "ja-JP": "カメラフェード無効化の呼び出し統計を読み取れません",
-    "ko-KR": "카메라 페이드 방지 호출 통계를 읽을 수 없습니다"
+    "zh-CN": "无法读取防止角色淡出的调用统计",
+    "en-US": "Cannot read character fading prevention call statistics",
+    "ja-JP": "キャラクターのフェード防止の呼び出し統計を読み取れません",
+    "ko-KR": "캐릭터 페이드 방지 호출 통계를 읽을 수 없습니다"
   },
   "Runtime.AntiFade.RestorationPending": {
     "zh-CN": "相机入口尚未还原，保留补丁状态以便重试",
