@@ -60,7 +60,9 @@ FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双�
 
 客户端路径旁的搜索按钮可重新扫描；扫描不会自动更换当前选择。下拉列表保留扫描到和手动选择过的有效路径，选择后立即保存，下次启动仍可切换。文件已失效时从可用列表移除；工具正在启动、附加、运行或还原会话时暂不能切换。
 
-配置和日志保存在 `%LOCALAPPDATA%\HSRUnlocker\`，升级与卸载保留这些文件。升级或卸载前请正常退出工具。
+配置和应用日志保存在 `%LOCALAPPDATA%\HSRUnlocker\`，升级与卸载保留这些文件。`settings.json` 使用原子保存，有效的旧配置保留为 `settings.json.bak`；主配置不可用时优先读取备份并记录日志，不会立即重写主配置。升级或卸载前请正常退出工具。
+
+工具退出后若更新失败，会尽量在受保护的 `%ProgramData%\HSRUnlocker-Update-<guid>\` 目录保留有用的 `helper.log` 或 `installer.log`，错误提示会列出实际保留的日志。日志创建或写入失败时可能没有日志；更新成功后会尝试清理本次更新日志。
 
 安装目录保留应用所需的 DLL、XAML、字体与许可文件；.NET 和 Windows App Runtime 使用系统中的共享安装。升级时会清理已识别旧版中的随附运行库，不卸载共享运行时。请保留应用目录完整，通过快捷方式启动。
 
@@ -77,7 +79,7 @@ dotnet run --project .\tests\HSRUnlocker.Tests\HSRUnlocker.Tests.csproj -c Relea
 powershell -NoProfile -File .\build.ps1 -OutDir .\artifacts\win-x64
 ```
 
-输出位于 `artifacts\win-x64`。输出目录必须为空；再次构建时请指定新的空目录。更多开发约定见[参与开发](CONTRIBUTING.md)。
+输出位于 `artifacts\win-x64`。输出目录必须为空；再次构建时请指定新的空目录。打包、安装元数据及本地/CI 原生合成测试入口见[参与开发](CONTRIBUTING.md)。
 
 上述普通构建需要已安装对应的 .NET 8 x64 和 Windows App Runtime；添加 `-SelfContained` 可生成包含运行组件的目录。
 
@@ -153,7 +155,9 @@ Automatic discovery reads launcher and Windows installation records and checks r
 
 The search button beside the client path rescans without replacing the current selection. The dropdown remembers valid discovered and manually chosen paths; selecting one saves it immediately for subsequent launches. Missing files are removed from the available list. Switching is disabled while the tool starts, attaches, runs, or restores a session.
 
-Settings and logs are stored in `%LOCALAPPDATA%\HSRUnlocker\` and retained during upgrades and uninstallation. Close the tool normally before upgrading or uninstalling.
+Settings and application logs are stored in `%LOCALAPPDATA%\HSRUnlocker\` and retained during upgrades and uninstallation. Writes to `settings.json` are atomic, keeping the previous valid settings as `settings.json.bak`. If the primary settings are unusable, the tool reads the backup first and logs the recovery without immediately rewriting the primary file. Close the tool normally before upgrading or uninstalling.
+
+If an update fails after the tool exits, it tries to retain useful `helper.log` or `installer.log` files in the protected `%ProgramData%\HSRUnlocker-Update-<guid>\` directory. The error message lists logs that remain; logs may be unavailable if creation or writing fails. Successful updates attempt to remove their logs.
 
 The installation directory retains application DLLs, compiled XAML, fonts, and licenses. .NET and Windows App Runtime use shared system installations. Upgrades clean up previously bundled runtime files in recognized older installations without uninstalling shared runtimes. Keep the application directory intact and launch the tool using its shortcut.
 
@@ -170,7 +174,7 @@ dotnet run --project .\tests\HSRUnlocker.Tests\HSRUnlocker.Tests.csproj -c Relea
 powershell -NoProfile -File .\build.ps1 -OutDir .\artifacts\win-x64
 ```
 
-The output is in `artifacts\win-x64`. The output directory must be empty; choose a new empty directory for subsequent builds. See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+The output is in `artifacts\win-x64`. The output directory must be empty; choose a new empty directory for subsequent builds. See [CONTRIBUTING.md](CONTRIBUTING.md) for packaging, installer metadata, and the shared local/CI native synthetic test entrypoint.
 
 This ordinary build needs the matching .NET 8 x64 and Windows App Runtime installed. Add `-SelfContained` to bundle runtime components.
 

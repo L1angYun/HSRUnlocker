@@ -10,7 +10,16 @@
 dotnet build .\gui\HSRUnlocker.csproj -c Release -r win-x64
 dotnet run   --project .\tests\HSRUnlocker.Tests\HSRUnlocker.Tests.csproj -c Release
 powershell -NoProfile -File .\tests\Packaging.Tests.ps1
+powershell -NoProfile -File .\tests\InstallerMetadata.Tests.ps1
 ```
+
+原生安装程序测试需要 Inno Setup 7.1 或更高版本，并显式提供实际 `ISCC.exe` 路径；以下入口不会因缺少编译器而跳过测试：
+
+```powershell
+powershell -NoProfile -File .\tests\NativeFixtures.Tests.ps1 -CompilerPath '<full-path-to-ISCC.exe>'
+```
+
+该入口编译并运行依赖检查与旧版清理两组合成测试，并核验 `RedStub` 负向对照按预期断言失败。可用 `-EvidenceDir` 指定新的空证据目录，默认使用临时目录。CI 配置使用同一入口，并下载及校验固定版本 Inno Setup 7.1.0。测试不执行应用或运行时安装包，也不修改真实安装或注册表。
 
 ### 代码约定
 
@@ -43,7 +52,16 @@ powershell -NoProfile -File .\tests\Packaging.Tests.ps1
 dotnet build .\gui\HSRUnlocker.csproj -c Release -r win-x64
 dotnet run   --project .\tests\HSRUnlocker.Tests\HSRUnlocker.Tests.csproj -c Release
 powershell -NoProfile -File .\tests\Packaging.Tests.ps1
+powershell -NoProfile -File .\tests\InstallerMetadata.Tests.ps1
 ```
+
+Native installer tests require Inno Setup 7.1 or later and an explicit path to the actual `ISCC.exe`. This entrypoint does not skip tests when the compiler is missing:
+
+```powershell
+powershell -NoProfile -File .\tests\NativeFixtures.Tests.ps1 -CompilerPath '<full-path-to-ISCC.exe>'
+```
+
+It compiles and runs both prerequisite and legacy-cleanup synthetic suites, and verifies that the `RedStub` negative control fails its intended assertions. Use `-EvidenceDir` to select a new empty evidence directory; the default is a temporary directory. CI is configured to use the same entrypoint and download and verify pinned Inno Setup 7.1.0. Tests do not execute application or runtime installers or modify real installations or the registry.
 
 ### Code Conventions
 
