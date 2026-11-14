@@ -54,16 +54,22 @@
     "ko-KR": "게임 모듈 로딩 대기 시간 초과"
   },
   "Runtime.Session.WriteCapFailed": {
-    "zh-CN": "写入帧率上限失败",
-    "en-US": "Failed to write the frame cap",
-    "ja-JP": "フレームレート上限の書き込みに失敗しました",
-    "ko-KR": "프레임 제한 쓰기 실패"
+    "zh-CN": "初次写入帧率上限失败：{0}",
+    "en-US": "Initial frame cap write failed: {0}",
+    "ja-JP": "フレームレート上限の初回書き込みに失敗しました：{0}",
+    "ko-KR": "프레임 제한 초기 쓰기 실패: {0}"
+  },
+  "Runtime.Session.CapInitialReadbackFailed": {
+    "zh-CN": "初次写入后无法读回帧率上限：{0}",
+    "en-US": "Could not read back the frame cap after the initial write: {0}",
+    "ja-JP": "初回書き込み後のフレームレート上限を読み戻せませんでした：{0}",
+    "ko-KR": "초기 쓰기 후 프레임 제한을 다시 읽을 수 없습니다: {0}"
   },
   "Runtime.Session.CapReadbackMismatch": {
-    "zh-CN": "帧率上限写入后读回不一致",
-    "en-US": "Frame cap readback does not match the written value",
-    "ja-JP": "書き込み後のフレームレート上限が一致しません",
-    "ko-KR": "기록한 프레임 제한과 다시 읽은 값이 일치하지 않습니다"
+    "zh-CN": "初次写入后的帧率上限不一致（预期 {0}，读回 {1}）",
+    "en-US": "Frame cap mismatch after the initial write (expected {0}, read {1})",
+    "ja-JP": "初回書き込み後のフレームレート上限が一致しません（期待値 {0}、読み取り値 {1}）",
+    "ko-KR": "초기 쓰기 후 프레임 제한이 일치하지 않습니다(예상 {0}, 읽은 값 {1})"
   },
   "Runtime.Session.CapApplied": {
     "zh-CN": "帧率上限 {0} → {1}（UnityPlayer+0x{2:X}）",
@@ -78,16 +84,40 @@
     "ko-KR": "게임이 종료되었습니다"
   },
   "Runtime.Session.CapUnreadable": {
-    "zh-CN": "帧率上限已无法读取",
-    "en-US": "The frame cap can no longer be read",
-    "ja-JP": "フレームレート上限を読み取れなくなりました",
-    "ko-KR": "프레임 제한을 더 이상 읽을 수 없습니다"
+    "zh-CN": "监测时无法读取帧率上限：{0}",
+    "en-US": "Could not read the frame cap during monitoring: {0}",
+    "ja-JP": "監視中のフレームレート上限を読み取れませんでした：{0}",
+    "ko-KR": "모니터링 중 프레임 제한을 읽을 수 없습니다: {0}"
+  },
+  "Runtime.Session.CapInvalidValue": {
+    "zh-CN": "监测时读到无效的帧率上限（{0}）",
+    "en-US": "Monitoring read an invalid frame cap ({0})",
+    "ja-JP": "監視中に無効なフレームレート上限を読み取りました（{0}）",
+    "ko-KR": "모니터링 중 잘못된 프레임 제한을 읽었습니다({0})"
+  },
+  "Runtime.Session.CapMonitorReadRetry": {
+    "zh-CN": "帧率上限读取不完整，正在重试；暂不写入：{0}",
+    "en-US": "Frame cap read was incomplete; retrying before making any write: {0}",
+    "ja-JP": "フレームレート上限を完全に読み取れませんでした。書き込まずに再試行します：{0}",
+    "ko-KR": "프레임 제한을 완전히 읽지 못했습니다. 쓰지 않고 다시 시도합니다: {0}"
+  },
+  "Runtime.Session.CapMonitorReadRecovered": {
+    "zh-CN": "已恢复读取帧率上限，继续监测",
+    "en-US": "Frame cap reads recovered; monitoring continues",
+    "ja-JP": "フレームレート上限の読み取りが回復し、監視を続けます",
+    "ko-KR": "프레임 제한을 다시 읽을 수 있어 모니터링을 계속합니다"
   },
   "Runtime.Session.UpdateCapFailed": {
-    "zh-CN": "更新帧率上限失败",
-    "en-US": "Failed to update the frame cap",
-    "ja-JP": "フレームレート上限の更新に失敗しました",
-    "ko-KR": "프레임 제한 갱신 실패"
+    "zh-CN": "更新帧率上限时写入失败：{0}",
+    "en-US": "Could not write the updated frame cap: {0}",
+    "ja-JP": "フレームレート上限の更新時に書き込みに失敗しました：{0}",
+    "ko-KR": "프레임 제한을 갱신하는 중 쓰기에 실패했습니다: {0}"
+  },
+  "Runtime.Session.CapUpdated": {
+    "zh-CN": "帧率上限已更新为 {0}",
+    "en-US": "Frame cap updated to {0}",
+    "ja-JP": "フレームレート上限を {0} に更新しました",
+    "ko-KR": "프레임 제한을 {0}(으)로 갱신했습니다"
   },
   "Runtime.Session.CapReapplied": {
     "zh-CN": "游戏把上限改了回去，已恢复为 {0}（第 {1} 次）",
@@ -263,11 +293,65 @@
     "ja-JP": "FOV リソースの解放に失敗しました：{0}",
     "ko-KR": "FOV 리소스 정리 실패: {0}"
   },
-  "Runtime.Session.CapRestoreRetry": {
-    "zh-CN": "帧率上限未能还原，将继续重试",
-    "en-US": "Frame cap restoration failed; will keep retrying",
-    "ja-JP": "フレームレート上限を復元できませんでした。再試行を続けます",
-    "ko-KR": "프레임 제한을 복원하지 못했습니다. 계속 재시도합니다"
+  "Runtime.Session.CapRestoreReadFailed": {
+    "zh-CN": "还原前无法读取帧率上限，将继续重试：{0}",
+    "en-US": "Could not read the frame cap before restoration; will retry: {0}",
+    "ja-JP": "復元前のフレームレート上限を読み取れませんでした。再試行します：{0}",
+    "ko-KR": "복원 전 프레임 제한을 읽을 수 없습니다. 다시 시도합니다: {0}"
+  },
+  "Runtime.Session.CapRestoreWriteFailed": {
+    "zh-CN": "还原帧率上限时写入失败，将继续重试：{0}",
+    "en-US": "Frame cap restoration write failed; will retry: {0}",
+    "ja-JP": "フレームレート上限の復元時に書き込みに失敗しました。再試行します：{0}",
+    "ko-KR": "프레임 제한 복원 중 쓰기에 실패했습니다. 다시 시도합니다: {0}"
+  },
+  "Runtime.Session.CapRestoreReadbackFailed": {
+    "zh-CN": "还原写入后无法读回帧率上限，将继续重试：{0}",
+    "en-US": "Could not read back the frame cap after the restoration write; will retry: {0}",
+    "ja-JP": "復元を書き込んだ後のフレームレート上限を読み戻せませんでした。再試行します：{0}",
+    "ko-KR": "복원 값을 쓴 뒤 프레임 제한을 다시 읽을 수 없습니다. 다시 시도합니다: {0}"
+  },
+  "Runtime.Session.CapRestoreMismatch": {
+    "zh-CN": "还原后读回值不一致，将继续重试（预期 {0}，读回 {1}）",
+    "en-US": "Frame cap mismatch after restoration; will retry (expected {0}, read {1})",
+    "ja-JP": "復元後の読み取り値が一致しません。再試行します（期待値 {0}、読み取り値 {1}）",
+    "ko-KR": "복원 후 읽은 값이 일치하지 않아 다시 시도합니다(예상 {0}, 읽은 값 {1})"
+  },
+  "Runtime.Session.CapRestoreRecovered": {
+    "zh-CN": "帧率上限已确认还原",
+    "en-US": "Frame cap restoration confirmed",
+    "ja-JP": "フレームレート上限の復元を確認しました",
+    "ko-KR": "프레임 제한 복원을 확인했습니다"
+  },
+  "Runtime.CapIo.AccessDenied": {
+    "zh-CN": "访问被拒绝，单凭此错误无法确定拦截来源",
+    "en-US": "Access denied; this error alone does not identify what blocked access",
+    "ja-JP": "アクセスが拒否されました。このエラーだけでは拒否の原因を特定できません",
+    "ko-KR": "액세스가 거부되었습니다. 이 오류만으로 차단 원인을 확인할 수 없습니다"
+  },
+  "Runtime.CapIo.Incomplete": {
+    "zh-CN": "内存数据传输不完整",
+    "en-US": "Incomplete memory transfer",
+    "ja-JP": "メモリ転送が不完全です",
+    "ko-KR": "메모리 전송이 완료되지 않았습니다"
+  },
+  "Runtime.CapIo.Unknown": {
+    "zh-CN": "内存访问失败",
+    "en-US": "Memory access failed",
+    "ja-JP": "メモリにアクセスできませんでした",
+    "ko-KR": "메모리 액세스 실패"
+  },
+  "Runtime.CapIo.WithCode": {
+    "zh-CN": "{0}（已传输 {1}/{2} 字节，Win32 错误 {3}）",
+    "en-US": "{0} ({1}/{2} bytes transferred, Win32 error {3})",
+    "ja-JP": "{0}（{1}/{2} バイト転送、Win32 エラー {3}）",
+    "ko-KR": "{0} ({1}/{2}바이트 전송, Win32 오류 {3})"
+  },
+  "Runtime.CapIo.WithoutCode": {
+    "zh-CN": "{0}（已传输 {1}/{2} 字节，无 Win32 错误码）",
+    "en-US": "{0} ({1}/{2} bytes transferred, no Win32 error code)",
+    "ja-JP": "{0}（{1}/{2} バイト転送、Win32 エラーコードなし）",
+    "ko-KR": "{0} ({1}/{2}바이트 전송, Win32 오류 코드 없음)"
   },
   "Runtime.Session.CapRestoreFailed": {
     "zh-CN": "帧率上限还原失败：{0}",
@@ -540,10 +624,16 @@
     "ko-KR": "프레임 속도 setter와 getter가 같은 쓰기 가능한 정적 변수를 가리키지 않습니다"
   },
   "Runtime.FrameCap.StaticReadFailed": {
-    "zh-CN": "无法读取帧率静态量",
-    "en-US": "Cannot read the frame rate static value",
-    "ja-JP": "フレームレートの静的変数を読み取れません",
-    "ko-KR": "프레임 속도 정적 값을 읽을 수 없습니다"
+    "zh-CN": "无法读取初始帧率上限：{0}",
+    "en-US": "Could not read the initial frame cap: {0}",
+    "ja-JP": "初期フレームレート上限を読み取れませんでした：{0}",
+    "ko-KR": "초기 프레임 제한을 읽을 수 없습니다: {0}"
+  },
+  "Runtime.FrameCap.StaticInvalidValue": {
+    "zh-CN": "初始帧率上限无效（{0}）",
+    "en-US": "Invalid initial frame cap ({0})",
+    "ja-JP": "初期フレームレート上限が無効です（{0}）",
+    "ko-KR": "초기 프레임 제한이 잘못되었습니다({0})"
   },
   "Runtime.FrameCap.Resolved": {
     "zh-CN": "帧率 getter/setter 一致指向 UnityPlayer+0x{0:X}，当前值 {1}",

@@ -126,6 +126,8 @@ namespace StarRailUnlocker.Core
 
         // ------------------------------------------------------------------ memory
         public bool IsAlive => Handle != IntPtr.Zero && Native.GetExitCodeProcess(Handle, out var code) != 0 && code == 259;
+        internal bool HasConfirmedExit => Handle != IntPtr.Zero
+            && Native.GetExitCodeProcess(Handle, out var code) != 0 && code != 259;
 
         public byte[] Read(ulong address, int size)
         {
@@ -138,8 +140,17 @@ namespace StarRailUnlocker.Core
 
         public int ReadInt32(ulong address)
         {
-            var b = Read(address, 4);
-            return b == null ? int.MinValue : BitConverter.ToInt32(b, 0);
+            return TryReadInt32(address, out int value).Succeeded ? value : int.MinValue;
+        }
+
+        internal Int32Transfer TryReadInt32(ulong address, out int value)
+        {
+            var bytes = new byte[sizeof(int)];
+            bool ok = Native.ReadProcessMemory(Handle, (IntPtr)(long)address, bytes, (IntPtr)bytes.Length, out var read);
+            int error = ok ? 0 : Marshal.GetLastPInvokeError();
+            var result = new Int32Transfer(ok, read.ToInt64(), error);
+            value = result.Succeeded ? BitConverter.ToInt32(bytes, 0) : 0;
+            return result;
         }
 
         public ulong ReadUInt64(ulong address)
@@ -172,7 +183,15 @@ namespace StarRailUnlocker.Core
             return ok;
         }
 
-        public bool WriteInt32(ulong address, int value) => WriteData(address, BitConverter.GetBytes(value));
+        public bool WriteInt32(ulong address, int value) => TryWriteInt32(address, value).Succeeded;
+
+        internal Int32Transfer TryWriteInt32(ulong address, int value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            bool ok = Native.WriteProcessMemory(Handle, (IntPtr)(long)address, bytes, (IntPtr)bytes.Length, out var written);
+            int error = ok ? 0 : Marshal.GetLastPInvokeError();
+            return new Int32Transfer(ok, written.ToInt64(), error);
+        }
 
         public ulong Allocate(int size)
         {

@@ -112,7 +112,7 @@ namespace StarRailUnlocker
                     SessionState.Patching => L10n.T("Ui.StatusAttaching"),
                     SessionState.Active => L10n.T("Ui.StatusActive", session.AppliedValue, session.Pid),
                     SessionState.Failed => session.LastMessage,
-                    SessionState.GameExited => L10n.T(_config.ExitWithGame
+                    SessionState.GameExited => L10n.T(_config.ExitWithGame && !SessionFailureInfoBar.IsOpen
                         ? "Ui.StatusGameExited" : "Updates.GameExitedStayingOpen"),
                     _ => _localErrorKey != null ? L10n.T(_localErrorKey) :
                         session == null ? L10n.T("Ui.StatusNotAttached") :

@@ -443,6 +443,24 @@
     "ja-JP": "セッション失敗",
     "ko-KR": "세션 실패"
   },
+  "Ui.SessionFailureReportTitle": {
+    "zh-CN": "反馈会话失败",
+    "en-US": "Report this session failure",
+    "ja-JP": "セッションの失敗を報告",
+    "ko-KR": "세션 실패 신고"
+  },
+  "Ui.SessionFailureReportMessage": {
+    "zh-CN": "请提供 HSRUnlocker 版本 {0}、复现步骤和已删除敏感信息的错误文字。请勿附上完整日志、文件路径或游戏文件。",
+    "en-US": "Include HSRUnlocker version {0}, steps to reproduce, and any error text with private details removed. Leave out raw logs, file paths, and game files.",
+    "ja-JP": "HSRUnlocker のバージョン {0}、再現手順、機密情報を除いたエラー文を記載してください。未編集のログ、ファイルパス、ゲームファイルは含めないでください。",
+    "ko-KR": "HSRUnlocker 버전 {0}, 재현 단계, 민감한 정보를 지운 오류 문구를 적어 주세요. 원본 로그, 파일 경로, 게임 파일은 포함하지 마세요."
+  },
+  "Ui.SessionFailureReportAction": {
+    "zh-CN": "在 GitHub 提交问题",
+    "en-US": "Open a GitHub issue",
+    "ja-JP": "GitHub で Issue を開く",
+    "ko-KR": "GitHub 이슈 열기"
+  },
   "Ui.StateGameExited": {
     "zh-CN": "游戏已退出",
     "en-US": "Game exited",

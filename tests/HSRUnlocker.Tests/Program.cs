@@ -94,6 +94,7 @@ internal static class Program
             AntiFadeWrapperVerification.Run(Check);
             GatewayUnwindVerification.Run(Check);
             ExecutableEntryVerification.Run(Check);
+            FrameCapIoVerification.Run(Check);
             LifecycleVerification.Run(Check);
             WriteReport(null);
             Console.WriteLine($"PORTABLE VERIFICATION: {Checks.Count} checks passed; only synthetic files, own allocations and bounded fixture children were used.");

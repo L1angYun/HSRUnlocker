@@ -28,6 +28,7 @@ namespace StarRailUnlocker
         private DispatcherTimer _saveTimer, _refreshTimer;
         private bool _started, _closed, _hidingToTray, _inTray;
         private bool _closePending, _closeCompleted, _switchingSession, _stoppingSession;
+        private bool _sessionFailureReported;
         private bool _startupComplete, _setupInProgress, _dialogOpen, _pickingGame;
         private IReadOnlyList<string> _detectedGamePaths = Array.Empty<string>();
         private XamlRoot _dialogRoot;
@@ -300,7 +301,7 @@ namespace StarRailUnlocker
         {
             CancelGameExitClose();
             if (!_config.ExitWithGame || _closed || _closePending || _switchingSession || _downloadingUpdate ||
-                !ReferenceEquals(_session, source)) return;
+                SessionFailureInfoBar.IsOpen || !ReferenceEquals(_session, source)) return;
             var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             _exitTimer = timer;
             timer.Tick += (_, __) =>
@@ -309,7 +310,8 @@ namespace StarRailUnlocker
                 if (!ReferenceEquals(_exitTimer, timer)) return;
                 _exitTimer = null;
                 if (_config.ExitWithGame && !_closed && !_closePending && !_switchingSession &&
-                    ReferenceEquals(_session, source) && source.State == SessionState.GameExited)
+                    !SessionFailureInfoBar.IsOpen && ReferenceEquals(_session, source) &&
+                    source.State == SessionState.GameExited)
                     BeginCloseAsync();
             };
             timer.Start();
@@ -678,6 +680,9 @@ namespace StarRailUnlocker
             _switchingSession = true;
             _stoppingSession = false;
             _localErrorKey = null;
+            _sessionFailureReported = false;
+            SessionFailureInfoBar.Visibility = Visibility.Collapsed;
+            SessionFailureInfoBar.IsOpen = false;
             RefreshPresentation();
             var old = _session;
             if (old != null && _sessionHandler != null) old.Changed -= _sessionHandler;
@@ -704,12 +709,28 @@ namespace StarRailUnlocker
             DispatcherQueue.TryEnqueue(() =>
             {
                 if (_closed || _closePending || !ReferenceEquals(_session, source)) return;
+                if (state == SessionState.Failed && !_sessionFailureReported)
+                {
+                    _sessionFailureReported = true;
+                    CancelGameExitClose();
+                    SessionFailureInfoBar.Visibility = Visibility.Visible;
+                    SessionFailureInfoBar.IsOpen = true;
+                }
                 if (state == SessionState.GameExited)
                     ScheduleGameExitClose(source);
                 // A null message refreshes feature snapshots without repeating diagnostics.
                 if (line != null) Log(line, persist: false);
                 RefreshPresentation();
             });
+        }
+
+        private void OnSessionFailureNoticeClosed(InfoBar sender, InfoBarClosedEventArgs args)
+        {
+            if (args.Reason != InfoBarCloseReason.CloseButton) return;
+            sender.Visibility = Visibility.Collapsed;
+            if (_session?.State == SessionState.GameExited)
+                ScheduleGameExitClose(_session);
+            RefreshPresentation();
         }
 
         private void SyncConfig()

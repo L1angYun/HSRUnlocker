@@ -68,12 +68,26 @@
                     <ColumnDefinition Width="24" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <FontIcon x:Name="StatusIcon" Glyph="&#xE930;" FontSize="18" VerticalAlignment="Center"
                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                     <TextBlock x:Name="StateTitle" FontWeight="SemiBold" TextWrapping="Wrap" />
                     <TextBlock x:Name="StatusText" Style="{StaticResource SecondaryTextStyle}" />
                 </StackPanel>
+                <InfoBar Grid.Row="1" Grid.ColumnSpan="2" x:Name="SessionFailureInfoBar" Margin="0,10,0,0"
+                         IsOpen="False" Visibility="Collapsed" Severity="Error" IsClosable="True"
+                         Closed="OnSessionFailureNoticeClosed"
+                         AutomationProperties.AutomationId="SessionFailureInfoBar">
+                    <InfoBar.ActionButton>
+                        <HyperlinkButton x:Name="SessionFailureReportLink"
+                                         NavigateUri="https://github.com/L1angYun/HSRUnlocker/issues/new"
+                                         AutomationProperties.AutomationId="SessionFailureReportLink" />
+                    </InfoBar.ActionButton>
+                </InfoBar>
             </Grid>
         </Border>
 
@@ -93,10 +107,14 @@
                                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                                   MaxDropDownHeight="320" SelectionChanged="OnGameClientChanged"
                                   AutomationProperties.AutomationId="ClientPathBox">
+                            <ComboBox.ItemContainerStyle>
+                                <Style TargetType="ComboBoxItem">
+                                    <Setter Property="MaxWidth" Value="1100" />
+                                </Style>
+                            </ComboBox.ItemContainerStyle>
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis"
-                                               MaxWidth="{Binding ActualWidth, ElementName=ClientPathBox}"
                                                ToolTipService.ToolTip="{Binding}" />
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>

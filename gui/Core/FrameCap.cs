@@ -43,8 +43,11 @@ namespace StarRailUnlocker.Core
             if (setStatic != getStatic || setStatic < build.UnityBase
                 || !build.UnityImage.IsWritableRva(setStatic - build.UnityBase, 4))
                 throw new InvalidOperationException(L10n.T("Runtime.FrameCap.StaticMismatch"));
-            int live = proc.ReadInt32(setStatic);
-            if (live == int.MinValue) throw new InvalidOperationException(L10n.T("Runtime.FrameCap.StaticReadFailed"));
+            var read = proc.TryReadInt32(setStatic, out int live);
+            if (!read.Succeeded)
+                throw new InvalidOperationException(L10n.T("Runtime.FrameCap.StaticReadFailed", read.DescribeFailure()));
+            if (live == int.MinValue)
+                throw new InvalidOperationException(L10n.T("Runtime.FrameCap.StaticInvalidValue", live));
             var result = new Candidate { Rva = setStatic - build.UnityBase, LiveValue = live };
             log?.Invoke(L10n.T("Runtime.FrameCap.Resolved", result.Rva, live));
             return result;

@@ -40,6 +40,7 @@ namespace StarRailUnlocker.Core
         private int _fovRevision, _antiFadeRevision;
         private int _seenFovRevision = -1, _seenAntiFadeRevision = -1;
         private bool _capWritten, _fovReported;
+        private string _capCleanupDiagnostic;
         private float _lastRequestedDelta = float.NaN;
         private bool _lastRequestedAntiFade;
         private DateTime _nextFovRetry, _nextAntiFadeRetry, _nextFovReport;
@@ -169,10 +170,19 @@ namespace StarRailUnlocker.Core
                 CapRva = cap.Rva; CapAddress = _build.UnityBase + cap.Rva;
                 OriginalValue = cap.LiveValue;
                 AppliedValue = Math.Clamp(Config.TargetFramerate, 10, 480);
-                if (!_proc.WriteInt32(CapAddress, AppliedValue)) throw new InvalidOperationException(L10n.T("Runtime.Session.WriteCapFailed"));
-                _capWritten = true;
-                if (_proc.ReadInt32(CapAddress) != AppliedValue) throw new InvalidOperationException(L10n.T("Runtime.Session.CapReadbackMismatch"));
+                _capCleanupDiagnostic = null;
+                var initialWrite = _proc.TryWriteInt32(CapAddress, AppliedValue);
+                _capWritten = initialWrite.Succeeded || initialWrite.BytesTransferred > 0;
+                if (!initialWrite.Succeeded)
+                    throw CapIoFailure("Runtime.Session.WriteCapFailed", initialWrite);
+                var initialReadback = _proc.TryReadInt32(CapAddress, out int confirmed);
+                if (!initialReadback.Succeeded)
+                    throw CapIoFailure("Runtime.Session.CapInitialReadbackFailed", initialReadback);
+                if (confirmed != AppliedValue)
+                    throw new InvalidOperationException(L10n.T("Runtime.Session.CapReadbackMismatch", AppliedValue, confirmed));
                 Set(SessionState.Active, L10n.T("Runtime.Session.CapApplied", OriginalValue, AppliedValue, CapRva));
+                var readFailures = new FrameCapReadFailures();
+                bool reportedReadRetry = false;
                 while (true)
                 {
                     token.ThrowIfCancellationRequested();
@@ -181,16 +191,39 @@ namespace StarRailUnlocker.Core
                     ReadFovStatistics();
                     ProcessAntiFade();
                     int desired = Math.Clamp(Config.TargetFramerate, 10, 480);
-                    int current = _proc.ReadInt32(CapAddress);
-                    if (current == int.MinValue) throw new InvalidOperationException(L10n.T("Runtime.Session.CapUnreadable"));
+                    var monitorRead = _proc.TryReadInt32(CapAddress, out int current);
+                    if (!monitorRead.Succeeded)
+                    {
+                        if (_proc.HasConfirmedExit)
+                        {
+                            Set(SessionState.GameExited, L10n.T("Runtime.Session.GameExited"));
+                            break;
+                        }
+                        if (!readFailures.CanRetry(monitorRead))
+                            throw CapIoFailure("Runtime.Session.CapUnreadable", monitorRead);
+                        if (!reportedReadRetry)
+                            SafeLog(L10n.T("Runtime.Session.CapMonitorReadRetry", monitorRead.DescribeFailure()));
+                        reportedReadRetry = true;
+                        Delay(token, 200);
+                        continue;
+                    }
+                    if (reportedReadRetry)
+                        SafeLog(L10n.T("Runtime.Session.CapMonitorReadRecovered"));
+                    readFailures.Reset();
+                    reportedReadRetry = false;
+                    if (current == int.MinValue)
+                        throw new InvalidOperationException(L10n.T("Runtime.Session.CapInvalidValue", current));
                     if (desired != AppliedValue || current != desired)
                     {
                         if (current != AppliedValue && current >= -1 && current <= 1000)
                             OriginalValue = current;
-                        if (!_proc.WriteInt32(CapAddress, desired)) throw new InvalidOperationException(L10n.T("Runtime.Session.UpdateCapFailed"));
-                        if (desired == AppliedValue) ReapplyCount++;
+                        var update = _proc.TryWriteInt32(CapAddress, desired);
+                        if (!update.Succeeded) throw CapIoFailure("Runtime.Session.UpdateCapFailed", update);
+                        bool reapplying = desired == AppliedValue;
+                        if (reapplying) ReapplyCount++;
                         AppliedValue = desired;
-                        Log(L10n.T("Runtime.Session.CapReapplied", desired, ReapplyCount));
+                        Log(reapplying ? L10n.T("Runtime.Session.CapReapplied", desired, ReapplyCount)
+                            : L10n.T("Runtime.Session.CapUpdated", desired));
                     }
                     Delay(token, 200);
                 }
@@ -431,21 +464,48 @@ namespace StarRailUnlocker.Core
             return restored;
         }
 
+        private static InvalidOperationException CapIoFailure(string operation, Int32Transfer transfer) =>
+            new(L10n.T(operation, transfer.DescribeFailure()));
+
+        private bool ReportCapCleanupFailure(string message)
+        {
+            if (!string.Equals(_capCleanupDiagnostic, message, StringComparison.Ordinal))
+            {
+                _capCleanupDiagnostic = message;
+                SafeLog(message);
+            }
+            return false;
+        }
+
         private bool CleanupFrameCap()
         {
             try
             {
                 if (!_capWritten || _proc == null || !_proc.IsAlive) return true;
-                if (_proc.WriteInt32(CapAddress, OriginalValue)
-                    && _proc.ReadInt32(CapAddress) == OriginalValue)
+                var beforeRestore = _proc.TryReadInt32(CapAddress, out int current);
+                if (!beforeRestore.Succeeded)
+                    return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreReadFailed", beforeRestore.DescribeFailure()));
+                if (current != OriginalValue)
                 {
-                    _capWritten = false;
-                    return true;
+                    var restore = _proc.TryWriteInt32(CapAddress, OriginalValue);
+                    if (!restore.Succeeded)
+                        return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreWriteFailed", restore.DescribeFailure()));
+                    var readback = _proc.TryReadInt32(CapAddress, out int restored);
+                    if (!readback.Succeeded)
+                        return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreReadbackFailed", readback.DescribeFailure()));
+                    if (restored != OriginalValue)
+                        return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreMismatch", OriginalValue, restored));
                 }
-                SafeLog(L10n.T("Runtime.Session.CapRestoreRetry"));
+                _capWritten = false;
+                if (_capCleanupDiagnostic != null)
+                    SafeLog(L10n.T("Runtime.Session.CapRestoreRecovered"));
+                _capCleanupDiagnostic = null;
+                return true;
             }
-            catch (Exception ex) { SafeLog(L10n.T("Runtime.Session.CapRestoreFailed", ex.Message)); }
-            return false;
+            catch (Exception ex)
+            {
+                return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreFailed", ex.Message));
+            }
         }
 
         public void Dispose()

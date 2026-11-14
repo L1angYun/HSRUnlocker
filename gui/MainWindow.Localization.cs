@@ -39,6 +39,9 @@ namespace StarRailUnlocker
                 LayoutRoot.Language = L10n.Language;
                 Title = L10n.T("Ui.WindowTitle", AppVersion);
                 VersionText.Text = L10n.T("Ui.Version", AppVersion);
+                SessionFailureInfoBar.Title = L10n.T("Ui.SessionFailureReportTitle");
+                SessionFailureInfoBar.Message = L10n.T("Ui.SessionFailureReportMessage", AppVersion);
+                SessionFailureReportLink.Content = L10n.T("Ui.SessionFailureReportAction");
                 PathLabel.Text = L10n.T("Ui.Client");
                 ClientPathBox.PlaceholderText = L10n.T("Ui.ChooseExecutable");
                 DisplaySectionTitle.Text = L10n.T("Ui.DisplaySection");

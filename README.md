@@ -48,7 +48,9 @@ A Honkai: Star Rail FPS unlocker with FOV adjustment, mobile UI, and character f
 
 FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双击托盘图标可恢复窗口。
 
-「游戏退出时关闭工具」默认开启；关闭后可在同一窗口再次启动或连接游戏。正常退出工具时仍会先完成还原。
+「游戏退出时关闭工具」默认开启；关闭后可在同一窗口再次启动或连接游戏。正常退出工具时仍会先完成还原。如果会话失败且反馈提示仍在显示，工具在游戏退出后会保留窗口，方便查看提示。
+
+帧率上限读取不完整时，监测会短暂重试；持续失败或其他访问错误会结束监测并尝试还原。日志区分读取、写入、回读失败和数值不一致，并在可用时显示 Win32 错误码。错误 5 表示访问被拒绝，不能单凭此错误判断是杀毒软件；可以对照故障时刻的安全软件拦截记录。问题反复发生时，可从应用的反馈提示打开 [GitHub Issues](https://github.com/L1angYun/HSRUnlocker/issues)，提供工具版本、复现步骤和脱敏后的错误行。请勿上传完整日志、个人路径、账号信息或内存转储。
 
 「版本更新」可手动检查新版，也可关闭启动时的自动检查。发现新版会弹窗，可立即更新、查看发布说明或稍后处理；同次运行对同一版本只提示一次。在托盘中时等恢复窗口后提示。工具会下载并校验安装包，完成还原、退出后安装新版并重启。下载可取消；下载或校验失败不会替换当前程序。
 
@@ -58,7 +60,7 @@ FOV 在下一次镜头更新时生效。最小化后工具会进入托盘，双�
 
 自动查找读取启动器和 Windows 安装记录，也会检查正在运行的客户端，不按文件夹名称判断版本。手动移动游戏后若安装记录失效，可直接选择实际的 `StarRail.exe`。
 
-客户端路径旁的搜索按钮可重新扫描；扫描不会自动更换当前选择。下拉列表保留扫描到和手动选择过的有效路径，选择后立即保存，下次启动仍可切换。文件已失效时从可用列表移除；工具正在启动、连接、运行或还原会话时暂不能切换。
+客户端路径旁的搜索按钮可重新扫描；扫描不会自动更换当前选择。下拉列表保留扫描到和手动选择过的有效路径，选择后立即保存，启动时显示上次选择的有效路径。长路径省略显示，悬停可查看完整路径。文件已失效时从可用列表移除；工具正在启动、连接、运行或还原会话时暂不能切换。
 
 配置和应用日志保存在 `%LOCALAPPDATA%\HSRUnlocker\`，升级与卸载保留这些文件。`settings.json` 使用原子保存，有效的旧配置保留为 `settings.json.bak`；主配置不可用时优先读取备份并记录日志，不会立即重写主配置。升级或卸载前请正常退出工具。
 
@@ -170,7 +172,9 @@ Mobile safe area defaults to Game default. Choose Custom margins to set a margin
 
 FOV changes apply on the next camera update. Minimizing moves the tool to the tray; double-click its tray icon to restore the window.
 
-Close tool when the game exits is enabled by default. Turn it off to launch or connect again from the same window. Normal tool shutdown still completes restoration before closing.
+Close tool when the game exits is enabled by default. Turn it off to launch or connect again from the same window. Normal tool shutdown still completes restoration before closing. After a failed session, the window stays open after game exit while the feedback notice is visible.
+
+Monitoring briefly retries incomplete frame cap reads. Persistent failures or other access errors stop monitoring and trigger restoration. Logs distinguish reads, writes, readbacks, and mismatched values, and include a Win32 error code when available. Error 5 means access was denied; it does not identify antivirus software as the cause. Check security software events at the time of failure if relevant. For recurring failures, open [GitHub Issues](https://github.com/L1angYun/HSRUnlocker/issues) from the app's feedback notice and include the app version, steps to reproduce, and sanitized error lines. Do not upload full logs, personal paths, account details, or memory dumps.
 
 The Updates section offers a manual check and an optional startup check. A newer release opens a prompt to update, view release notes, or continue later, once per version in the same run. While in the tray, the prompt waits until the window is restored. The tool downloads and verifies the installer, finishes restoration, exits, installs the update, and restarts. Downloads can be cancelled; download or verification failures leave the current application in place.
 
@@ -180,7 +184,7 @@ If the automatic Gitee installer download fails in 1.3.3, choose GitHub as the U
 
 Automatic discovery reads launcher and Windows installation records and checks running clients, without inferring versions from folder names. If moving a game leaves stale installation records, browse to its actual `StarRail.exe`.
 
-The search button beside the client path rescans without replacing the current selection. The dropdown remembers valid discovered and manually chosen paths; selecting one saves it immediately for subsequent launches. Missing files are removed from the available list. Switching is disabled while the tool starts, connects, runs, or restores a session.
+The search button beside the client path rescans without replacing the current selection. The dropdown remembers valid discovered and manually chosen paths. It saves the selection immediately and displays it on startup if it is still valid. Hover to see the full path when it is truncated. Missing files are removed from the available list. Switching is disabled while the tool starts, connects, runs, or restores a session.
 
 Settings and application logs are stored in `%LOCALAPPDATA%\HSRUnlocker\` and retained during upgrades and uninstallation. Writes to `settings.json` are atomic, keeping the previous valid settings as `settings.json.bak`. If the primary settings are unusable, the tool reads the backup first and logs the recovery without immediately rewriting the primary file. Close the tool normally before upgrading or uninstalling.
 
