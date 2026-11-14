@@ -126,10 +126,46 @@
     "ko-KR": "새 버전 {0}에 호환되는 설치 프로그램이 없습니다. 릴리스 노트를 확인해 주세요."
   },
   "Updates.InstallFailed": {
-    "zh-CN": "更新未完成，当前版本仍可使用。请重试。",
-    "en-US": "The update could not be prepared. Your current version is still available. Please retry.",
-    "ja-JP": "更新を準備できませんでした。現在のバージョンは使用できます。再試行してください。",
-    "ko-KR": "업데이트를 준비하지 못했습니다. 현재 버전은 계속 사용할 수 있습니다. 다시 시도해 주세요."
+    "zh-CN": "已下载，但未能开始安装。请重试，或从发布页手动下载。",
+    "en-US": "The download finished, but installation could not start. Try again or download it from the release page.",
+    "ja-JP": "ダウンロードは完了しましたが、インストールを開始できませんでした。再試行するか、リリースページからダウンロードしてください。",
+    "ko-KR": "다운로드는 끝났지만 설치를 시작하지 못했습니다. 다시 시도하거나 릴리스 페이지에서 다운로드하세요."
+  },
+  "Updates.DownloadFailed": {
+    "zh-CN": "下载或校验安装包失败。请重试，或从发布页手动下载。",
+    "en-US": "The installer could not be downloaded or verified. Try again or download it from the release page.",
+    "ja-JP": "インストーラーのダウンロードまたは検証に失敗しました。再試行するか、リリースページからダウンロードしてください。",
+    "ko-KR": "설치 프로그램을 다운로드하거나 검증하지 못했습니다. 다시 시도하거나 릴리스 페이지에서 다운로드하세요."
+  },
+  "Updates.RetryInstall": {
+    "zh-CN": "重试更新",
+    "en-US": "Retry update",
+    "ja-JP": "更新を再試行",
+    "ko-KR": "업데이트 다시 시도"
+  },
+  "Updates.InstalledVersion": {
+    "zh-CN": "当前版本：{0}",
+    "en-US": "Installed version: {0}",
+    "ja-JP": "現在のバージョン：{0}",
+    "ko-KR": "설치된 버전: {0}"
+  },
+  "Updates.InstallWhenIdle": {
+    "zh-CN": "结束当前会话后即可更新。",
+    "en-US": "End the current session to install the update.",
+    "ja-JP": "現在のセッションを終了すると更新できます。",
+    "ko-KR": "현재 세션을 종료하면 업데이트할 수 있습니다."
+  },
+  "Updates.StartupNotice": {
+    "zh-CN": "可在「版本更新」中查看和安装。",
+    "en-US": "Review and install it in Updates.",
+    "ja-JP": "「更新」で確認してインストールできます。",
+    "ko-KR": "업데이트에서 내용을 확인하고 설치할 수 있습니다."
+  },
+  "Updates.Review": {
+    "zh-CN": "查看更新",
+    "en-US": "View update",
+    "ja-JP": "更新を表示",
+    "ko-KR": "업데이트 보기"
   },
   "Updates.RestoreFailed": {
     "zh-CN": "还原未完成，工具保持打开。请重试停止并还原。",
@@ -178,30 +214,6 @@
     "en-US": "Version {0} is available",
     "ja-JP": "新バージョン {0} が利用できます",
     "ko-KR": "새 버전 {0} 사용 가능"
-  },
-  "Updates.PromptContent": {
-    "zh-CN": "HSRUnlocker {0} 已发布。现在下载并更新吗？",
-    "en-US": "HSRUnlocker {0} has been released. Download and update now?",
-    "ja-JP": "HSRUnlocker {0} がリリースされました。今すぐダウンロードして更新しますか？",
-    "ko-KR": "HSRUnlocker {0}이(가) 출시되었습니다. 지금 다운로드하여 업데이트할까요?"
-  },
-  "Updates.Later": {
-    "zh-CN": "稍后",
-    "en-US": "Later",
-    "ja-JP": "後で",
-    "ko-KR": "나중에"
-  },
-  "Updates.PromptInstall": {
-    "zh-CN": "立即更新",
-    "en-US": "Update now",
-    "ja-JP": "今すぐ更新",
-    "ko-KR": "지금 업데이트"
-  },
-  "Updates.PromptNotes": {
-    "zh-CN": "发布说明",
-    "en-US": "Release notes",
-    "ja-JP": "更新内容",
-    "ko-KR": "업데이트 내용"
   },
   "Updates.Current": {
     "zh-CN": "当前版本 {0} 已是最新。",

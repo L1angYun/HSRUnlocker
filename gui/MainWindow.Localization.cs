@@ -40,8 +40,12 @@ namespace StarRailUnlocker
                 Title = L10n.T("Ui.WindowTitle", AppVersion);
                 VersionText.Text = L10n.T("Ui.Version", AppVersion);
                 SessionFailureInfoBar.Title = L10n.T("Ui.SessionFailureReportTitle");
-                SessionFailureInfoBar.Message = L10n.T("Ui.SessionFailureReportMessage", AppVersion);
-                SessionFailureReportLink.Content = L10n.T("Ui.SessionFailureReportAction");
+                RefreshSessionFailureReason();
+                SessionFailureReportHint.Text = L10n.T("Ui.SessionFailureReportMessage");
+                SessionFailureExportButton.Content = WrappedText("Ui.ExportDiagnostics");
+                LocalizeControl(SessionFailureExportButton, "Ui.ExportDiagnostics", "Ui.ExportDiagnosticsTip");
+                SessionFailureReportLink.Content = WrappedText("Ui.SessionFailureReportAction");
+                LocalizeControl(SessionFailureReportLink, "Ui.SessionFailureReportAction");
                 PathLabel.Text = L10n.T("Ui.Client");
                 ClientPathBox.PlaceholderText = L10n.T("Ui.ChooseExecutable");
                 DisplaySectionTitle.Text = L10n.T("Ui.DisplaySection");
@@ -59,6 +63,7 @@ namespace StarRailUnlocker
                 CheckForUpdatesLabel.Text = L10n.T("Updates.CheckOnStartup");
                 StartButtonText.Text = L10n.T("Ui.LaunchGame");
                 AttachButtonText.Text = L10n.T("Ui.AttachGame");
+                StopButtonText.Text = L10n.T("Ui.StopRestore");
                 // WinUI caches selection text; reselect while change handlers are guarded.
                 int graphicsSourceIndex = GraphicsSourceBox.SelectedIndex;
                 GraphicsSourceBox.SelectedItem = null;
@@ -112,6 +117,10 @@ namespace StarRailUnlocker
                 LocalizeControl(ExitWithGameToggle, "Updates.ExitWithGame", "Updates.ExitWithGameTip");
                 LocalizeControl(CheckForUpdatesToggle, "Updates.CheckOnStartup", "Updates.CheckOnStartupTip");
                 LocalizeControl(UpdateSourceBox, "Updates.Source", "Updates.SourceTip");
+                ReviewUpdateNoticeButton.Content = WrappedText("Updates.Review");
+                CheckUpdatesButton.Content = WrappedText("Updates.CheckNow");
+                OpenReleaseButton.Content = WrappedText("Updates.OpenRelease");
+                CancelUpdateButton.Content = WrappedText("Updates.Cancel");
                 LocalizeControl(CheckUpdatesButton, "Updates.CheckNow", "Updates.CheckNow");
                 LocalizeControl(OpenReleaseButton, "Updates.OpenRelease", "Updates.OpenRelease");
                 LocalizeControl(ApplyUpdateButton, "Updates.Install", "Updates.InstallTip");

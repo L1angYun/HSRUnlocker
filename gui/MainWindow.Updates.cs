@@ -25,7 +25,7 @@ namespace StarRailUnlocker
         private CancellationTokenSource _downloadCancellation;
         private PreparedUpdateInstall _preparedUpdate;
         private UpdateCheckResult _updateResult;
-        private readonly UpdatePromptQueue _updatePrompts = new();
+        private readonly UpdateNotice _updateNotice = new();
         private string _updateStatusKey = "Updates.NotChecked";
         private bool _checkingForUpdates, _openingRelease, _downloadingUpdate;
         private double _updateProgress;
@@ -41,7 +41,7 @@ namespace StarRailUnlocker
             _config.UpdateSource = preference;
             _updateResult = null;
             _updateStatusKey = "Updates.NotChecked";
-            _updatePrompts.Offer(null);
+            _updateNotice.Offer(null, background: false);
             if (!_config.Save()) Log(L10n.T("Ui.LogConfigSaveFailed", UnlockConfig.LogPath));
             RefreshUpdatePresentation();
         }
@@ -50,17 +50,19 @@ namespace StarRailUnlocker
         {
             if (_initializing || _closed || _closePending) return;
             _config.CheckForUpdates = CheckForUpdatesToggle.IsOn;
+            if (!_config.CheckForUpdates) _updateNotice.Offer(null, background: false);
             if (!_config.Save()) Log(L10n.T("Ui.LogConfigSaveFailed", UnlockConfig.LogPath));
+            RefreshUpdatePresentation();
         }
 
         private async void OnCheckUpdatesClick(object sender, RoutedEventArgs e) => await CheckUpdatesAsync();
 
-        private async Task CheckUpdatesAsync()
+        private async Task CheckUpdatesAsync(bool background = false)
         {
             if (_checkingForUpdates || _downloadingUpdate || _closed || _closePending) return;
             _checkingForUpdates = true;
             _updateResult = null;
-            _updatePrompts.Offer(null);
+            _updateNotice.Offer(null, background);
             _updateStatusKey = "Updates.Checking";
             RefreshUpdatePresentation();
             CancellationToken token = _updateCancellation.Token;
@@ -69,7 +71,7 @@ namespace StarRailUnlocker
                 var result = await _updateChecker.CheckAsync(AppVersion, _config.UpdateSource, token);
                 if (_closed || _closePending) return;
                 _updateResult = result;
-                _updatePrompts.Offer(result);
+                _updateNotice.Offer(result, background && _config.CheckForUpdates);
                 _updateStatusKey = result.IsNewer
                     ? result.Installer != null ? "Updates.Available" : "Updates.NoInstaller"
                     : "Updates.Current";
@@ -97,23 +99,44 @@ namespace StarRailUnlocker
             {
                 _checkingForUpdates = false;
                 if (!_closed && !_closePending) RefreshUpdatePresentation();
-                QueueUpdatePrompt();
             }
         }
+
+        private void OnReviewUpdateNotice(object sender, RoutedEventArgs e)
+        {
+            _updateNotice.Dismiss();
+            RefreshUpdatePresentation();
+            UpdatesSection.StartBringIntoView();
+            if (ApplyUpdateButton.IsEnabled && ApplyUpdateButton.Visibility == Visibility.Visible)
+                ApplyUpdateButton.Focus(FocusState.Programmatic);
+            else
+                CheckUpdatesButton.Focus(FocusState.Programmatic);
+        }
+
+        private void OnUpdateNoticeClosed(InfoBar sender, InfoBarClosedEventArgs args)
+        {
+            if (args.Reason == InfoBarCloseReason.CloseButton) _updateNotice.Dismiss();
+        }
+
+        private bool UpdateInstallNeedsIdle => !_startupComplete || _switchingSession
+            || _session?.IsRunning == true;
 
         private async void OnApplyUpdateClick(object sender, RoutedEventArgs e) => await ApplyUpdateAsync();
 
         private async Task ApplyUpdateAsync()
         {
-            if (_closed || _closePending || _downloadingUpdate || _checkingForUpdates ||
+            if (_closed || _closePending || _dialogOpen || _pickingGame || _openingRelease ||
+                _downloadingUpdate || _checkingForUpdates || UpdateInstallNeedsIdle ||
                 _updateResult?.IsNewer != true || _updateResult.Installer == null) return;
             _downloadingUpdate = true;
+            _updateNotice.Dismiss();
             _updateProgress = 0;
             _updateStatusKey = "Updates.Downloading";
             CancelGameExitClose();
             using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_updateCancellation.Token);
             _downloadCancellation = cancellation;
             RefreshUpdatePresentation();
+            bool downloaded = false;
             try
             {
                 var installer = new UpdateInstaller(_downloadHttp);
@@ -126,6 +149,7 @@ namespace StarRailUnlocker
                 using StagedUpdate staged = await installer.DownloadAsync(
                     _updateResult.Installer, progress, cancellation.Token);
                 cancellation.Token.ThrowIfCancellationRequested();
+                downloaded = true;
                 _updateStatusKey = "Updates.Preparing";
                 RefreshUpdatePresentation();
                 var prepared = await installer.PrepareInstallAsync(
@@ -146,7 +170,7 @@ namespace StarRailUnlocker
             {
                 if (!_closed && !_closePending)
                 {
-                    _updateStatusKey = "Updates.InstallFailed";
+                    _updateStatusKey = downloaded ? "Updates.InstallFailed" : "Updates.DownloadFailed";
                     App.WriteLog("Prepare update", ex);
                 }
             }
@@ -194,18 +218,36 @@ namespace StarRailUnlocker
         {
             if (_closed || UpdateStatusText == null) return;
             bool available = _updateResult?.IsNewer == true;
+            bool canInstall = available && _updateResult.Installer != null;
+            bool unblocked = !_closePending && !_dialogOpen && !_pickingGame
+                && !_checkingForUpdates && !_openingRelease && !_downloadingUpdate;
             object statusValue = _updateStatusKey == "Updates.Downloading" ? _updateProgress :
                 _updateStatusKey == "Updates.Current" ? AppVersion : _updateResult?.Version;
             UpdateStatusText.Text = L10n.T(_updateStatusKey, statusValue);
-            CheckForUpdatesToggle.IsEnabled = !_closePending;
-            UpdateSourceBox.IsEnabled = !_closePending && !_checkingForUpdates && !_openingRelease &&
-                !_downloadingUpdate && _preparedUpdate == null;
-            CheckUpdatesButton.IsEnabled = !_closePending && !_checkingForUpdates && !_openingRelease && !_downloadingUpdate;
-            OpenReleaseButton.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
-            OpenReleaseButton.IsEnabled = available && !_closePending && !_checkingForUpdates && !_openingRelease && !_downloadingUpdate;
-            ApplyUpdateButton.Visibility = available && _updateResult.Installer != null && !_downloadingUpdate
+            UpdateVersionText.Text = L10n.T("Updates.InstalledVersion", AppVersion);
+            UpdateInstallHint.Text = L10n.T("Updates.InstallWhenIdle");
+            UpdateInstallHint.Visibility = canInstall && UpdateInstallNeedsIdle && !_downloadingUpdate
                 ? Visibility.Visible : Visibility.Collapsed;
-            ApplyUpdateButton.IsEnabled = !_closePending && !_checkingForUpdates && !_openingRelease;
+            var startupUpdate = _updateNotice.Visible(_startupComplete && !_inTray && !_closePending
+                && !_dialogOpen && !_pickingGame && !_scanningGames && !_switchingSession
+                && _session?.IsRunning != true && !SessionFailureInfoBar.IsOpen && unblocked);
+            if (startupUpdate != null)
+            {
+                StartupUpdateNotice.Title = L10n.T("Updates.PromptTitle", startupUpdate.Version);
+                StartupUpdateNotice.Message = startupUpdate.Installer != null
+                    ? L10n.T("Updates.StartupNotice") : L10n.T("Updates.NoInstaller", startupUpdate.Version);
+            }
+            StartupUpdateNotice.IsOpen = startupUpdate != null;
+            CheckForUpdatesToggle.IsEnabled = !_closePending;
+            UpdateSourceBox.IsEnabled = unblocked && _preparedUpdate == null;
+            CheckUpdatesButton.IsEnabled = unblocked;
+            OpenReleaseButton.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
+            OpenReleaseButton.IsEnabled = available && unblocked;
+            ApplyUpdateButton.Visibility = canInstall && !_downloadingUpdate
+                ? Visibility.Visible : Visibility.Collapsed;
+            ApplyUpdateButton.IsEnabled = canInstall && unblocked && !UpdateInstallNeedsIdle;
+            ApplyUpdateButton.Content = WrappedText(_updateStatusKey is "Updates.InstallFailed" or "Updates.DownloadFailed"
+                ? "Updates.RetryInstall" : "Updates.Install");
             CancelUpdateButton.Visibility = _downloadingUpdate && !_closePending ? Visibility.Visible : Visibility.Collapsed;
             UpdateProgressBar.Visibility = _downloadingUpdate ? Visibility.Visible : Visibility.Collapsed;
             UpdateProgressBar.IsIndeterminate = _updateStatusKey == "Updates.Preparing";

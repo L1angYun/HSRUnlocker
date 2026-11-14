@@ -73,7 +73,7 @@ internal static class Program
             UpdateMirrorCheckVerification.Run(Check);
             UpdateMirrorDownloadVerification.Run(Check);
             UpdateVerification.Run(Check);
-            UpdatePromptVerification.Run(Check);
+            UpdateNoticeVerification.Run(Check);
             UpdateInstallVerification.Run(Check);
             UpdateHelperVerification.Run(Check);
             InstallerGuardVerification.Run(Check);

@@ -474,16 +474,22 @@
     "ko-KR": "세션 실패"
   },
   "Ui.SessionFailureReportTitle": {
-    "zh-CN": "反馈会话失败",
-    "en-US": "Report this session failure",
-    "ja-JP": "セッションの失敗を報告",
-    "ko-KR": "세션 실패 신고"
+    "zh-CN": "会话失败",
+    "en-US": "Session failed",
+    "ja-JP": "セッション失敗",
+    "ko-KR": "세션 실패"
+  },
+  "Ui.SessionFailureReasonUnavailable": {
+    "zh-CN": "未收到具体错误，更多信息请查看诊断日志。",
+    "en-US": "The session did not report a specific error. Check the diagnostics for details.",
+    "ja-JP": "具体的なエラーは報告されませんでした。詳しくは診断ログを確認してください。",
+    "ko-KR": "구체적인 오류가 보고되지 않았습니다. 자세한 내용은 진단 로그를 확인하세요."
   },
   "Ui.SessionFailureReportMessage": {
-    "zh-CN": "请提供 HSRUnlocker 版本 {0} 和复现步骤。可在运行日志中导出诊断日志，检查后再附上。请勿附上原始日志、文件路径或游戏文件。",
-    "en-US": "Include HSRUnlocker version {0} and steps to reproduce. You can export diagnostics from the activity log and attach the file after reviewing it. Leave out raw logs, file paths, and game files.",
-    "ja-JP": "HSRUnlocker のバージョン {0} と再現手順を記載してください。実行ログから診断ログをエクスポートし、内容を確認してから添付できます。未編集のログ、ファイルパス、ゲームファイルは含めないでください。",
-    "ko-KR": "HSRUnlocker 버전 {0}과 재현 단계를 적어 주세요. 실행 로그에서 진단 로그를 내보내고 내용을 확인한 뒤 첨부할 수 있습니다. 원본 로그, 파일 경로, 게임 파일은 포함하지 마세요."
+    "zh-CN": "反馈时请说明复现步骤，附上检查后的诊断文件即可。请勿附上原始日志或个人信息。",
+    "en-US": "Include steps to reproduce and review the diagnostics before sharing. Leave out raw logs and personal details.",
+    "ja-JP": "再現手順を記載し、診断ログは内容を確認してから共有してください。未編集のログや個人情報は含めないでください。",
+    "ko-KR": "재현 단계를 적고 진단 로그는 내용을 확인한 뒤 공유하세요. 원본 로그나 개인정보는 포함하지 마세요."
   },
   "Ui.SessionFailureReportAction": {
     "zh-CN": "在 GitHub 提交问题",

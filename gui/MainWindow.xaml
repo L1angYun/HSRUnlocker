@@ -38,6 +38,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -82,16 +83,44 @@
                          IsOpen="False" Visibility="Collapsed" Severity="Error" IsClosable="True"
                          Closed="OnSessionFailureNoticeClosed"
                          AutomationProperties.AutomationId="SessionFailureInfoBar">
-                    <InfoBar.ActionButton>
-                        <HyperlinkButton x:Name="SessionFailureReportLink"
-                                         NavigateUri="https://github.com/L1angYun/HSRUnlocker/issues/new"
-                                         AutomationProperties.AutomationId="SessionFailureReportLink" />
-                    </InfoBar.ActionButton>
+                    <InfoBar.Content>
+                        <StackPanel Spacing="6" Margin="0,4,12,12">
+                            <TextBlock x:Name="SessionFailureReason"
+                                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxLines="2"
+                                       AutomationProperties.AutomationId="SessionFailureReason"
+                                       AutomationProperties.LiveSetting="Polite" />
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button x:Name="SessionFailureExportButton" Click="OnExportDiagnosticsClick"
+                                        IsEnabled="False"
+                                        AutomationProperties.AutomationId="SessionFailureExportButton" />
+                                <HyperlinkButton Grid.Column="1" x:Name="SessionFailureReportLink"
+                                                 NavigateUri="https://github.com/L1angYun/HSRUnlocker/issues/new"
+                                                 MinWidth="0" AutomationProperties.AutomationId="SessionFailureReportLink" />
+                            </Grid>
+                            <TextBlock x:Name="SessionFailureReportHint" Style="{StaticResource SecondaryTextStyle}" />
+                            <TextBlock x:Name="SessionFailureExportStatus" Visibility="Collapsed"
+                                       Style="{StaticResource SecondaryTextStyle}"
+                                       AutomationProperties.AutomationId="SessionFailureExportStatus"
+                                       AutomationProperties.LiveSetting="Polite" />
+                        </StackPanel>
+                    </InfoBar.Content>
                 </InfoBar>
             </Grid>
         </Border>
 
-        <ScrollViewer Grid.Row="2" x:Name="SettingsScroll" VerticalScrollBarVisibility="Auto"
+        <InfoBar Grid.Row="2" x:Name="StartupUpdateNotice" Margin="24,8,24,0"
+                 Severity="Informational" IsOpen="False" Closed="OnUpdateNoticeClosed"
+                 AutomationProperties.AutomationId="StartupUpdateNotice">
+            <InfoBar.ActionButton>
+                <Button x:Name="ReviewUpdateNoticeButton" Click="OnReviewUpdateNotice" />
+            </InfoBar.ActionButton>
+        </InfoBar>
+
+        <ScrollViewer Grid.Row="3" x:Name="SettingsScroll" VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
             <StackPanel MaxWidth="1100" Padding="24,20,24,16" Spacing="24"
                         HorizontalAlignment="Stretch">
@@ -302,8 +331,9 @@
                         <TextBlock x:Name="FontCreditText" Style="{StaticResource SecondaryTextStyle}" />
                     </StackPanel>
                 </Grid>
-                <StackPanel Spacing="12">
+                <StackPanel x:Name="UpdatesSection" Spacing="12">
                     <TextBlock x:Name="UpdatesSectionTitle" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock x:Name="UpdateVersionText" Style="{StaticResource SecondaryTextStyle}" />
                     <ComboBox x:Name="UpdateSourceBox" HorizontalAlignment="Stretch" MinWidth="0"
                               SelectionChanged="OnUpdateSourceChanged"
                               AutomationProperties.AutomationId="UpdateSourceBox">
@@ -322,36 +352,21 @@
                                       Toggled="OnCheckForUpdatesToggled"
                                       Style="{StaticResource CompactSwitchStyle}" />
                     </Grid>
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="UpdateStatusText" Style="{StaticResource SecondaryTextStyle}"
-                                   VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                            <Button x:Name="CheckUpdatesButton" Click="OnCheckUpdatesClick"
-                                    AutomationProperties.AutomationId="CheckUpdatesButton"
-                                    Style="{StaticResource ToolButtonStyle}">
-                                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Refresh" /></Viewbox>
-                            </Button>
-                            <Button x:Name="ApplyUpdateButton" Click="OnApplyUpdateClick"
-                                    AutomationProperties.AutomationId="ApplyUpdateButton"
-                                    Visibility="Collapsed" Style="{StaticResource ToolButtonStyle}">
-                                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Download" /></Viewbox>
-                            </Button>
-                            <Button x:Name="CancelUpdateButton" Click="OnCancelUpdateClick"
-                                    AutomationProperties.AutomationId="CancelUpdateButton"
-                                    Visibility="Collapsed" Style="{StaticResource ToolButtonStyle}">
-                                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Cancel" /></Viewbox>
-                            </Button>
-                            <Button x:Name="OpenReleaseButton" Click="OnOpenReleaseClick"
-                                    AutomationProperties.AutomationId="OpenReleaseButton"
-                                    Visibility="Collapsed" Style="{StaticResource ToolButtonStyle}">
-                                <FontIcon Glyph="&#xE71B;" FontSize="16" />
-                            </Button>
-                        </StackPanel>
-                    </Grid>
+                    <TextBlock x:Name="UpdateStatusText" Style="{StaticResource SecondaryTextStyle}"
+                               AutomationProperties.LiveSetting="Polite" />
+                    <TextBlock x:Name="UpdateInstallHint" Style="{StaticResource SecondaryTextStyle}"
+                               Visibility="Collapsed" />
+                    <StackPanel Spacing="8">
+                        <Button x:Name="CheckUpdatesButton" Click="OnCheckUpdatesClick"
+                                AutomationProperties.AutomationId="CheckUpdatesButton" />
+                        <Button x:Name="ApplyUpdateButton" Click="OnApplyUpdateClick"
+                                AutomationProperties.AutomationId="ApplyUpdateButton"
+                                Visibility="Collapsed" Style="{StaticResource AccentButtonStyle}" />
+                        <Button x:Name="CancelUpdateButton" Click="OnCancelUpdateClick"
+                                AutomationProperties.AutomationId="CancelUpdateButton" Visibility="Collapsed" />
+                        <HyperlinkButton x:Name="OpenReleaseButton" Click="OnOpenReleaseClick"
+                                         AutomationProperties.AutomationId="OpenReleaseButton" Visibility="Collapsed" />
+                    </StackPanel>
                     <ProgressBar x:Name="UpdateProgressBar" Minimum="0" Maximum="100"
                                  Visibility="Collapsed" AutomationProperties.AutomationId="UpdateProgressBar" />
                 </StackPanel>
@@ -392,14 +407,13 @@
                 </Expander>
             </StackPanel>
         </ScrollViewer>
-        <Border Grid.Row="3" BorderThickness="0,1,0,0" Padding="24,14"
+        <Border Grid.Row="4" BorderThickness="0,1,0,0" Padding="24,14"
                 BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
                 Background="{ThemeResource LayerFillColorAltBrush}">
             <Grid MaxWidth="1052" ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="StartButton" Click="OnStartClick" HorizontalAlignment="Stretch"
                         MinWidth="0" HorizontalContentAlignment="Stretch" Padding="12,10"
@@ -426,9 +440,18 @@
                                    TextAlignment="Center" VerticalAlignment="Center" />
                     </Grid>
                 </Button>
-                <Button Grid.Column="2" x:Name="StopButton" Click="OnStopClick" IsEnabled="False"
-                        Style="{StaticResource ToolButtonStyle}">
-                    <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Stop" /></Viewbox>
+                <Button x:Name="StopButton" Click="OnStopClick" HorizontalAlignment="Stretch"
+                        MinWidth="0" HorizontalContentAlignment="Stretch" Padding="12,10"
+                        Style="{StaticResource AccentButtonStyle}" Visibility="Collapsed" IsEnabled="False">
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Stop" /></Viewbox>
+                        <TextBlock Grid.Column="1" x:Name="StopButtonText" TextWrapping="Wrap"
+                                   TextAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
                 </Button>
             </Grid>
         </Border>

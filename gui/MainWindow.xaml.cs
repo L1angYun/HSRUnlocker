@@ -29,6 +29,7 @@ namespace StarRailUnlocker
         private bool _started, _closed, _hidingToTray, _inTray;
         private bool _closePending, _closeCompleted, _switchingSession, _stoppingSession;
         private bool _sessionFailureReported;
+        private string _sessionFailureReason;
         private bool _startupComplete, _setupInProgress, _dialogOpen, _pickingGame;
         private IReadOnlyList<string> _detectedGamePaths = Array.Empty<string>();
         private XamlRoot _dialogRoot;
@@ -117,7 +118,7 @@ namespace StarRailUnlocker
             Activated += (_, args) =>
             {
                 if (args.WindowActivationState != WindowActivationState.Deactivated)
-                    QueueUpdatePrompt();
+                    RefreshUpdatePresentation();
             };
             Closed += (_, __) =>
             {
@@ -143,7 +144,7 @@ namespace StarRailUnlocker
                     if (_closed || _closePending) return;
                     _inTray = false;
                     Activate();
-                    QueueUpdatePrompt();
+                    RefreshUpdatePresentation();
                 }, RequestStop, BeginCloseAsync);
                 if (!_tray.Add()) Log(L10n.T("Ui.LogTrayInitializationFailed"));
             }
@@ -154,7 +155,7 @@ namespace StarRailUnlocker
             _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
             _refreshTimer.Tick += (_, __) => RefreshPresentation();
             _refreshTimer.Start();
-            if (_config.CheckForUpdates) _ = CheckUpdatesAsync();
+            if (_config.CheckForUpdates) _ = CheckUpdatesAsync(background: true);
             RefreshPresentation();
             var rootElement = (FrameworkElement)Content;
             if (rootElement.IsLoaded)
@@ -507,7 +508,6 @@ namespace StarRailUnlocker
             {
                 _pickingGame = false;
                 if (!_closed && !_closePending) RefreshPresentation();
-                QueueUpdatePrompt();
             }
         }
 
@@ -543,7 +543,6 @@ namespace StarRailUnlocker
                 _setupInProgress = false;
                 _startupComplete = true;
                 RefreshPresentation();
-                QueueUpdatePrompt();
             }
         }
 
@@ -617,7 +616,7 @@ namespace StarRailUnlocker
                     ? games[list.SelectedIndex] : null;
             }
             catch (Exception ex) { Log(L10n.T("Ui.LogProcessPickerFailed", ex.Message)); return null; }
-            finally { _dialogOpen = false; QueueUpdatePrompt(); }
+            finally { _dialogOpen = false; RefreshUpdatePresentation(); }
         }
 
         private void OnStopClick(object sender, RoutedEventArgs e) => RequestStop();
@@ -681,8 +680,10 @@ namespace StarRailUnlocker
             _stoppingSession = false;
             _localErrorKey = null;
             _sessionFailureReported = false;
+            _sessionFailureReason = _diagnosticsExportStatusKey = null;
             SessionFailureInfoBar.Visibility = Visibility.Collapsed;
             SessionFailureInfoBar.IsOpen = false;
+            RefreshSessionFailureReason();
             RefreshPresentation();
             var old = _session;
             if (old != null && _sessionHandler != null) old.Changed -= _sessionHandler;
@@ -709,12 +710,22 @@ namespace StarRailUnlocker
             DispatcherQueue.TryEnqueue(() =>
             {
                 if (_closed || _closePending || !ReferenceEquals(_session, source)) return;
-                if (state == SessionState.Failed && !_sessionFailureReported)
+                if (state == SessionState.Failed)
                 {
-                    _sessionFailureReported = true;
-                    CancelGameExitClose();
-                    SessionFailureInfoBar.Visibility = Visibility.Visible;
-                    SessionFailureInfoBar.IsOpen = true;
+                    // Later restoration messages belong in the status/log; keep the original failure here.
+                    if (_sessionFailureReason == null && !string.IsNullOrWhiteSpace(message))
+                    {
+                        _sessionFailureReason = message.Split(new[] { '\r', '\n' },
+                            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[0];
+                        RefreshSessionFailureReason();
+                    }
+                    if (!_sessionFailureReported)
+                    {
+                        _sessionFailureReported = true;
+                        CancelGameExitClose();
+                        SessionFailureInfoBar.Visibility = Visibility.Visible;
+                        SessionFailureInfoBar.IsOpen = true;
+                    }
                 }
                 if (state == SessionState.GameExited)
                     ScheduleGameExitClose(source);
@@ -723,6 +734,9 @@ namespace StarRailUnlocker
                 RefreshPresentation();
             });
         }
+
+        private void RefreshSessionFailureReason() =>
+            SessionFailureReason.Text = _sessionFailureReason ?? L10n.T("Ui.SessionFailureReasonUnavailable");
 
         private void OnSessionFailureNoticeClosed(InfoBar sender, InfoBarClosedEventArgs args)
         {

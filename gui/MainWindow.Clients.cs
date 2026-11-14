@@ -105,7 +105,6 @@ namespace StarRailUnlocker
             {
                 _scanningGames = false;
                 if (!_closed && !_closePending) RefreshPresentation();
-                QueueUpdatePrompt();
             }
         }
 

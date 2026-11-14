@@ -70,7 +70,10 @@ namespace StarRailUnlocker
             bool restoring = running && (_stoppingSession ||
                 session.State is SessionState.Failed or SessionState.GameExited);
             if (!running) _stoppingSession = false;
-            StartButton.IsEnabled = AttachButton.IsEnabled = CanChangeGameClient;
+            bool showStop = running || _switchingSession;
+            StartButton.Visibility = AttachButton.Visibility = showStop ? Visibility.Collapsed : Visibility.Visible;
+            StopButton.Visibility = showStop ? Visibility.Visible : Visibility.Collapsed;
+            StartButton.IsEnabled = AttachButton.IsEnabled = !showStop && CanChangeGameClient;
             StopButton.IsEnabled = !blocked && running && !restoring;
             RefreshClientPresentation();
             SaveButton.IsEnabled = !blocked;
@@ -220,11 +223,11 @@ namespace StarRailUnlocker
 
         private void RefreshDiagnosticsExport()
         {
-            ExportDiagnosticsButton.IsEnabled = CanExportDiagnostics;
-            DiagnosticsExportStatus.Visibility = _diagnosticsExportStatusKey == null
-                ? Visibility.Collapsed : Visibility.Visible;
-            DiagnosticsExportStatus.Text = _diagnosticsExportStatusKey == null
-                ? string.Empty : L10n.T(_diagnosticsExportStatusKey);
+            ExportDiagnosticsButton.IsEnabled = SessionFailureExportButton.IsEnabled = CanExportDiagnostics;
+            var visibility = _diagnosticsExportStatusKey == null ? Visibility.Collapsed : Visibility.Visible;
+            string status = _diagnosticsExportStatusKey == null ? string.Empty : L10n.T(_diagnosticsExportStatusKey);
+            DiagnosticsExportStatus.Visibility = SessionFailureExportStatus.Visibility = visibility;
+            DiagnosticsExportStatus.Text = SessionFailureExportStatus.Text = status;
         }
 
         private async void OnExportDiagnosticsClick(object sender, RoutedEventArgs e)
@@ -263,7 +266,6 @@ namespace StarRailUnlocker
                     if (_session?.State == SessionState.GameExited)
                         ScheduleGameExitClose(_session);
                 }
-                QueueUpdatePrompt();
             }
         }
     }

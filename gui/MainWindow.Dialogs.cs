@@ -69,46 +69,5 @@ namespace StarRailUnlocker
             return dialog;
         }
 
-        private void QueueUpdatePrompt()
-        {
-            if (!_closed && !_closePending)
-                DispatcherQueue.TryEnqueue(() => _ = ShowUpdatePromptAsync());
-        }
-
-        private async Task ShowUpdatePromptAsync()
-        {
-            // Keep setup, file picking, and tray restoration ahead of background notifications.
-            UpdateCheckResult result = _updatePrompts.Take(_startupComplete && _dialogRoot != null &&
-                !_closed && !_closePending && !_dialogOpen && !_pickingGame && !_scanningGames && !_inTray &&
-                !_checkingForUpdates && !_downloadingUpdate && !_openingRelease);
-            if (result == null) return;
-            _dialogOpen = true;
-            ContentDialogResult action = ContentDialogResult.None;
-            try { action = await CreateUpdateDialog(_dialogRoot, result).ShowAsync(); }
-            catch (Exception ex) { App.WriteLog("Update notification", ex); }
-            finally { _dialogOpen = false; }
-            if (_closed || _closePending || !ReferenceEquals(result, _updateResult)) return;
-            if (action == ContentDialogResult.Primary && result.Installer != null)
-                await ApplyUpdateAsync();
-            else if (action == ContentDialogResult.Secondary ||
-                (action == ContentDialogResult.Primary && result.Installer == null))
-                await OpenReleaseAsync();
-            QueueUpdatePrompt();
-        }
-
-        internal static ContentDialog CreateUpdateDialog(XamlRoot root, UpdateCheckResult result) => new()
-        {
-            XamlRoot = root,
-            Title = L10n.T("Updates.PromptTitle", result.Version),
-            Content = new TextBlock
-            {
-                Text = L10n.T(result.Installer != null ? "Updates.PromptContent" : "Updates.NoInstaller", result.Version),
-                TextWrapping = TextWrapping.Wrap
-            },
-            PrimaryButtonText = L10n.T(result.Installer != null ? "Updates.PromptInstall" : "Updates.PromptNotes"),
-            SecondaryButtonText = result.Installer != null ? L10n.T("Updates.PromptNotes") : string.Empty,
-            CloseButtonText = L10n.T("Updates.Later"),
-            DefaultButton = ContentDialogButton.Close
-        };
     }
 }

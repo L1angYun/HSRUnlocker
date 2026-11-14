@@ -12,7 +12,7 @@
 
 **下载：** [GitHub Releases](https://github.com/L1angYun/HSRUnlocker/releases) · [Gitee Releases](https://gitee.com/liangyun_Liu/HSRUnlocker/releases)
 
-需要 Windows 11 22H2 或更高版本（x64）和管理员权限。安装程序会检查所需的 .NET 8 和 Windows App Runtime，缺少时下载微软官方组件。
+需要 Windows 10 22H2（19045）或更新的 Windows 版本（x64）和管理员权限。Windows 10 和 Windows 11 使用同一个安装包。缺少运行组件时，安装程序会从微软下载。
 
 ### 快速开始
 
@@ -23,13 +23,13 @@
 
 客户端路径会保存并在下次启动时显示，前提是文件仍然有效。路径旁的搜索按钮可重新扫描，当前选择会保留；可在下拉列表切换客户端，悬停查看完整路径。
 
-使用移动端 UI 前，请退出游戏、开启对应选项，再通过工具启动游戏。如提示缺少画质设置，请先正常运行该客户端一次。「版本更新」中可以手动检查新版，也可以关闭启动时的自动检查。
+使用移动端 UI 前，请退出游戏、开启对应选项，再通过工具启动游戏。如提示缺少画质设置，请先正常运行该客户端一次。启动时发现更新只显示提示，不打断操作；在「版本更新」中可以查看、下载或关闭启动时检查。请结束解锁会话后再更新。
 
 ### 反馈与开发
 
 会话失败时，可从应用内提示打开 [GitHub Issues](https://github.com/L1angYun/HSRUnlocker/issues)。请附工具版本、复现步骤和必要的脱敏错误行；无需上传完整日志、个人路径、账号信息或内存转储。安全问题请参阅[安全说明](SECURITY.md)。
 
-展开「运行日志」可导出当前会话的诊断 TXT，包含工具版本、Windows 版本和帧率读写错误码，不包含原始日志、文件路径或进程编号。分享前可先打开检查。
+可从失败提示或「运行日志」导出当前会话的诊断 TXT。文件包含工具版本、Windows 版本和帧率读写错误码，不包含原始日志、文件路径或进程编号。分享前请先检查。
 
 构建、测试和发布步骤见[参与开发](CONTRIBUTING.md)。本项目在开发中使用 AI 辅助，未经独立安全审计。
 
@@ -41,7 +41,7 @@ An FPS unlocker for Honkai: Star Rail, with a 10–480 FPS cap, FOV adjustment, 
 
 **Download:** [GitHub Releases](https://github.com/L1angYun/HSRUnlocker/releases) · [Gitee Releases](https://gitee.com/liangyun_Liu/HSRUnlocker/releases)
 
-Requires Windows 11 22H2 or later (x64) and administrator privileges. Setup checks for .NET 8 and Windows App Runtime and downloads the official Microsoft components when needed.
+Requires Windows 10 22H2 (build 19045) or later and administrator privileges. The same x64 installer works on Windows 10 and Windows 11. Setup downloads missing runtime components from Microsoft.
 
 ### Quick start
 
@@ -52,13 +52,13 @@ Requires Windows 11 22H2 or later (x64) and administrator privileges. Setup chec
 
 The tool saves the selected client path and displays it at startup if the file is still valid. The search button rescans and keeps your selection. Use the dropdown to switch clients and hover to see the full path.
 
-To use mobile UI, close the game, enable the option, then launch it through the tool. If graphics settings are missing, run that client normally once. In **Updates**, you can check manually or turn off checks at startup.
+To use mobile UI, close the game, enable the option, then launch it through the tool. If graphics settings are missing, run that client normally once. Startup update checks show a dismissible notice. Use **Updates** to check manually, download an update, or turn off startup checks. End the session before updating.
 
 ### Feedback and development
 
 If a session fails, the notice in the app links to [GitHub Issues](https://github.com/L1angYun/HSRUnlocker/issues). Include the app version, steps to reproduce, and any relevant sanitized error lines. Leave out full logs, personal paths, account details, and memory dumps. For security issues, see the [security policy](SECURITY.md).
 
-Expand **Activity log** to export a TXT report for the current session. It includes the app and Windows versions and frame cap error codes, without raw logs, file paths, or process IDs. Review it before sharing.
+Export a TXT report for the current session from the failure notice or **Activity log**. It includes the app and Windows versions and frame cap error codes, without raw logs, file paths, or process IDs. Review it before sharing.
 
 See [Contributing](CONTRIBUTING.md#english) for build, test, and release instructions. The project is developed with AI assistance and has not undergone an independent security audit.
 

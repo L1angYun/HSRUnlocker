@@ -56,6 +56,14 @@ function Reject-Legacy([string]$Name, [string[]]$Files) {
 }
 
 try {
+    $project = [xml][IO.File]::ReadAllText((Join-Path $repo 'gui\HSRUnlocker.csproj'))
+    $minimum = $project.SelectSingleNode('/Project/PropertyGroup/TargetPlatformMinVersion').InnerText
+    $setup = [IO.File]::ReadAllText((Join-Path $repo 'installer\HSRUnlocker.iss'))
+    $setupMinimum = [regex]::Match($setup, '(?m)^MinVersion=(10\.0\.\d+)\r?$').Groups[1].Value
+    Check ([version]$minimum -eq [version]'10.0.19045.0' -and
+        ([version]$minimum).ToString(3) -ceq $setupMinimum) 'Installer and app both allow Windows 10 22H2'
+    Check ($setup -match '(?m)^OutputBaseFilename=HSRUnlocker-\{#AppVersion\}-win-x64-Setup\r?$' -and
+        @([regex]::Matches($setup, '(?m)^OutputBaseFilename=')).Count -eq 1) 'Uses one canonical x64 installer for manual downloads and automatic updates'
     [IO.File]::WriteAllText($manifestPath, $baseline)
     $valid = Read-InstallerRuntimeManifest $manifestPath '2.5.1'
     Check ($valid.dotnet.version -eq '8.0.32' -and $valid.windowsAppRuntime.version -eq '2.5.1') 'Accepts the pinned Microsoft x64 runtime manifest'
