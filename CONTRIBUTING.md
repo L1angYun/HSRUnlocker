@@ -2,6 +2,42 @@
 
 [简体中文](#简体中文) | [English](#english)
 
+## 发布命令 / Release commands
+
+在仓库根目录运行。构建应用需要 .NET 8 SDK，编译安装包还需要 Inno Setup 7.1 或更高版本。
+
+Run from the repository root. Install the .NET 8 SDK for the app build and Inno Setup 7.1 or later for the installer.
+
+```powershell
+powershell -NoProfile -File .\build.ps1 -OutDir .\artifacts\win-x64
+powershell -NoProfile -File .\build-installer.ps1 -OutDir .\artifacts\installer
+```
+
+安装包构建后，用 PowerShell 7.2 或更高版本准备发布附件。
+
+After building the installer, prepare the release assets in PowerShell 7.2 or later.
+
+```powershell
+$version = (Get-Content .\artifacts\installer\update.json -Raw | ConvertFrom-Json).tag_name.Substring(1)
+$source = .\package-source.ps1 -OutDir .\artifacts\source | ConvertFrom-Json
+$release = @{
+    Version = $version
+    InstallerPath = ".\artifacts\installer\HSRUnlocker-$version-win-x64-Setup.exe"
+    SourceArchivePath = $source.Archive
+    OutDir = '.\artifacts\release-assets'
+}
+.\scripts\Prepare-ReleaseAssets.ps1 @release
+```
+
+校验下载时，将安装包和同一版本的 `SHA256SUMS.txt` 放在同一目录。在 PowerShell 中将下方示例的 `<version>` 换成实际版本号，核对两处 SHA-256 值是否一致。
+
+To verify a download, place the installer and `SHA256SUMS.txt` from the same release in one folder. Open PowerShell there, replace `<version>` in the example with the actual version, and compare the two SHA-256 values.
+
+```powershell
+Get-FileHash '.\HSRUnlocker-<version>-win-x64-Setup.exe' -Algorithm SHA256
+Get-Content .\SHA256SUMS.txt
+```
+
 ## 简体中文
 
 ### 构建与测试
@@ -23,6 +59,14 @@ powershell -NoProfile -File .\tests\NativeFixtures.Tests.ps1 -CompilerPath '<ful
 ```
 
 该入口编译并运行依赖检查与旧版清理两组合成测试，并核验 `RedStub` 负向对照按预期断言失败。可用 `-EvidenceDir` 指定新的空证据目录，默认使用临时目录。CI 配置使用同一入口，并下载及校验固定版本 Inno Setup 7.1.0。测试不执行应用或运行时安装包，也不修改真实安装或注册表。
+
+### 打包与发布
+
+见[发布命令](#发布命令--release-commands)。应用和安装程序的构建目录必须为空；应用默认使用共享的 .NET 8 x64 和 Windows App Runtime，可为 `build.ps1` 添加 `-SelfContained` 随包附带运行时。安装包使用共享运行时；可为 `build-installer.ps1` 添加 `-CompilerPath` 以指定 `ISCC.exe`。固定的运行时下载地址和校验值在 [installer/runtime-dependencies.json](installer/runtime-dependencies.json)。
+
+安装程序构建会根据成品生成 `update.json`。发布附件脚本验证清单和安装包、检查源码 ZIP，生成 `SHA256SUMS.txt` 并核对输出文件。输出目录需为空且与输入目录分开；脚本不上传文件。
+
+GitHub 和 Gitee 的同一版本使用相同附件。先上传并核对安装包、源码 ZIP 和 `SHA256SUMS.txt`，最后上传 `update.json`。同步仓库源码不会同步 Gitee 的发布附件。
 
 ### 代码约定
 
@@ -68,6 +112,14 @@ powershell -NoProfile -File .\tests\NativeFixtures.Tests.ps1 -CompilerPath '<ful
 ```
 
 It compiles and runs both prerequisite and legacy-cleanup synthetic suites, and verifies that the `RedStub` negative control fails its intended assertions. Use `-EvidenceDir` to select a new empty evidence directory; the default is a temporary directory. CI is configured to use the same entrypoint and download and verify pinned Inno Setup 7.1.0. Tests do not execute application or runtime installers or modify real installations or the registry.
+
+### Packaging and releases
+
+See the [release commands](#发布命令--release-commands). Use empty output directories for the app and installer builds. The app uses shared .NET 8 x64 and Windows App Runtime installations by default; add `-SelfContained` to `build.ps1` to bundle them. The installer uses shared runtimes. Pass `-CompilerPath` to `build-installer.ps1` to select `ISCC.exe`. Pinned runtime downloads and hashes are in [installer/runtime-dependencies.json](installer/runtime-dependencies.json).
+
+The installer build uses the finished installer to generate `update.json`. The release asset script checks the manifest and installer, verifies that it can read the source ZIP, generates `SHA256SUMS.txt`, and rechecks the output files. Use an empty output directory separate from the inputs. The script prepares files locally.
+
+Use identical assets for the same release on GitHub and Gitee. Upload and check the installer, source ZIP, and `SHA256SUMS.txt` first, then upload `update.json` last. Synchronizing the repository does not publish release assets on Gitee.
 
 ### Code Conventions
 
