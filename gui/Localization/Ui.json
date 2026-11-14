@@ -359,6 +359,36 @@
     "ja-JP": "表示中のログを消去",
     "ko-KR": "표시된 로그 지우기"
   },
+  "Ui.ExportDiagnostics": {
+    "zh-CN": "导出诊断日志",
+    "en-US": "Export diagnostics",
+    "ja-JP": "診断ログをエクスポート",
+    "ko-KR": "진단 로그 내보내기"
+  },
+  "Ui.ExportDiagnosticsTip": {
+    "zh-CN": "将脱敏后的会话诊断信息保存为文本文件。",
+    "en-US": "Save a sanitized session report as a text file.",
+    "ja-JP": "機密情報を除いたセッションの診断レポートをテキストファイルに保存します。",
+    "ko-KR": "민감한 정보를 제외한 세션 진단 보고서를 텍스트 파일로 저장합니다."
+  },
+  "Ui.DiagnosticsTextFile": {
+    "zh-CN": "文本文件",
+    "en-US": "Text file",
+    "ja-JP": "テキストファイル",
+    "ko-KR": "텍스트 파일"
+  },
+  "Ui.DiagnosticsExportSaved": {
+    "zh-CN": "诊断日志已保存。分享前请先检查内容。",
+    "en-US": "Diagnostics saved. Review the file before sharing.",
+    "ja-JP": "診断ログを保存しました。共有する前に内容を確認してください。",
+    "ko-KR": "진단 로그를 저장했습니다. 공유하기 전에 파일 내용을 확인하세요."
+  },
+  "Ui.DiagnosticsExportFailed": {
+    "zh-CN": "未能保存诊断日志。请尝试选择其他位置。",
+    "en-US": "Could not save diagnostics. Try choosing another location.",
+    "ja-JP": "診断ログを保存できませんでした。別の保存先を選んでください。",
+    "ko-KR": "진단 로그를 저장하지 못했습니다. 다른 저장 위치를 선택해 주세요."
+  },
   "Ui.LaunchGameTip": {
     "zh-CN": "启动所选客户端并应用设置；如果已运行，则直接连接。",
     "en-US": "Launch the selected client and apply settings, or connect if it is already running.",
@@ -450,10 +480,10 @@
     "ko-KR": "세션 실패 신고"
   },
   "Ui.SessionFailureReportMessage": {
-    "zh-CN": "请提供 HSRUnlocker 版本 {0}、复现步骤和已删除敏感信息的错误文字。请勿附上完整日志、文件路径或游戏文件。",
-    "en-US": "Include HSRUnlocker version {0}, steps to reproduce, and any error text with private details removed. Leave out raw logs, file paths, and game files.",
-    "ja-JP": "HSRUnlocker のバージョン {0}、再現手順、機密情報を除いたエラー文を記載してください。未編集のログ、ファイルパス、ゲームファイルは含めないでください。",
-    "ko-KR": "HSRUnlocker 버전 {0}, 재현 단계, 민감한 정보를 지운 오류 문구를 적어 주세요. 원본 로그, 파일 경로, 게임 파일은 포함하지 마세요."
+    "zh-CN": "请提供 HSRUnlocker 版本 {0} 和复现步骤。可在运行日志中导出诊断日志，检查后再附上。请勿附上原始日志、文件路径或游戏文件。",
+    "en-US": "Include HSRUnlocker version {0} and steps to reproduce. You can export diagnostics from the activity log and attach the file after reviewing it. Leave out raw logs, file paths, and game files.",
+    "ja-JP": "HSRUnlocker のバージョン {0} と再現手順を記載してください。実行ログから診断ログをエクスポートし、内容を確認してから添付できます。未編集のログ、ファイルパス、ゲームファイルは含めないでください。",
+    "ko-KR": "HSRUnlocker 버전 {0}과 재현 단계를 적어 주세요. 실행 로그에서 진단 로그를 내보내고 내용을 확인한 뒤 첨부할 수 있습니다. 원본 로그, 파일 경로, 게임 파일은 포함하지 마세요."
   },
   "Ui.SessionFailureReportAction": {
     "zh-CN": "在 GitHub 提交问题",

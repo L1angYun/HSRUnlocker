@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Windowing;
+using Microsoft.Windows.Storage.Pickers;
 using StarRailUnlocker.Core;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics;
@@ -16,7 +19,9 @@ namespace StarRailUnlocker
         private const int VisibleLogLimit = 300;
         private readonly Queue<string> _logLines = new();
         private string _lastLoggedLine, _localErrorKey;
+        private string _diagnosticsExportStatusKey;
         private bool _logDirty;
+        private bool _exportingDiagnostics;
         private bool? _wideLayout;
 
         private void OnLayoutSizeChanged(object sender, SizeChangedEventArgs e)
@@ -83,6 +88,7 @@ namespace StarRailUnlocker
             SafeAreaHorizontalBox.IsEnabled = SafeAreaModeBox.IsEnabled && customSafeArea;
             ExitWithGameToggle.IsEnabled = !blocked;
             RefreshUpdatePresentation();
+            RefreshDiagnosticsExport();
 
             if (_closePending || _switchingSession || restoring)
             {
@@ -205,6 +211,60 @@ namespace StarRailUnlocker
                 Clipboard.SetContent(data);
             }
             catch (Exception ex) { Log(L10n.T("Ui.LogCopyFailed", ex.Message)); }
+        }
+
+        private bool CanExportDiagnostics =>
+            !_closed && !_closePending && !_setupInProgress && !_switchingSession && !_scanningGames &&
+            !_dialogOpen && !_pickingGame && !_downloadingUpdate && !_openingRelease && !_exportingDiagnostics &&
+            _session?.Diagnostics.HasEntries == true;
+
+        private void RefreshDiagnosticsExport()
+        {
+            ExportDiagnosticsButton.IsEnabled = CanExportDiagnostics;
+            DiagnosticsExportStatus.Visibility = _diagnosticsExportStatusKey == null
+                ? Visibility.Collapsed : Visibility.Visible;
+            DiagnosticsExportStatus.Text = _diagnosticsExportStatusKey == null
+                ? string.Empty : L10n.T(_diagnosticsExportStatusKey);
+        }
+
+        private async void OnExportDiagnosticsClick(object sender, RoutedEventArgs e)
+        {
+            if (!CanExportDiagnostics) return;
+            _exportingDiagnostics = _dialogOpen = true;
+            _diagnosticsExportStatusKey = null;
+            RefreshPresentation();
+            try
+            {
+                string report = _session?.Diagnostics.CreateReport(AppVersion);
+                if (string.IsNullOrEmpty(report)) return;
+                var picker = new FileSavePicker(AppWindow.Id)
+                {
+                    SuggestedFileName = "HSRUnlocker-diagnostics-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture),
+                    DefaultFileExtension = ".txt",
+                    ShowOverwritePrompt = true
+                };
+                picker.FileTypeChoices.Add(L10n.T("Ui.DiagnosticsTextFile"), new List<string> { ".txt" });
+                var result = await picker.PickSaveFileAsync();
+                if (_closed || _closePending || result == null) return;
+                await File.WriteAllTextAsync(result.Path, report, Encoding.UTF8);
+                _diagnosticsExportStatusKey = "Ui.DiagnosticsExportSaved";
+            }
+            catch (Exception ex)
+            {
+                _diagnosticsExportStatusKey = "Ui.DiagnosticsExportFailed";
+                App.WriteLog("Diagnostics export", ex.GetType().Name + " (0x" + ex.HResult.ToString("X8", CultureInfo.InvariantCulture) + ")");
+            }
+            finally
+            {
+                _dialogOpen = _exportingDiagnostics = false;
+                if (!_closed && !_closePending)
+                {
+                    RefreshPresentation();
+                    if (_session?.State == SessionState.GameExited)
+                        ScheduleGameExitClose(_session);
+                }
+                QueueUpdatePrompt();
+            }
         }
     }
 }

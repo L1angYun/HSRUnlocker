@@ -29,6 +29,8 @@
 
 会话失败时，可从应用内提示打开 [GitHub Issues](https://github.com/L1angYun/HSRUnlocker/issues)。请附工具版本、复现步骤和必要的脱敏错误行；无需上传完整日志、个人路径、账号信息或内存转储。安全问题请参阅[安全说明](SECURITY.md)。
 
+展开「运行日志」可导出当前会话的诊断 TXT，包含工具版本、Windows 版本和帧率读写错误码，不包含原始日志、文件路径或进程编号。分享前可先打开检查。
+
 构建、测试和发布步骤见[参与开发](CONTRIBUTING.md)。本项目在开发中使用 AI 辅助，未经独立安全审计。
 
 这是非官方工具。修改游戏进程可能违反游戏服务条款并带来账号风险。
@@ -55,6 +57,8 @@ To use mobile UI, close the game, enable the option, then launch it through the 
 ### Feedback and development
 
 If a session fails, the notice in the app links to [GitHub Issues](https://github.com/L1angYun/HSRUnlocker/issues). Include the app version, steps to reproduce, and any relevant sanitized error lines. Leave out full logs, personal paths, account details, and memory dumps. For security issues, see the [security policy](SECURITY.md).
+
+Expand **Activity log** to export a TXT report for the current session. It includes the app and Windows versions and frame cap error codes, without raw logs, file paths, or process IDs. Review it before sharing.
 
 See [Contributing](CONTRIBUTING.md#english) for build, test, and release instructions. The project is developed with AI assistance and has not undergone an independent security audit.
 

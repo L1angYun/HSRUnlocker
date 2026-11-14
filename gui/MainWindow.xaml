@@ -360,17 +360,31 @@
                     <Grid RowSpacing="8">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="180" />
                         </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
-                            <Button x:Name="CopyLogButton" Click="OnCopyLogClick" Style="{StaticResource ToolButtonStyle}">
-                                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Copy" /></Viewbox>
-                            </Button>
-                            <Button x:Name="ClearLogButton" Click="OnClearLogClick" Style="{StaticResource ToolButtonStyle}">
-                                <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Clear" /></Viewbox>
-                            </Button>
-                        </StackPanel>
-                        <ScrollViewer Grid.Row="1" x:Name="LogScroll" VerticalScrollBarVisibility="Auto">
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="ExportDiagnosticsButton" Click="OnExportDiagnosticsClick"
+                                    IsEnabled="False" MinHeight="36"
+                                    AutomationProperties.AutomationId="ExportDiagnosticsButton" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                                <Button x:Name="CopyLogButton" Click="OnCopyLogClick" Style="{StaticResource ToolButtonStyle}">
+                                    <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Copy" /></Viewbox>
+                                </Button>
+                                <Button x:Name="ClearLogButton" Click="OnClearLogClick" Style="{StaticResource ToolButtonStyle}">
+                                    <Viewbox Width="16" Height="16"><SymbolIcon Symbol="Clear" /></Viewbox>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Grid.Row="1" x:Name="DiagnosticsExportStatus" Visibility="Collapsed"
+                                   Style="{StaticResource SecondaryTextStyle}"
+                                   AutomationProperties.AutomationId="DiagnosticsExportStatus"
+                                   AutomationProperties.LiveSetting="Polite" />
+                        <ScrollViewer Grid.Row="2" x:Name="LogScroll" VerticalScrollBarVisibility="Auto">
                             <TextBlock x:Name="LogText" FontSize="12"
                                        TextWrapping="Wrap" IsTextSelectionEnabled="True" />
                         </ScrollViewer>

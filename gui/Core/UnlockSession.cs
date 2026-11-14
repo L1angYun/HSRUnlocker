@@ -24,6 +24,7 @@ namespace StarRailUnlocker.Core
         public string FovError { get; private set; } = "";
         public bool AntiFadeInstalled { get; private set; }
         public string AntiFadeError { get; private set; } = "";
+        internal SessionDiagnostics Diagnostics { get; } = new();
         // A null message refreshes feature snapshots only; LastMessage keeps the last diagnostic.
         public event Action<SessionState, string> Changed;
         private static readonly TimeSpan FeatureRetryInterval = TimeSpan.FromSeconds(5);
@@ -85,6 +86,7 @@ namespace StarRailUnlocker.Core
             lock (_lifecycle)
             {
                 if (IsRunning) return;
+                Diagnostics.Reset();
                 _launchConfig = Config.Clone();
                 _launchConfig.Normalize();
                 _cts?.Dispose();
@@ -120,10 +122,14 @@ namespace StarRailUnlocker.Core
             string failureMessage = "";
             var launchConfig = _launchConfig ?? Config;
             ResetFeatures();
+            var phase = DiagnosticStep.Session;
+            Diagnostics.Add(phase, DiagnosticResult.Started);
             try
             {
                 if (pid == 0)
                 {
+                    phase = DiagnosticStep.WaitForGame;
+                    Diagnostics.Add(phase, DiagnosticResult.Started);
                     Set(SessionState.WaitingForGame, L10n.T("Runtime.Session.FindingGame"));
                     bool launchRequested = launchIfMissing || launchConfig.AutoStart;
                     if (launchRequested)
@@ -155,7 +161,10 @@ namespace StarRailUnlocker.Core
                 }
                 token.ThrowIfCancellationRequested();
                 Pid = pid;
+                phase = DiagnosticStep.OpenGame;
                 _proc = new TargetProcess(pid);
+                Diagnostics.Add(phase, DiagnosticResult.Ready);
+                phase = DiagnosticStep.WaitForModules;
                 Set(SessionState.Patching, L10n.T("Runtime.Session.AttachedWaiting", pid));
                 var moduleDeadline = DateTime.UtcNow.AddMinutes(3);
                 while (TargetProcess.FindModule(pid, "UnityPlayer.dll").Base == 0
@@ -165,26 +174,36 @@ namespace StarRailUnlocker.Core
                     if (DateTime.UtcNow >= moduleDeadline) throw new InvalidOperationException(L10n.T("Runtime.Session.ModuleWaitTimeout"));
                     Delay(token, 250);
                 }
+                Diagnostics.Add(phase, DiagnosticResult.Ready);
+                phase = DiagnosticStep.ResolveFrameCap;
                 _build = GameBuildResolver.Resolve(_proc, Log);
-                var cap = FrameCapLocator.Resolve(_proc, _build, Log);
+                var cap = FrameCapLocator.Resolve(_proc, _build, Log,
+                    transfer => Diagnostics.AddTransfer(DiagnosticStep.ResolveFrameCap, transfer));
                 CapRva = cap.Rva; CapAddress = _build.UnityBase + cap.Rva;
                 OriginalValue = cap.LiveValue;
                 AppliedValue = Math.Clamp(Config.TargetFramerate, 10, 480);
+                phase = DiagnosticStep.InitialWrite;
                 _capCleanupDiagnostic = null;
                 var initialWrite = _proc.TryWriteInt32(CapAddress, AppliedValue);
                 _capWritten = initialWrite.Succeeded || initialWrite.BytesTransferred > 0;
                 if (!initialWrite.Succeeded)
-                    throw CapIoFailure("Runtime.Session.WriteCapFailed", initialWrite);
+                    throw CapIoFailure(phase, "Runtime.Session.WriteCapFailed", initialWrite);
+                phase = DiagnosticStep.InitialReadback;
                 var initialReadback = _proc.TryReadInt32(CapAddress, out int confirmed);
                 if (!initialReadback.Succeeded)
-                    throw CapIoFailure("Runtime.Session.CapInitialReadbackFailed", initialReadback);
+                    throw CapIoFailure(phase, "Runtime.Session.CapInitialReadbackFailed", initialReadback);
                 if (confirmed != AppliedValue)
+                {
+                    Diagnostics.AddValues(phase, DiagnosticResult.Mismatch, AppliedValue, confirmed);
                     throw new InvalidOperationException(L10n.T("Runtime.Session.CapReadbackMismatch", AppliedValue, confirmed));
+                }
+                Diagnostics.AddTransition(phase, DiagnosticResult.Applied, OriginalValue, AppliedValue);
                 Set(SessionState.Active, L10n.T("Runtime.Session.CapApplied", OriginalValue, AppliedValue, CapRva));
                 var readFailures = new FrameCapReadFailures();
                 bool reportedReadRetry = false;
                 while (true)
                 {
+                    phase = DiagnosticStep.MonitorFrameCap;
                     token.ThrowIfCancellationRequested();
                     if (!_proc.IsAlive) { Set(SessionState.GameExited, L10n.T("Runtime.Session.GameExited")); break; }
                     ProcessFov();
@@ -200,7 +219,8 @@ namespace StarRailUnlocker.Core
                             break;
                         }
                         if (!readFailures.CanRetry(monitorRead))
-                            throw CapIoFailure("Runtime.Session.CapUnreadable", monitorRead);
+                            throw CapIoFailure(phase, "Runtime.Session.CapUnreadable", monitorRead);
+                        Diagnostics.AddTransfer(phase, monitorRead, retry: true);
                         if (!reportedReadRetry)
                             SafeLog(L10n.T("Runtime.Session.CapMonitorReadRetry", monitorRead.DescribeFailure()));
                         reportedReadRetry = true;
@@ -208,20 +228,29 @@ namespace StarRailUnlocker.Core
                         continue;
                     }
                     if (reportedReadRetry)
+                    {
+                        Diagnostics.Add(phase, DiagnosticResult.Recovered);
                         SafeLog(L10n.T("Runtime.Session.CapMonitorReadRecovered"));
+                    }
                     readFailures.Reset();
                     reportedReadRetry = false;
                     if (current == int.MinValue)
+                    {
+                        Diagnostics.AddValues(phase, DiagnosticResult.InvalidValue, null, current);
                         throw new InvalidOperationException(L10n.T("Runtime.Session.CapInvalidValue", current));
+                    }
                     if (desired != AppliedValue || current != desired)
                     {
                         if (current != AppliedValue && current >= -1 && current <= 1000)
                             OriginalValue = current;
+                        phase = DiagnosticStep.UpdateFrameCap;
                         var update = _proc.TryWriteInt32(CapAddress, desired);
-                        if (!update.Succeeded) throw CapIoFailure("Runtime.Session.UpdateCapFailed", update);
+                        if (!update.Succeeded) throw CapIoFailure(phase, "Runtime.Session.UpdateCapFailed", update);
                         bool reapplying = desired == AppliedValue;
                         if (reapplying) ReapplyCount++;
                         AppliedValue = desired;
+                        Diagnostics.AddTransition(phase, reapplying ? DiagnosticResult.Reapplied : DiagnosticResult.Applied,
+                            current, desired);
                         Log(reapplying ? L10n.T("Runtime.Session.CapReapplied", desired, ReapplyCount)
                             : L10n.T("Runtime.Session.CapUpdated", desired));
                     }
@@ -231,6 +260,7 @@ namespace StarRailUnlocker.Core
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
+                Diagnostics.Add(phase, DiagnosticResult.Failed);
                 failure = true; failureMessage = ex.Message;
                 SafeSet(SessionState.Failed, failureMessage);
             }
@@ -246,6 +276,7 @@ namespace StarRailUnlocker.Core
                     if (restored || exited || _proc == null) break;
                     if (!pendingReported)
                     {
+                        Diagnostics.Add(DiagnosticStep.RestoreSession, DiagnosticResult.Pending);
                         pendingReported = true;
                         SafeSet(SessionState.Failed, L10n.T("Runtime.Session.RestorationPending"));
                     }
@@ -265,11 +296,18 @@ namespace StarRailUnlocker.Core
                 {
                     _proc = null; _build = null; _capWritten = false;
                 }
-                if (exited) SafeSet(SessionState.GameExited, L10n.T("Runtime.Session.ExitedResourcesReleased"));
+                if (exited)
+                {
+                    Diagnostics.Add(DiagnosticStep.Session, DiagnosticResult.GameExited);
+                    SafeSet(SessionState.GameExited, L10n.T("Runtime.Session.ExitedResourcesReleased"));
+                }
                 else if (failure) SafeSet(SessionState.Failed, failureMessage);
                 else if (State != SessionState.GameExited)
+                {
+                    Diagnostics.Add(DiagnosticStep.Session, restored ? DiagnosticResult.Stopped : DiagnosticResult.Failed);
                     SafeSet(restored ? SessionState.Idle : SessionState.Failed,
                         L10n.T(restored ? "Runtime.Session.StoppedRestored" : "Runtime.Session.StoppedIncomplete"));
+                }
             }
         }
 
@@ -464,14 +502,20 @@ namespace StarRailUnlocker.Core
             return restored;
         }
 
-        private static InvalidOperationException CapIoFailure(string operation, Int32Transfer transfer) =>
-            new(L10n.T(operation, transfer.DescribeFailure()));
+        private InvalidOperationException CapIoFailure(DiagnosticStep step, string operation, Int32Transfer transfer)
+        {
+            Diagnostics.AddTransfer(step, transfer);
+            return new InvalidOperationException(L10n.T(operation, transfer.DescribeFailure()));
+        }
 
-        private bool ReportCapCleanupFailure(string message)
+        private bool ReportCapCleanupFailure(string message, DiagnosticStep step, Int32Transfer? transfer = null, int? observed = null)
         {
             if (!string.Equals(_capCleanupDiagnostic, message, StringComparison.Ordinal))
             {
                 _capCleanupDiagnostic = message;
+                if (transfer is { } io) Diagnostics.AddTransfer(step, io);
+                else if (observed is int cap) Diagnostics.AddValues(step, DiagnosticResult.Mismatch, OriginalValue, cap);
+                else Diagnostics.Add(step, DiagnosticResult.Failed);
                 SafeLog(message);
             }
             return false;
@@ -484,19 +528,24 @@ namespace StarRailUnlocker.Core
                 if (!_capWritten || _proc == null || !_proc.IsAlive) return true;
                 var beforeRestore = _proc.TryReadInt32(CapAddress, out int current);
                 if (!beforeRestore.Succeeded)
-                    return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreReadFailed", beforeRestore.DescribeFailure()));
+                    return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreReadFailed", beforeRestore.DescribeFailure()),
+                        DiagnosticStep.RestoreRead, beforeRestore);
                 if (current != OriginalValue)
                 {
                     var restore = _proc.TryWriteInt32(CapAddress, OriginalValue);
                     if (!restore.Succeeded)
-                        return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreWriteFailed", restore.DescribeFailure()));
+                        return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreWriteFailed", restore.DescribeFailure()),
+                            DiagnosticStep.RestoreWrite, restore);
                     var readback = _proc.TryReadInt32(CapAddress, out int restored);
                     if (!readback.Succeeded)
-                        return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreReadbackFailed", readback.DescribeFailure()));
+                        return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreReadbackFailed", readback.DescribeFailure()),
+                            DiagnosticStep.RestoreReadback, readback);
                     if (restored != OriginalValue)
-                        return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreMismatch", OriginalValue, restored));
+                        return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreMismatch", OriginalValue, restored),
+                            DiagnosticStep.RestoreReadback, observed: restored);
                 }
                 _capWritten = false;
+                Diagnostics.Add(DiagnosticStep.RestoreFrameCap, DiagnosticResult.Confirmed);
                 if (_capCleanupDiagnostic != null)
                     SafeLog(L10n.T("Runtime.Session.CapRestoreRecovered"));
                 _capCleanupDiagnostic = null;
@@ -504,7 +553,7 @@ namespace StarRailUnlocker.Core
             }
             catch (Exception ex)
             {
-                return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreFailed", ex.Message));
+                return ReportCapCleanupFailure(L10n.T("Runtime.Session.CapRestoreFailed", ex.Message), DiagnosticStep.RestoreFrameCap);
             }
         }
 

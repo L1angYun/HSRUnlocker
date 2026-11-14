@@ -141,6 +141,9 @@ internal static class LifecycleVerification
             check(owner.ReadInt32(cap) == 60 && GetField(session, "_fov") == null
                 && ReferenceEquals(GetField(session, "_antiFade"), antiFade),
                 "failed anti-fade cleanup retains its owner while FOV and frame-cap restoration complete independently");
+            string report = session.Diagnostics.CreateReport("1.3.7");
+            check(report.Contains("RestoreFrameCap Confirmed") && report.Contains("RestoreSession Pending"),
+                "session lifecycle exports confirmed frame cap rollback separately from pending session cleanup");
             session.Start(checked((uint)Environment.ProcessId));
             check(ReferenceEquals(GetField(session, "_worker"), worker),
                 "Start cannot replace a worker whose previous patches still require restoration");

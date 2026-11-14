@@ -14,7 +14,11 @@ namespace StarRailUnlocker.Core
             public int LiveValue;
         }
 
-        public static Candidate Resolve(TargetProcess proc, ResolvedGameBuild build, Action<string> log = null)
+        public static Candidate Resolve(TargetProcess proc, ResolvedGameBuild build, Action<string> log = null) =>
+            Resolve(proc, build, log, null);
+
+        internal static Candidate Resolve(TargetProcess proc, ResolvedGameBuild build, Action<string> log,
+            Action<Int32Transfer> reportReadFailure)
         {
             ulong setter = build.FrameSetterTarget;
             ulong getter = build.FrameGetterTarget;
@@ -45,7 +49,10 @@ namespace StarRailUnlocker.Core
                 throw new InvalidOperationException(L10n.T("Runtime.FrameCap.StaticMismatch"));
             var read = proc.TryReadInt32(setStatic, out int live);
             if (!read.Succeeded)
+            {
+                reportReadFailure?.Invoke(read);
                 throw new InvalidOperationException(L10n.T("Runtime.FrameCap.StaticReadFailed", read.DescribeFailure()));
+            }
             if (live == int.MinValue)
                 throw new InvalidOperationException(L10n.T("Runtime.FrameCap.StaticInvalidValue", live));
             var result = new Candidate { Rva = setStatic - build.UnityBase, LiveValue = live };

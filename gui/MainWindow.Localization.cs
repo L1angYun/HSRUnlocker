@@ -120,6 +120,9 @@ namespace StarRailUnlocker
                 LocalizeControl(LanguageBox, "Ui.Language", "Ui.LanguageTip");
                 LocalizeControl(LogExpander, "Ui.RuntimeLog");
                 LocalizeControl(LogText, "Ui.RuntimeLogContent");
+                ExportDiagnosticsButton.Content = WrappedText("Ui.ExportDiagnostics");
+                LocalizeControl(ExportDiagnosticsButton, "Ui.ExportDiagnostics", "Ui.ExportDiagnosticsTip");
+                RefreshDiagnosticsExport();
                 LocalizeControl(CopyLogButton, "Ui.CopyLog", "Ui.CopyVisibleLog");
                 LocalizeControl(ClearLogButton, "Ui.ClearVisibleLog", "Ui.ClearVisibleLog");
                 LocalizeControl(StartButton, "Ui.LaunchGame", "Ui.LaunchGameTip");

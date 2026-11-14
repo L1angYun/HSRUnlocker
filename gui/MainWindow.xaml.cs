@@ -300,7 +300,7 @@ namespace StarRailUnlocker
         private void ScheduleGameExitClose(UnlockSession source)
         {
             CancelGameExitClose();
-            if (!_config.ExitWithGame || _closed || _closePending || _switchingSession || _downloadingUpdate ||
+            if (!_config.ExitWithGame || _closed || _closePending || _switchingSession || _downloadingUpdate || _exportingDiagnostics ||
                 SessionFailureInfoBar.IsOpen || !ReferenceEquals(_session, source)) return;
             var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             _exitTimer = timer;
@@ -309,7 +309,7 @@ namespace StarRailUnlocker
                 timer.Stop();
                 if (!ReferenceEquals(_exitTimer, timer)) return;
                 _exitTimer = null;
-                if (_config.ExitWithGame && !_closed && !_closePending && !_switchingSession &&
+                if (_config.ExitWithGame && !_closed && !_closePending && !_switchingSession && !_exportingDiagnostics &&
                     !SessionFailureInfoBar.IsOpen && ReferenceEquals(_session, source) &&
                     source.State == SessionState.GameExited)
                     BeginCloseAsync();
